@@ -1,0 +1,134 @@
+'use client';
+
+import Link from 'next/link';
+import { Facebook, Instagram, Mail, Phone, MapPin } from 'lucide-react';
+
+export default function Footer() {
+  const currentYear = new Date().getFullYear();
+
+  return (
+    <footer className="bg-secondary-900 text-white">
+      <div className="container py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* Brand */}
+          <div>
+            <h3 className="text-2xl font-serif font-bold mb-4">Glovia Nepal</h3>
+            <p className="text-gray-300 mb-4">
+              Premium beauty and cosmetic products crafted for Nepali skin. 
+              Embrace your natural beauty with Glovia.
+            </p>
+            <div className="flex gap-3">
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 bg-white/10 hover:bg-primary-600 rounded-full flex items-center justify-center transition-colors"
+              >
+                <Facebook className="w-5 h-5" />
+              </a>
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 bg-white/10 hover:bg-primary-600 rounded-full flex items-center justify-center transition-colors"
+              >
+                <Instagram className="w-5 h-5" />
+              </a>
+            </div>
+          </div>
+
+          {/* Quick Links */}
+          <div>
+            <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
+            <ul className="space-y-2">
+              <li>
+                <Link href="/products" className="text-gray-300 hover:text-primary-400 transition-colors">
+                  Shop All Products
+                </Link>
+              </li>
+              <li>
+                <Link href="/about" className="text-gray-300 hover:text-primary-400 transition-colors">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link href="/blog" className="text-gray-300 hover:text-primary-400 transition-colors">
+                  Beauty Blog
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="text-gray-300 hover:text-primary-400 transition-colors">
+                  Contact Us
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Customer Service */}
+          <div>
+            <h4 className="text-lg font-semibold mb-4">Customer Service</h4>
+            <ul className="space-y-2">
+              <li>
+                <Link href="/shipping" className="text-gray-300 hover:text-primary-400 transition-colors">
+                  Shipping Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/returns" className="text-gray-300 hover:text-primary-400 transition-colors">
+                  Returns & Refunds
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy" className="text-gray-300 hover:text-primary-400 transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className="text-gray-300 hover:text-primary-400 transition-colors">
+                  Terms & Conditions
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Contact Info */}
+          <div>
+            <h4 className="text-lg font-semibold mb-4">Contact Us</h4>
+            <ul className="space-y-3">
+              <li className="flex items-start gap-2">
+                <MapPin className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                <span className="text-gray-300">
+                  Kumarigal, Chabahil, Kathmandu, Nepal
+                </span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Phone className="w-5 h-5 flex-shrink-0" />
+                <a href="tel:+97714445555" className="text-gray-300 hover:text-primary-400">
+                  +977-9700003327
+                </a>
+              </li>
+              <li className="flex items-center gap-2">
+                <Mail className="w-5 h-5 flex-shrink-0" />
+                <a href="mailto:info@glovia.com.np" className="text-gray-300 hover:text-primary-400">
+                glovianepal@gmail.com
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="border-t border-white/10 mt-8 pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
+            <p>© {currentYear} Glovia Nepal. All rights reserved.</p>
+            <div className="flex gap-4">
+              <span>Made for Nepal 🇳🇵</span>
+              <span>Mr kashi chaudhary</span>
+              <span>With Love ❤️</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
