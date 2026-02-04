@@ -3,6 +3,18 @@
 import Link from 'next/link';
 import { Facebook, Instagram, Mail, Phone, MapPin } from 'lucide-react';
 
+// TikTok icon component since it's not in lucide-react
+const TikTokIcon = () => (
+  <svg
+    className="w-5 h-5"
+    fill="currentColor"
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.1 1.82 2.89 2.89 0 0 1 5.1-1.82V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z" />
+  </svg>
+);
+
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
@@ -19,7 +31,7 @@ export default function Footer() {
             </p>
             <div className="flex gap-3">
               <a
-                href="https://facebook.com"
+                href="https://www.facebook.com/profile.php?id=61584687494150"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-white/10 hover:bg-primary-600 rounded-full flex items-center justify-center transition-colors"
@@ -27,12 +39,20 @@ export default function Footer() {
                 <Facebook className="w-5 h-5" />
               </a>
               <a
-                href="https://instagram.com"
+                href="https://www.instagram.com/glovia_nepal/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-white/10 hover:bg-primary-600 rounded-full flex items-center justify-center transition-colors"
               >
                 <Instagram className="w-5 h-5" />
+              </a>
+              <a
+                href="https://www.tiktok.com/@glovianepal?_r=1&_t=ZS-93dQ96nYLDR"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 bg-white/10 hover:bg-primary-600 rounded-full flex items-center justify-center transition-colors"
+              >
+                <TikTokIcon />
               </a>
             </div>
           </div>
@@ -122,7 +142,7 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
             <p>© {currentYear} Glovia Nepal. All rights reserved.</p>
             <div className="flex gap-4">
-              <span>Made for Nepal 🇳🇵</span>
+              <span>Made for Nepal🇳🇵</span>
               <span>Mr kashi chaudhary</span>
               <span>With Love ❤️</span>
             </div>

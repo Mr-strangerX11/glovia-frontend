@@ -31,6 +31,7 @@ export default function CartPage() {
                       src={item.product.images?.[0]?.url || "/placeholder.jpg"}
                       alt={item.product.name}
                       fill
+                      sizes="80px"
                       className="object-cover rounded-lg"
                     />
                   </div>

@@ -59,12 +59,12 @@ export default function PrivacyPolicy() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-serif font-semibold mt-8 mb-4">5. Third-Party Services</h2>
+          <h2 className="text-2xl font-serif font-semibold mt-8 mb-4">5. Payment Services</h2>
           <p>
             We work with trusted third parties for:
           </p>
           <ul className="list-disc pl-6 space-y-2">
-            <li>Payment processing (eSewa, Khalti, IME Pay)</li>
+            <li>Payment processing (Cash on Delivery For Now)</li>
             <li>Delivery services</li>
             <li>Analytics and marketing</li>
           </ul>
@@ -89,9 +89,9 @@ export default function PrivacyPolicy() {
             For privacy concerns or questions, contact us at:
           </p>
           <ul className="list-none space-y-2">
-            <li>Email: privacy@glovia.com.np</li>
-            <li>Phone: +977-1-4445555</li>
-            <li>Address: Thamel, Kathmandu, Nepal</li>
+            <li>Email: glovianepal@gmail.com</li>
+            <li>Phone: +977-9700003327</li>
+            <li>Address: Kumarigal, Kathmandu, Nepal</li>
           </ul>
         </section>
 

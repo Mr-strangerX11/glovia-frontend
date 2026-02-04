@@ -92,9 +92,9 @@ export default function TermsAndConditions() {
         <section>
           <h2 className="text-2xl font-serif font-semibold mt-8 mb-4">10. Contact Information</h2>
           <ul className="list-none space-y-2">
-            <li>Email: info@glovia.com.np</li>
-            <li>Phone: +977-1-4445555</li>
-            <li>Address: Thamel, Kathmandu, Nepal</li>
+            <li>Email: glovianepal@gmail.com</li>
+            <li>Phone: +977-9700003327</li>
+            <li>Address: kumarigal, Kathmandu, Nepal</li>
           </ul>
         </section>
 

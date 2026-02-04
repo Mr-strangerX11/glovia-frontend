@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
-import { vendorAPI, categoriesAPI } from '@/lib/api';
+import { vendorAPI, categoriesAPI, brandsAPI } from '@/lib/api';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
@@ -12,6 +12,7 @@ export default function VendorNewProductPage() {
   const router = useRouter();
   const { user, isChecking } = useAuthGuard({ roles: ['VENDOR'] });
   const [categories, setCategories] = useState<any[]>([]);
+  const [brands, setBrands] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -21,6 +22,7 @@ export default function VendorNewProductPage() {
     stockQuantity: 0,
     sku: '',
     categoryId: '',
+    brandId: '',
     images: [''],
     isFeatured: false,
     isNew: true,
@@ -29,6 +31,7 @@ export default function VendorNewProductPage() {
   useEffect(() => {
     if (user) {
       fetchCategories();
+      fetchBrands();
     }
   }, [user]);
 
@@ -38,6 +41,15 @@ export default function VendorNewProductPage() {
       setCategories(data || []);
     } catch (error) {
       toast.error('Failed to load categories');
+    }
+  };
+
+  const fetchBrands = async () => {
+    try {
+      const { data } = await brandsAPI.getList();
+      setBrands(data || []);
+    } catch (error) {
+      toast.error('Failed to load brands');
     }
   };
 
@@ -201,6 +213,22 @@ export default function VendorNewProductPage() {
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="label">Brand</label>
+                <select
+                  value={formData.brandId}
+                  onChange={(e) => setFormData({ ...formData, brandId: e.target.value })}
+                  className="input"
+                >
+                  <option value="">Select Brand (Optional)</option>
+                  {brands.map((brand) => (
+                    <option key={brand.id} value={brand.id}>
+                      {brand.name}
                     </option>
                   ))}
                 </select>

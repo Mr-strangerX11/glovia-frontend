@@ -49,6 +49,7 @@ function SearchContent() {
                     src={product.images?.[0]?.url || "/placeholder.jpg"}
                     alt={product.name}
                     fill
+                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     className="object-cover group-hover:scale-110 transition-transform duration-300"
                   />
                 </div>

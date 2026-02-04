@@ -108,8 +108,8 @@ export default function ReturnsPolicy() {
           <div className="bg-primary-50 p-6 rounded-lg">
             <p className="font-semibold mb-2">Returns Department</p>
             <ul className="list-none space-y-1">
-              <li>📧 Email: returns@glovia.com.np</li>
-              <li>📞 Phone: +977-1-4445555</li>
+              <li>📧 Email: glovianepal@gmail.com</li>
+              <li>📞 Phone: +977-9700003327</li>
               <li>⏰ Hours: 10:00 AM - 6:00 PM (Sun-Fri)</li>
             </ul>
           </div>

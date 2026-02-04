@@ -73,6 +73,10 @@ export interface Brand {
   slug: string;
   description?: string;
   logo?: string;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  products?: Product[];
 }
 
 export interface CartItem {

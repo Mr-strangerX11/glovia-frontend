@@ -81,6 +81,16 @@ export const categoriesAPI = {
   getBySlug: (slug: string) => api.get(`/categories/${slug}`),
 };
 
+// Brands API
+export const brandsAPI = {
+  getAll: () => api.get('/brands'),
+  getList: () => api.get('/brands/list'),
+  getBySlug: (slug: string) => api.get(`/brands/${slug}`),
+  create: (data: any) => api.post('/brands', data),
+  update: (id: string, data: any) => api.put(`/brands/${id}`, data),
+  delete: (id: string) => api.delete(`/brands/${id}`),
+};
+
 // Cart API
 export const cartAPI = {
   get: () => api.get('/cart'),
@@ -108,18 +118,30 @@ export const ordersAPI = {
 // Admin API
 export const adminAPI = {
   getDashboard: () => api.get('/admin/dashboard'),
+  getBrandAnalytics: () => api.get('/brands/admin/analytics'),
   // Products
   createProduct: (data: any) => api.post('/admin/products', data),
   updateProduct: (id: string, data: any) => api.put(`/admin/products/${id}`, data),
   deleteProduct: (id: string) => api.delete(`/admin/products/${id}`),
+  // Brands
+  createBrand: (data: any) => api.post('/brands', data),
+  updateBrand: (id: string, data: any) => api.put(`/brands/${id}`, data),
+  deleteBrand: (id: string) => api.delete(`/brands/${id}`),
   // Orders
   getAllOrders: (status?: string) => api.get('/admin/orders', { params: { status } }),
+  getOrder: (id: string) => api.get(`/admin/orders/${id}`),
   updateOrder: (id: string, data: any) => api.put(`/admin/orders/${id}`, data),
   // Users
   getAllCustomers: () => api.get('/admin/customers'),
   createUser: (data: any) => api.post('/admin/users', data),
   updateUserRole: (id: string, role: string) => api.put(`/admin/users/${id}/role`, { role }),
   deleteUser: (id: string) => api.delete(`/admin/users/${id}`),
+  // Settings - Delivery & Discount
+  getDeliverySettings: () => api.get('/admin/settings/delivery'),
+  updateDeliverySettings: (data: any) => api.put('/admin/settings/delivery', data),
+  // Settings - Announcement
+  getAnnouncement: () => api.get('/admin/settings/announcement'),
+  updateAnnouncement: (data: any) => api.put('/admin/settings/announcement', data),
 };
 
 // Vendor API

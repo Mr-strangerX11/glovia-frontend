@@ -1,6 +1,6 @@
 import useSWR from 'swr';
-import { productsAPI, categoriesAPI, cartAPI, wishlistAPI, ordersAPI, userAPI, bannersAPI, blogsAPI, adminAPI } from '@/lib/api';
-import { Product, Category, Cart, WishlistItem, Order, User, Address, Banner, Blog } from '@/types';
+import { productsAPI, categoriesAPI, brandsAPI, cartAPI, wishlistAPI, ordersAPI, userAPI, bannersAPI, blogsAPI, adminAPI } from '@/lib/api';
+import { Product, Category, Brand, Cart, WishlistItem, Order, User, Address, Banner, Blog } from '@/types';
 
 const fetcher = (fn: () => Promise<any>) => fn().then(res => res.data);
 
@@ -53,6 +53,40 @@ export function useCategories() {
     categories: data as Category[],
     isLoading: !error && !data,
     isError: error,
+  };
+}
+
+export function useBrands() {
+  const { data, error } = useSWR('/brands', () => fetcher(brandsAPI.getAll));
+
+  return {
+    brands: data?.data as Brand[],
+    isLoading: !error && !data,
+    isError: error,
+  };
+}
+
+export function useBrandsList() {
+  const { data, error } = useSWR('/brands/list', () => fetcher(brandsAPI.getList));
+
+  return {
+    brands: data?.data as Brand[],
+    isLoading: !error && !data,
+    isError: error,
+  };
+}
+
+export function useBrand(slug: string) {
+  const { data, error, mutate } = useSWR(
+    slug ? `/brands/${slug}` : null,
+    () => fetcher(() => brandsAPI.getBySlug(slug))
+  );
+
+  return {
+    brand: data?.data as Brand,
+    isLoading: !error && !data,
+    isError: error,
+    mutate,
   };
 }
 
@@ -154,6 +188,16 @@ export function useAdminDashboard() {
 
   return {
     dashboard: data,
+    isLoading: !error && !data,
+    isError: error,
+  };
+}
+
+export function useAdminBrandAnalytics() {
+  const { data, error } = useSWR('/brands/admin/analytics', () => fetcher(adminAPI.getBrandAnalytics));
+
+  return {
+    analytics: data?.data,
     isLoading: !error && !data,
     isError: error,
   };

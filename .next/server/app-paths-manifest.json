@@ -1,7 +1,9 @@
 {
-  "/page": "app/page.js",
-  "/dashboard/vendor/page": "app/dashboard/vendor/page.js",
-  "/vendor/analytics/page": "app/vendor/analytics/page.js",
-  "/auth/login/page": "app/auth/login/page.js",
-  "/products/page": "app/products/page.js"
+  "/about/page": "app/about/page.js",
+  "/cart/page": "app/cart/page.js",
+  "/account/addresses/page": "app/account/addresses/page.js",
+  "/account/page": "app/account/page.js",
+  "/contact/page": "app/contact/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/dashboard/admin/page": "app/dashboard/admin/page.js"
 }

@@ -30,11 +30,11 @@ export default function ShippingPolicy() {
           <div className="bg-primary-50 p-6 rounded-lg space-y-3">
             <div>
               <p className="font-semibold">📍 Within Kathmandu Valley</p>
-              <p className="text-sm">2-3 business days</p>
+              <p className="text-sm">60 Mins According to Your Location</p>
             </div>
             <div>
               <p className="font-semibold">📍 Major Cities Outside Valley</p>
-              <p className="text-sm">3-5 business days</p>
+              <p className="text-sm">2-3 business days</p>
             </div>
             <div>
               <p className="font-semibold">📍 Remote Areas</p>
@@ -59,14 +59,14 @@ export default function ShippingPolicy() {
               <tbody>
                 <tr className="border-b">
                   <td className="px-6 py-4">Kathmandu Valley</td>
-                  <td className="px-6 py-4">NPR 100</td>
+                  <td className="px-6 py-4">NPR 99</td>
                 </tr>
                 <tr className="border-b">
                   <td className="px-6 py-4">Outside Kathmandu Valley</td>
-                  <td className="px-6 py-4">NPR 150</td>
+                  <td className="px-6 py-4">NPR 149</td>
                 </tr>
                 <tr className="bg-green-50">
-                  <td className="px-6 py-4 font-semibold">Orders above NPR 2,000</td>
+                  <td className="px-6 py-4 font-semibold">Orders above NPR 3,000</td>
                   <td className="px-6 py-4 font-semibold text-green-600">FREE 🎉</td>
                 </tr>
               </tbody>
@@ -77,7 +77,7 @@ export default function ShippingPolicy() {
         <section>
           <h2 className="text-2xl font-serif font-semibold mt-8 mb-4">4. Order Processing</h2>
           <ul className="list-disc pl-6 space-y-2">
-            <li>Orders are processed within 24 hours of confirmation</li>
+            <li>Orders are processed within 10 mins of confirmation</li>
             <li>Orders placed after 5 PM will be processed the next business day</li>
             <li>You'll receive an email confirmation once your order is shipped</li>
             <li>Track your order anytime using the tracking number provided</li>
@@ -93,16 +93,6 @@ export default function ShippingPolicy() {
             <li>Enter your order number and email</li>
             <li>View real-time status updates</li>
           </ol>
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-serif font-semibold mt-8 mb-4">6. Delivery Partners</h2>
-          <p>We work with trusted delivery partners:</p>
-          <ul className="list-disc pl-6 space-y-2">
-            <li>Pathao</li>
-            <li>Sundar Express</li>
-            <li>Nepal Postal Service</li>
-          </ul>
         </section>
 
         <section>
@@ -149,10 +139,9 @@ export default function ShippingPolicy() {
           <h3 className="font-semibold mb-2">Need Help?</h3>
           <p className="text-sm mb-3">Contact our customer service team:</p>
           <ul className="list-none space-y-1 text-sm">
-            <li>📧 Email: support@glovia.com.np</li>
-            <li>📞 Phone: +977-1-4445555</li>
-            <li>💬 Live Chat: Available on website</li>
-            <li>⏰ Hours: 10:00 AM - 6:00 PM (Sun-Fri)</li>
+            <li>📧 Email: glovianepal.com</li>
+            <li>📞 Phone: +977-9700003327</li>
+            <li>⏰ Hours: 10:00 AM - 7:00 PM (Sun-sat)</li>
           </ul>
         </div>
 

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useMemo, Suspense } from "react";
-import { useProducts, useCategories } from "@/hooks/useData";
+import { useProducts, useCategories, useBrands } from "@/hooks/useData";
 import Image from "next/image";
 
 function ProductsContent() {
@@ -11,16 +11,19 @@ function ProductsContent() {
   const router = useRouter();
 
   const category = searchParams.get("category") || undefined;
+  const brand = searchParams.get("brand") || undefined;
   const search = searchParams.get("search") || searchParams.get("q") || undefined;
 
-  const { products, isLoading } = useProducts({ category, search });
+  const { products, isLoading } = useProducts({ category, brand, search });
   const { categories } = useCategories();
+  const { brands } = useBrands();
 
   const title = useMemo(() => {
     if (category) return `Products - ${category}`;
+    if (brand) return `Products - ${brand}`;
     if (search) return `Search: ${search}`;
     return "All Products";
-  }, [category, search]);
+  }, [category, brand, search]);
 
   const handleSearch = (value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -32,12 +35,53 @@ function ProductsContent() {
   return (
     <div className="min-h-screen bg-white">
       <div className="container py-10 space-y-8">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm text-gray-500">Catalog</p>
-            <h1 className="text-3xl font-bold">{title}</h1>
+        {/* Header */}
+        <div>
+          <p className="text-sm text-gray-500">Catalog</p>
+          <h1 className="text-3xl font-bold">{title}</h1>
+        </div>
+
+        {/* Featured Brands Section */}
+        {Array.isArray(brands) && brands.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Shop by Brand</h2>
+              <Link href="/brands" className="text-primary-600 hover:underline text-sm font-medium">
+                View All Brands →
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {brands.slice(0, 6).map((b) => (
+                <button
+                  key={b.slug}
+                  onClick={() => router.push(`/products?brand=${b.slug}`)}
+                  className="card p-4 hover:shadow-lg transition-shadow text-center group cursor-pointer bg-white border border-gray-200"
+                >
+                  {b.logo ? (
+                    <div className="h-16 flex items-center justify-center mb-2">
+                      <img
+                        src={b.logo}
+                        alt={b.name}
+                        className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform"
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-16 bg-gray-100 rounded flex items-center justify-center mb-2 group-hover:bg-gray-200 transition-colors">
+                      <span className="text-xs text-gray-500 font-bold">{b.name.charAt(0)}</span>
+                    </div>
+                  )}
+                  <p className="font-semibold text-sm line-clamp-2 group-hover:text-primary-600">
+                    {b.name}
+                  </p>
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-3 items-center">
+        )}
+
+        {/* Filters */}
+        <div className="space-y-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
             <input
               type="text"
               placeholder="Search products..."
@@ -45,10 +89,15 @@ function ProductsContent() {
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleSearch((e.target as HTMLInputElement).value);
               }}
-              className="input w-64"
+              className="input w-full md:w-64"
             />
+          </div>
+
+          {/* Category Filters */}
+          <div>
+            <p className="text-sm font-semibold text-gray-700 mb-2">Categories</p>
             <div className="flex flex-wrap gap-2">
-              <Link href="/products" className={`chip ${!category ? "chip-active" : ""}`}>
+              <Link href="/products" className={`chip ${!category && !brand ? "chip-active" : ""}`}>
                 All
               </Link>
               {categories?.map((cat) => (
@@ -58,6 +107,22 @@ function ProductsContent() {
                   className={`chip ${category === cat.slug ? "chip-active" : ""}`}
                 >
                   {cat.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Brand Filters */}
+          <div>
+            <p className="text-sm font-semibold text-gray-700 mb-2">Brands</p>
+            <div className="flex flex-wrap gap-2">
+              {Array.isArray(brands) && brands.map((b) => (
+                <Link
+                  key={b.slug}
+                  href={`/products?brand=${b.slug}`}
+                  className={`chip ${brand === b.slug ? "chip-active" : ""}`}
+                >
+                  {b.name}
                 </Link>
               ))}
             </div>
@@ -78,6 +143,7 @@ function ProductsContent() {
                     src={product.images?.[0]?.url || "/placeholder.jpg"}
                     alt={product.name}
                     fill
+                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     className="object-cover group-hover:scale-110 transition-transform duration-300"
                   />
                 </div>

@@ -60,6 +60,8 @@ export default function HomePage() {
                     src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800"
                     alt="Beauty Products"
                     fill
+                    sizes="(max-width: 768px) 256px, 320px"
+                    priority
                     className="object-cover rounded-2xl shadow-2xl"
                   />
                 </div>
@@ -124,6 +126,7 @@ export default function HomePage() {
                     src={product.images[0]?.url || '/placeholder.jpg'}
                     alt={product.name}
                     fill
+                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     className="object-cover group-hover:scale-110 transition-transform duration-300"
                   />
                   {product.isNew && (

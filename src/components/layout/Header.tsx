@@ -32,7 +32,7 @@ export default function Header() {
       <div className="bg-primary-600 text-white py-2">
         <div className="container">
           <div className="flex justify-between items-center text-sm">
-            <p>✨ Free Delivery on orders above NPR 2,000</p>
+            <p>✨ Free Delivery on orders above NPR 2,999</p>
             <div className="hidden md:flex items-center gap-4">
               <Link href="/track-order" className="hover:underline">
                 Track Order

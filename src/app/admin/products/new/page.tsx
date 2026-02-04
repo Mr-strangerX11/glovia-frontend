@@ -1,34 +1,49 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
-import { adminAPI, categoriesAPI } from '@/lib/api';
+import { adminAPI, categoriesAPI, brandsAPI } from '@/lib/api';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 
-export default function NewProductPage() {
+// Separate component to handle search params
+function NewProductContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, isChecking } = useAuthGuard({ roles: ['ADMIN', 'SUPER_ADMIN'] });
   const [categories, setCategories] = useState<any[]>([]);
+  const [brands, setBrands] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
     description: '',
     price: 0,
+    discountPercentage: 0,
     stockQuantity: 0,
     sku: '',
     categoryId: '',
+    brandId: '',
     images: [''],
     isFeatured: false,
     isNew: true,
   });
 
   useEffect(() => {
+    // Get brand from query parameter (from product page)
+    const brandParam = searchParams.get('brand');
+    if (brandParam) {
+      setFormData(prev => ({ ...prev, brandId: brandParam }));
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     if (user) {
       fetchCategories();
+      fetchBrands();
     }
   }, [user]);
 
@@ -38,6 +53,25 @@ export default function NewProductPage() {
       setCategories(data || []);
     } catch (error) {
       toast.error('Failed to load categories');
+    }
+  };
+
+  const fetchBrands = async () => {
+    try {
+      const { data } = await brandsAPI.getList();
+      setBrands(data || []);
+      
+      // If brand was passed via query param, auto-populate the select
+      const brandParam = searchParams.get('brand');
+      if (brandParam && data && data.length > 0) {
+        const foundBrand = data.find((b: any) => b.id === brandParam || b.slug === brandParam);
+        if (foundBrand) {
+          setFormData(prev => ({ ...prev, brandId: foundBrand.id }));
+          setSelectedBrand(foundBrand.name);
+        }
+      }
+    } catch (error) {
+      toast.error('Failed to load brands');
     }
   };
 
@@ -114,6 +148,24 @@ export default function NewProductPage() {
             </Link>
             <h1 className="text-3xl font-bold">Add New Product</h1>
             <p className="text-gray-600">Create a new product in your catalog</p>
+            
+            {/* Selected Brand Preview */}
+            {selectedBrand && (
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md flex items-center justify-between">
+                <p className="text-sm text-blue-900">
+                  <span className="font-semibold">Brand Selected:</span> {selectedBrand}
+                </p>
+                <button
+                  onClick={() => {
+                    setSelectedBrand(null);
+                    setFormData(prev => ({ ...prev, brandId: '' }));
+                  }}
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Clear
+                </button>
+              </div>
+            )}
           </div>
 
           <form onSubmit={handleSubmit} className="card p-6 space-y-6">
@@ -150,7 +202,7 @@ export default function NewProductPage() {
               />
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-3 gap-4">
               <div>
                 <label className="label">Price (NPR) *</label>
                 <input
@@ -162,6 +214,26 @@ export default function NewProductPage() {
                   step="0.01"
                   required
                 />
+              </div>
+
+              <div>
+                <label className="label">Discount (%)</label>
+                <div className="space-y-2">
+                  <input
+                    type="number"
+                    value={formData.discountPercentage}
+                    onChange={(e) => setFormData({ ...formData, discountPercentage: Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)) })}
+                    className="input"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                  />
+                  {formData.price > 0 && formData.discountPercentage > 0 && (
+                    <p className="text-sm text-green-600 font-medium">
+                      Final: ₨{(formData.price * (1 - formData.discountPercentage / 100)).toFixed(2)}
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -206,6 +278,29 @@ export default function NewProductPage() {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <label className="label">Brand</label>
+                <select
+                  value={formData.brandId}
+                  onChange={(e) => {
+                    setFormData({ ...formData, brandId: e.target.value });
+                    const selectedBrandObj = Array.isArray(brands) ? brands.find(b => b.id === e.target.value) : null;
+                    setSelectedBrand(selectedBrandObj?.name || null);
+                  }}
+                  className="input"
+                >
+                  <option value="">Select Brand (Optional)</option>
+                  {Array.isArray(brands) && brands.map((brand) => (
+                    <option key={brand.id} value={brand.id}>
+                      {brand.name}
+                    </option>
+                  ))}
+                </select>
+                {formData.brandId && (
+                  <p className="text-xs text-green-600 mt-1 font-medium">✓ Brand selected</p>
+                )}
               </div>
             </div>
 
@@ -283,5 +378,13 @@ export default function NewProductPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function NewProductPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin" /></div>}>
+      <NewProductContent />
+    </Suspense>
   );
 }
