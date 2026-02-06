@@ -33,7 +33,7 @@ export default function TermsAndConditions() {
           <ul className="list-disc pl-6 space-y-2">
             <li>All orders are subject to acceptance and availability</li>
             <li>We reserve the right to refuse or cancel any order</li>
-            <li>Payment must be completed before order processing</li>
+            <li> be completed before order processing</li>
             <li>We accept: Cash on Delivery, eSewa, Khalti, IME Pay, and Bank Transfer</li>
           </ul>
         </section>
@@ -41,10 +41,10 @@ export default function TermsAndConditions() {
         <section>
           <h2 className="text-2xl font-serif font-semibold mt-8 mb-4">4. Delivery</h2>
           <ul className="list-disc pl-6 space-y-2">
-            <li>Delivery within Kathmandu Valley: 2-3 business days</li>
-            <li>Outside Valley: 5-7 business days</li>
-            <li>Free delivery on orders above NPR 2,000</li>
-            <li>Delivery charges: NPR 100 (Valley), NPR 150 (Outside Valley)</li>
+            <li>Delivery within Kathmandu Valley: 60 Mins</li>
+            <li>Outside Valley: 2-3 business days</li>
+            <li>Free delivery on orders above NPR 2,999</li>
+            <li>Delivery charges: NPR 99 (Valley), NPR 149 (Outside Valley)</li>
           </ul>
         </section>
 
