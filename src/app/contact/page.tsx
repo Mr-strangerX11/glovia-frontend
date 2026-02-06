@@ -19,8 +19,24 @@ export default function ContactPage() {
     setIsSubmitting(true);
     
     try {
-      // Simulate API call - replace with actual API endpoint
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Create email content
+      const subject = `Contact Form: ${formData.topic} - ${formData.fullName}`;
+      const body = `
+Name: ${formData.fullName}
+Email: ${formData.email}
+Order ID: ${formData.orderId || 'N/A'}
+Topic: ${formData.topic}
+
+Message:
+${formData.message}
+      `.trim();
+      
+      // Create mailto link
+      const mailtoLink = `mailto:glovianepal@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      
+      // Open email client
+      window.location.href = mailtoLink;
+      
       setSubmitStatus('success');
       setFormData({ fullName: '', email: '', orderId: '', topic: '', message: '' });
       

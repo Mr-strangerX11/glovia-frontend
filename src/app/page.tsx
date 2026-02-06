@@ -4,10 +4,35 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, Star, ShoppingBag, Heart, Sparkles } from 'lucide-react';
 import { useFeaturedProducts, useBanners } from '@/hooks/useData';
+import { useState, FormEvent } from 'react';
 
 export default function HomePage() {
   const { products: featuredProducts } = useFeaturedProducts(8);
   const { banners } = useBanners();
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+
+  const handleNewsletterSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    
+    // Create email content
+    const subject = 'Newsletter Subscription Request';
+    const body = `
+New newsletter subscription request:
+
+Email: ${newsletterEmail}
+
+Please add this email to the newsletter mailing list.
+    `.trim();
+    
+    // Create mailto link
+    const mailtoLink = `mailto:glovianepal@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    
+    // Open email client
+    window.location.href = mailtoLink;
+    
+    // Clear form
+    setNewsletterEmail('');
+  };
 
   return (
     <div className="min-h-screen">
@@ -218,11 +243,14 @@ export default function HomePage() {
             Get exclusive offers, beauty tips, and product updates
           </p>
           
-          <form className="max-w-md mx-auto flex gap-2">
+          <form onSubmit={handleNewsletterSubmit} className="max-w-md mx-auto flex gap-2">
             <input
               type="email"
               placeholder="Enter your email"
               className="flex-1 px-4 py-3 rounded-lg text-gray-900"
+              value={newsletterEmail}
+              onChange={(e) => setNewsletterEmail(e.target.value)}
+              required
             />
             <button type="submit" className="btn bg-white text-primary-600 hover:bg-gray-100">
               Subscribe
