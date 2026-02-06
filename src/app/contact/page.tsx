@@ -284,8 +284,8 @@ export default function ContactPage() {
                   </div>
                 </a>
 
-                <button
-                  onClick={() => alert('Call request feature coming soon!')}
+                <a
+                  href="tel:+9779700003327"
                   className="w-full flex items-center gap-4 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white p-4 rounded-xl transition shadow-md hover:shadow-lg group"
                 >
                   <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition">
@@ -295,7 +295,7 @@ export default function ContactPage() {
                     <div className="font-semibold">Call Request</div>
                     <div className="text-sm text-purple-100">We'll call you back</div>
                   </div>
-                </button>
+                </a>
               </div>
             </div>
 
