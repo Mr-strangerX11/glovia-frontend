@@ -66,7 +66,7 @@ export default function ShippingPolicy() {
                   <td className="px-6 py-4">NPR 149</td>
                 </tr>
                 <tr className="bg-green-50">
-                  <td className="px-6 py-4 font-semibold">Orders above NPR 3,000</td>
+                  <td className="px-6 py-4 font-semibold">Orders above NPR 2,999</td>
                   <td className="px-6 py-4 font-semibold text-green-600">FREE 🎉</td>
                 </tr>
               </tbody>
@@ -139,7 +139,7 @@ export default function ShippingPolicy() {
           <h3 className="font-semibold mb-2">Need Help?</h3>
           <p className="text-sm mb-3">Contact our customer service team:</p>
           <ul className="list-none space-y-1 text-sm">
-            <li>📧 Email: glovianepal.com</li>
+            <li>📧 Email: glovianepal@gmail.com</li>
             <li>📞 Phone: +977-9700003327</li>
             <li>⏰ Hours: 10:00 AM - 7:00 PM (Sun-sat)</li>
           </ul>

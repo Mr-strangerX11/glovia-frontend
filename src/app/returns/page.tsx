@@ -41,7 +41,7 @@ export default function ReturnsPolicy() {
           <h2 className="text-2xl font-serif font-semibold mt-8 mb-4">3. How to Return</h2>
           <ol className="list-decimal pl-6 space-y-3">
             <li>
-              <strong>Contact Us:</strong> Email returns@glovia.com.np or call +977-1-4445555 within 7 days
+              <strong>Contact Us:</strong> Email Glovianepal@gmail.com or call +977-9700003327 within 2-3 days
             </li>
             <li>
               <strong>Provide Details:</strong> Order number, product details, and reason for return
