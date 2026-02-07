@@ -14,6 +14,8 @@ export default function VendorNewProductPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [brands, setBrands] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [brandsLoading, setBrandsLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -37,19 +39,29 @@ export default function VendorNewProductPage() {
 
   const fetchCategories = async () => {
     try {
+      setCategoriesLoading(true);
       const { data } = await categoriesAPI.getAll();
-      setCategories(data || []);
+      setCategories(Array.isArray(data) ? data : data?.data || []);
     } catch (error) {
+      console.error('Failed to load categories:', error);
       toast.error('Failed to load categories');
+      setCategories([]);
+    } finally {
+      setCategoriesLoading(false);
     }
   };
 
   const fetchBrands = async () => {
     try {
+      setBrandsLoading(true);
       const { data } = await brandsAPI.getList();
-      setBrands(data || []);
+      setBrands(Array.isArray(data) ? data : data?.data || []);
     } catch (error) {
+      console.error('Failed to load brands:', error);
       toast.error('Failed to load brands');
+      setBrands([]);
+    } finally {
+      setBrandsLoading(false);
     }
   };
 
@@ -207,15 +219,27 @@ export default function VendorNewProductPage() {
                   value={formData.categoryId}
                   onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
                   className="input"
+                  disabled={categoriesLoading}
                   required
                 >
-                  <option value="">Select Category</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
+                  <option value="">
+                    {categoriesLoading ? 'Loading categories...' : 'Select Category'}
+                  </option>
+                  {Array.isArray(categories) && categories.length > 0 ? (
+                    categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="" disabled>
+                      {categoriesLoading ? 'Loading...' : 'No categories available'}
                     </option>
-                  ))}
+                  )}
                 </select>
+                {!categoriesLoading && (!Array.isArray(categories) || categories.length === 0) && (
+                  <p className="text-sm text-red-600 mt-1">⚠️ Failed to load categories. Please refresh the page.</p>
+                )}
               </div>
 
               <div>
