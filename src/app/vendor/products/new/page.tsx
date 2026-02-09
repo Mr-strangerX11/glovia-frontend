@@ -7,6 +7,7 @@ import { vendorAPI, categoriesAPI, brandsAPI } from '@/lib/api';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import ImageUploadField from '@/components/ImageUploadField';
 
 export default function VendorNewProductPage() {
   const router = useRouter();
@@ -261,35 +262,11 @@ export default function VendorNewProductPage() {
 
             <div>
               <label className="label">Product Images</label>
-              <div className="space-y-2">
-                {formData.images.map((image, index) => (
-                  <div key={index} className="flex gap-2">
-                    <input
-                      type="url"
-                      value={image}
-                      onChange={(e) => handleImageChange(index, e.target.value)}
-                      placeholder="https://example.com/image.jpg"
-                      className="input flex-1"
-                    />
-                    {formData.images.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeImageField(index)}
-                        className="btn-outline text-red-600 border-red-600 hover:bg-red-50"
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={addImageField}
-                  className="btn-outline text-sm"
-                >
-                  + Add Another Image
-                </button>
-              </div>
+              <ImageUploadField
+                images={formData.images.filter(img => img.trim() !== '')}
+                onImagesChange={(urls) => setFormData({ ...formData, images: urls })}
+                maxImages={5}
+              />
             </div>
 
             <div className="flex items-center gap-6">
