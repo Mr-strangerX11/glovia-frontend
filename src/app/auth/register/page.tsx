@@ -32,7 +32,8 @@ export default function RegisterPage() {
     }
     try {
       await register(form);
-      router.push("/dashboard");
+      // Redirect to OTP verification page for email verification
+      router.push(`/auth/verify-otp?email=${encodeURIComponent(form.email)}&purpose=verification`);
     } catch (err: any) {
       const message = err?.response?.data?.message || "Unable to register. Please try again.";
       setError(Array.isArray(message) ? message.join(", ") : message);
