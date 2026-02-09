@@ -308,7 +308,14 @@ export default function AdminBrandsPage() {
                             <button
                               onClick={() => {
                                 setEditingId(brand.id);
-                                setFormData(brand);
+                                setFormData({
+                                  name: brand.name,
+                                  slug: brand.slug,
+                                  description: brand.description || "",
+                                  logo: brand.logo || "",
+                                  coverImage: brand.coverImage || "",
+                                  isActive: brand.isActive !== false,
+                                });
                                 setShowForm(true);
                               }}
                               className="p-2 text-primary-600 hover:bg-primary-50 rounded"
