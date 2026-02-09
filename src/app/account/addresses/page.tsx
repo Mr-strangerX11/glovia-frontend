@@ -9,7 +9,8 @@ import toast from 'react-hot-toast';
 import Link from 'next/link';
 
 interface Address {
-  id: string;
+  id?: string;
+  _id?: string;
   fullName: string;
   phone: string;
   province: string;
@@ -39,6 +40,8 @@ export default function AddressesPage() {
     landmark: '',
     isDefault: false,
   });
+
+  const getAddressId = (address: Address) => address.id || address._id || '';
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -80,7 +83,12 @@ export default function AddressesPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (address: Address) => {
+    const id = getAddressId(address);
+    if (!id) {
+      toast.error('Invalid address ID');
+      return;
+    }
     if (!confirm('Are you sure you want to delete this address?')) return;
     try {
       await userAPI.deleteAddress(id);
@@ -103,7 +111,7 @@ export default function AddressesPage() {
       landmark: address.landmark || '',
       isDefault: address.isDefault,
     });
-    setEditingId(address.id);
+    setEditingId(getAddressId(address));
     setShowForm(true);
   };
 
@@ -280,7 +288,7 @@ export default function AddressesPage() {
         ) : (
           <div className="grid md:grid-cols-2 gap-4">
             {addresses.map((address) => (
-              <div key={address.id} className="card relative">
+              <div key={getAddressId(address) || address.fullName} className="card relative">
                 {address.isDefault && (
                   <span className="absolute top-4 right-4 bg-primary-600 text-white text-xs px-2 py-1 rounded-full">
                     Default
@@ -305,7 +313,7 @@ export default function AddressesPage() {
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(address.id)}
+                    onClick={() => handleDelete(address)}
                     className="btn-outline text-sm flex items-center gap-1 text-red-600 border-red-600 hover:bg-red-50"
                   >
                     <Trash2 className="w-3 h-3" />

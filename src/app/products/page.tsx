@@ -137,7 +137,7 @@ function ProductsContent() {
         {!isLoading && products && products.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {products.map((product) => (
-              <Link key={product.id} href={`/products/${product.slug}`} className="card group">
+              <Link key={product.id || product.slug} href={`/products/${product.slug}`} className="card group">
                 <div className="relative aspect-square overflow-hidden">
                   <Image
                     src={product.images?.[0]?.url || "/placeholder.jpg"}

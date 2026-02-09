@@ -25,7 +25,7 @@ export default function CartPage() {
           <div className="grid lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-4">
               {items.map((item) => (
-                <div key={item.id} className="card p-4 flex gap-4 items-center">
+                <div key={item.id || item.product?.slug} className="card p-4 flex gap-4 items-center">
                   <div className="relative w-20 h-20 flex-shrink-0">
                     <Image
                       src={item.product.images?.[0]?.url || "/placeholder.jpg"}

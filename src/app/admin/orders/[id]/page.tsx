@@ -9,7 +9,8 @@ import toast from 'react-hot-toast';
 import Link from 'next/link';
 
 interface OrderItem {
-  id: string;
+  id?: string;
+  _id?: string;
   quantity: number;
   price: number;
   total: number;
@@ -20,7 +21,8 @@ interface OrderItem {
 }
 
 interface Order {
-  id: string;
+  id?: string;
+  _id?: string;
   orderNumber: string;
   status: string;
   paymentStatus: string;
@@ -68,6 +70,9 @@ export default function OrderDetailPage() {
     }
   }, [user, params.id]);
 
+  const getOrderId = (targetOrder: Order) => targetOrder.id || targetOrder._id || '';
+  const getOrderItemId = (item: OrderItem) => item.id || item._id || '';
+
   const fetchOrder = async () => {
     try {
       setLoading(true);
@@ -110,7 +115,12 @@ export default function OrderDetailPage() {
         updateData.deliveryCharge = formData.deliveryCharge;
       }
 
-      await adminAPI.updateOrder(order.id, updateData);
+      const orderId = getOrderId(order);
+      if (!orderId) {
+        toast.error('Invalid order ID');
+        return;
+      }
+      await adminAPI.updateOrder(orderId, updateData);
       toast.success('Order updated successfully');
       await fetchOrder();
       setShowDiscountForm(false);
@@ -203,7 +213,7 @@ export default function OrderDetailPage() {
                 <h2 className="text-lg font-semibold mb-4">Order Items</h2>
                 <div className="space-y-3">
                   {order.items.map((item) => (
-                    <div key={item.id} className="flex justify-between items-center py-2 border-b last:border-0">
+                    <div key={getOrderItemId(item) || `${item.product.sku}-${item.price}`} className="flex justify-between items-center py-2 border-b last:border-0">
                       <div>
                         <p className="font-medium">{item.product.name}</p>
                         <p className="text-sm text-gray-500">SKU: {item.product.sku}</p>

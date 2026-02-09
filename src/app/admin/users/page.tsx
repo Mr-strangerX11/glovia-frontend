@@ -8,7 +8,8 @@ import toast from 'react-hot-toast';
 import Link from 'next/link';
 
 interface User {
-  id: string;
+  id?: string;
+  _id?: string;
   email: string;
   firstName: string;
   lastName: string;
@@ -82,7 +83,14 @@ export default function AdminUsersPage() {
     setShowForm(false);
   };
 
-  const handleDelete = async (id: string, name: string) => {
+  const getUserId = (targetUser: User) => targetUser.id || targetUser._id || '';
+
+  const handleDelete = async (targetUser: User, name: string) => {
+    const id = getUserId(targetUser);
+    if (!id) {
+      toast.error('Invalid user ID');
+      return;
+    }
     if (!confirm(`Are you sure you want to delete ${name}?`)) return;
     try {
       await adminAPI.deleteUser(id);
@@ -93,10 +101,15 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleRoleChange = async (id: string, newRole: string) => {
+  const handleRoleChange = async (targetUser: User, newRole: string) => {
+    const id = getUserId(targetUser);
+    if (!id) {
+      toast.error('Invalid user ID');
+      return;
+    }
     const previousUsers = users;
     setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, role: newRole } : u))
+      prev.map((u) => (getUserId(u) === id ? { ...u, role: newRole } : u))
     );
     try {
       await adminAPI.updateUserRole(id, newRole);
@@ -290,7 +303,7 @@ export default function AdminUsersPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredUsers.map((u) => (
-                    <tr key={u.id}>
+                    <tr key={getUserId(u) || `${u.email}-${u.createdAt}`}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
                           {u.firstName} {u.lastName}
@@ -305,7 +318,7 @@ export default function AdminUsersPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <select
                           value={u.role}
-                          onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                          onChange={(e) => handleRoleChange(u, e.target.value)}
                           className="text-xs border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         >
                           <option value="CUSTOMER">Customer</option>
@@ -324,7 +337,7 @@ export default function AdminUsersPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         <button
-                          onClick={() => handleDelete(u.id, `${u.firstName} ${u.lastName}`)}
+                          onClick={() => handleDelete(u, `${u.firstName} ${u.lastName}`)}
                           className="text-red-600 hover:text-red-900 text-sm font-medium"
                         >
                           Delete

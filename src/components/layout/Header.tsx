@@ -98,7 +98,7 @@ export default function Header() {
               aria-label="Cart"
             >
               <ShoppingCart className="w-5 h-5" />
-              {cart?.itemCount > 0 && (
+              {cart && cart.itemCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
                   {cart.itemCount}
                 </span>

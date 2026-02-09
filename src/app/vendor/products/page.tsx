@@ -8,7 +8,8 @@ import toast from 'react-hot-toast';
 import Link from 'next/link';
 
 interface Product {
-  id: string;
+  id?: string;
+  _id?: string;
   name: string;
   slug: string;
   price: number;
@@ -23,6 +24,8 @@ export default function VendorProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const getProductId = (product: Product) => product.id || product._id || '';
 
   useEffect(() => {
     if (user) {
@@ -41,7 +44,12 @@ export default function VendorProductsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (product: Product) => {
+    const id = getProductId(product);
+    if (!id) {
+      toast.error('Invalid product ID');
+      return;
+    }
     if (!confirm('Are you sure you want to delete this product?')) return;
     try {
       await vendorAPI.deleteProduct(id);
@@ -133,7 +141,7 @@ export default function VendorProductsPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredProducts.map((product) => (
-                    <tr key={product.id}>
+                    <tr key={getProductId(product) || product.slug}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           {product.images?.[0] && (
@@ -169,14 +177,14 @@ export default function VendorProductsPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end gap-2">
                           <Link
-                            href={`/vendor/products/${product.id}/edit`}
+                            href={getProductId(product) ? `/vendor/products/${getProductId(product)}/edit` : '/vendor/products'}
                             className="text-primary-600 hover:text-primary-900"
                             aria-label={`Edit ${product.name}`}
                           >
                             <Edit2 className="w-4 h-4" />
                           </Link>
                           <button
-                            onClick={() => handleDelete(product.id)}
+                            onClick={() => handleDelete(product)}
                             className="text-red-600 hover:text-red-900"
                           >
                             <Trash2 className="w-4 h-4" />

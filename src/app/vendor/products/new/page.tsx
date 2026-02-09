@@ -38,6 +38,9 @@ export default function VendorNewProductPage() {
     }
   }, [user]);
 
+  const getCategoryId = (category: any) => category?.id || category?._id || '';
+  const getBrandId = (brand: any) => brand?.id || brand?._id || '';
+
   const fetchCategories = async () => {
     try {
       setCategoriesLoading(true);
@@ -228,7 +231,7 @@ export default function VendorNewProductPage() {
                   </option>
                   {Array.isArray(categories) && categories.length > 0 ? (
                     categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
+                      <option key={getCategoryId(cat) || cat.name} value={getCategoryId(cat)}>
                         {cat.name}
                       </option>
                     ))
@@ -252,7 +255,7 @@ export default function VendorNewProductPage() {
                 >
                   <option value="">Select Brand (Optional)</option>
                   {brands.map((brand) => (
-                    <option key={brand.id} value={brand.id}>
+                    <option key={getBrandId(brand) || brand.name} value={getBrandId(brand)}>
                       {brand.name}
                     </option>
                   ))}

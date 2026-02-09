@@ -68,7 +68,7 @@ export default function OrdersPage() {
         ) : (
           <div className="space-y-4">
             {orders.map((order: any) => (
-              <div key={order.id} className="card hover:shadow-lg transition-shadow">
+              <div key={order.id || order.orderNumber} className="card hover:shadow-lg transition-shadow">
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <p className="text-sm text-gray-600">Order #{order.orderNumber}</p>
@@ -87,7 +87,7 @@ export default function OrdersPage() {
 
                 <div className="border-t pt-4 space-y-3">
                   {order.items?.slice(0, 2).map((item: any) => (
-                    <div key={item.id} className="flex gap-3">
+                    <div key={item.id || item.product?.sku} className="flex gap-3">
                       {item.product?.images?.[0] && (
                         <img
                           src={item.product.images[0].url}

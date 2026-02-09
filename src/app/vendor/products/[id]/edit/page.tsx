@@ -35,6 +35,8 @@ export default function VendorEditProductPage() {
     }
   }, [user, productId]);
 
+  const getCategoryId = (category: any) => category?.id || category?._id || '';
+
   const fetchInitialData = async () => {
     try {
       const [{ data: categoriesData }, { data: productData }] = await Promise.all([
@@ -229,7 +231,7 @@ export default function VendorEditProductPage() {
                 >
                   <option value="">Select Category</option>
                   {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
+                    <option key={getCategoryId(cat) || cat.name} value={getCategoryId(cat)}>
                       {cat.name}
                     </option>
                   ))}

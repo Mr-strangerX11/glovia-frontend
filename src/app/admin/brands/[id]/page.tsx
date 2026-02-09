@@ -31,12 +31,15 @@ export default function EditBrandPage({ params }: { params: Params }) {
     }
   }, [user, params.id]);
 
+  const getBrandId = (brand: any) => brand?.id || brand?._id || '';
+
   const fetchBrand = async () => {
     try {
       setFetching(true);
       // We need to get brand by ID from our API - for now using brandsAPI with list
       const { data: brands } = await brandsAPI.getAll();
-      const brand = brands.find((b: any) => b.id === params.id);
+      const brandsList = Array.isArray(brands) ? brands : brands?.data || [];
+      const brand = brandsList.find((b: any) => getBrandId(b) === params.id);
       
       if (brand) {
         setFormData({

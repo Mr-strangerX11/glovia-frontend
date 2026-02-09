@@ -42,7 +42,7 @@ export default function CustomerDashboardPage() {
           {!isLoading && orders && orders.length > 0 && (
             <div className="divide-y">
               {orders.slice(0, 5).map((order) => (
-                <div key={order.id} className="py-3 flex items-center justify-between">
+                <div key={order.id || order.orderNumber} className="py-3 flex items-center justify-between">
                   <div>
                     <p className="font-semibold">Order #{order.orderNumber}</p>
                     <p className="text-sm text-gray-500">{order.items.length} items</p>

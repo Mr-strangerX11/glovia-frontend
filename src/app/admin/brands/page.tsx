@@ -11,7 +11,8 @@ import Link from 'next/link';
 import ImageUploadField from '@/components/ImageUploadField';
 
 interface Brand {
-  id: string;
+  id?: string;
+  _id?: string;
   name: string;
   slug: string;
   description?: string;
@@ -36,6 +37,8 @@ export default function AdminBrandsPage() {
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const getBrandId = (brand: Brand) => brand.id || brand._id || '';
 
   const generateSlug = (name: string) => {
     return name
@@ -84,7 +87,12 @@ export default function AdminBrandsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (brand: Brand) => {
+    const id = getBrandId(brand);
+    if (!id) {
+      toast.error('Invalid brand ID');
+      return;
+    }
     if (!confirm('Are you sure you want to delete this brand?')) return;
 
     setDeleting(id);
@@ -273,7 +281,7 @@ export default function AdminBrandsPage() {
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {brands.map((brand: Brand) => (
-                      <tr key={brand.id} className="hover:bg-gray-50">
+                      <tr key={getBrandId(brand) || brand.slug} className="hover:bg-gray-50">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             {brand.logo && (
@@ -307,7 +315,7 @@ export default function AdminBrandsPage() {
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => {
-                                setEditingId(brand.id);
+                                setEditingId(getBrandId(brand));
                                 setFormData({
                                   name: brand.name,
                                   slug: brand.slug,
@@ -323,8 +331,8 @@ export default function AdminBrandsPage() {
                               <Edit2 className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => handleDelete(brand.id)}
-                              disabled={deleting === brand.id}
+                              onClick={() => handleDelete(brand)}
+                              disabled={deleting === getBrandId(brand)}
                               className="p-2 text-red-600 hover:bg-red-50 rounded disabled:opacity-50"
                             >
                               <Trash2 className="w-4 h-4" />

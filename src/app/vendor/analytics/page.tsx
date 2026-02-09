@@ -129,10 +129,10 @@ export default function VendorAnalyticsPage() {
                 {orders && orders.length > 0 ? (
                   <div className="space-y-3">
                     {orders.slice(0, 5).map((order: any) => (
-                      <div key={order.id} className="flex items-center justify-between py-2 border-b">
+                      <div key={order?.id || order?._id || order?.orderNumber} className="flex items-center justify-between py-2 border-b">
                         <div>
                           <p className="text-sm font-medium">
-                            Order #{order.orderNumber || order.id.slice(0, 8)}
+                            Order #{order.orderNumber || (order?.id || order?._id || '').slice(0, 8)}
                           </p>
                           <p className="text-xs text-gray-500">
                             {new Date(order.createdAt).toLocaleDateString()}

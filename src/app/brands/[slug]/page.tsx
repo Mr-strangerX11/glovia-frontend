@@ -18,6 +18,10 @@ function ProductCard({ product }: ProductCardProps) {
     e.preventDefault();
     setIsAdding(true);
     try {
+      if (!product.id) {
+        toast.error('Invalid product ID');
+        return;
+      }
       await cartAPI.add({ productId: product.id, quantity: 1 });
       toast.success('Added to cart!');
     } catch (error) {
@@ -230,7 +234,7 @@ export default function BrandDetailPage({ params }: { params: { slug: string } }
             {filteredProducts.length > 0 ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredProducts.map((product: any) => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard key={product.id || product.slug} product={product} />
                 ))}
               </div>
             ) : (

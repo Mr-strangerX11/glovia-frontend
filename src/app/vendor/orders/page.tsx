@@ -12,6 +12,8 @@ export default function VendorOrdersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
+  const getOrderId = (order: any) => order?.id || order?._id || '';
+
   if (isChecking || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -113,10 +115,10 @@ export default function VendorOrdersPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredOrders.map((order: any) => (
-                    <tr key={order.id}>
+                    <tr key={getOrderId(order) || order.orderNumber}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
-                          #{order.orderNumber || order.id.slice(0, 8)}
+                          #{order.orderNumber || getOrderId(order).slice(0, 8)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -143,7 +145,7 @@ export default function VendorOrdersPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <Link
-                          href={`/vendor/orders/${order.id}`}
+                          href={getOrderId(order) ? `/vendor/orders/${getOrderId(order)}` : '/vendor/orders'}
                           className="text-primary-600 hover:text-primary-900 inline-flex items-center gap-1"
                         >
                           <Eye className="w-4 h-4" />

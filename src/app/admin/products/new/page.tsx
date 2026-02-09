@@ -50,6 +50,9 @@ function NewProductContent() {
     }
   }, [user]);
 
+  const getCategoryId = (category: any) => category?.id || category?._id || '';
+  const getBrandId = (brand: any) => brand?.id || brand?._id || '';
+
   const fetchCategories = async () => {
     try {
       setCategoriesLoading(true);
@@ -74,9 +77,10 @@ function NewProductContent() {
       // If brand was passed via query param, auto-populate the select
       const brandParam = searchParams.get('brand');
       if (brandParam && brandsList && brandsList.length > 0) {
-        const foundBrand = brandsList.find((b: any) => b.id === brandParam || b.slug === brandParam);
+        const foundBrand = brandsList.find((b: any) => getBrandId(b) === brandParam || b.slug === brandParam);
         if (foundBrand) {
-          setFormData(prev => ({ ...prev, brandId: foundBrand.id }));
+          const brandId = getBrandId(foundBrand);
+          setFormData(prev => ({ ...prev, brandId }));
           setSelectedBrand(foundBrand.name);
         }
       }
@@ -291,7 +295,7 @@ function NewProductContent() {
                   </option>
                   {Array.isArray(categories) && categories.length > 0 ? (
                     categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
+                      <option key={getCategoryId(cat) || cat.name} value={getCategoryId(cat)}>
                         {cat.name}
                       </option>
                     ))
@@ -312,14 +316,14 @@ function NewProductContent() {
                   value={formData.brandId}
                   onChange={(e) => {
                     setFormData({ ...formData, brandId: e.target.value });
-                    const selectedBrandObj = Array.isArray(brands) ? brands.find(b => b.id === e.target.value) : null;
+                    const selectedBrandObj = Array.isArray(brands) ? brands.find(b => getBrandId(b) === e.target.value) : null;
                     setSelectedBrand(selectedBrandObj?.name || null);
                   }}
                   className="input"
                 >
                   <option value="">Select Brand (Optional)</option>
                   {Array.isArray(brands) && brands.map((brand) => (
-                    <option key={brand.id} value={brand.id}>
+                    <option key={getBrandId(brand) || brand.name} value={getBrandId(brand)}>
                       {brand.name}
                     </option>
                   ))}

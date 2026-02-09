@@ -36,7 +36,7 @@ export default function WishlistPage() {
         {!isLoading && wishlist && wishlist.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {wishlist.map((item) => (
-              <Link key={item.id} href={`/products/${item.product.slug}`} className="card group">
+              <Link key={item.id || item.product?.slug} href={`/products/${item.product.slug}`} className="card group">
                 <div className="relative aspect-square overflow-hidden">
                   <Image
                     src={item.product.images?.[0]?.url || "/placeholder.jpg"}

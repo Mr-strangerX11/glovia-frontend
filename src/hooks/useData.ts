@@ -2,6 +2,58 @@ import useSWR from 'swr';
 import { productsAPI, categoriesAPI, brandsAPI, cartAPI, wishlistAPI, ordersAPI, userAPI, bannersAPI, blogsAPI, adminAPI } from '@/lib/api';
 import { Product, Category, Brand, Cart, WishlistItem, Order, User, Address, Banner, Blog } from '@/types';
 
+const normalizeEntity = <T extends Record<string, any>>(entity?: T | null): T | null => {
+  if (!entity) return entity as T | null;
+  if (entity.id || !entity._id) return entity;
+  return { ...entity, id: entity._id } as T;
+};
+
+const normalizeArray = <T extends Record<string, any>>(items?: T[] | null): T[] | null | undefined => {
+  if (!items) return items;
+  return items.map((item) => normalizeEntity(item) as T);
+};
+
+const normalizeCart = (cart?: any): Cart | undefined => {
+  if (!cart) return cart;
+  const items = normalizeArray(cart.items)?.map((item) => ({
+    ...item,
+    product: normalizeEntity(item.product),
+  }));
+  return { ...cart, items } as Cart;
+};
+
+const normalizeWishlist = (items?: any): WishlistItem[] | undefined => {
+  if (!items) return items;
+  return normalizeArray(items)?.map((item) => ({
+    ...item,
+    product: normalizeEntity(item.product),
+  })) as WishlistItem[];
+};
+
+const normalizeOrders = (orders?: any): Order[] | undefined => {
+  if (!orders) return orders;
+  return normalizeArray(orders)?.map((order) => ({
+    ...order,
+    user: normalizeEntity(order.user),
+    items: normalizeArray(order.items)?.map((item) => ({
+      ...item,
+      product: normalizeEntity(item.product),
+    })),
+  })) as unknown as Order[];
+};
+
+const normalizeOrder = (order?: any): Order | null | undefined => {
+  if (!order) return order;
+  return {
+    ...normalizeEntity(order),
+    user: normalizeEntity(order.user),
+    items: normalizeArray(order.items)?.map((item) => ({
+      ...item,
+      product: normalizeEntity(item.product),
+    })),
+  } as Order;
+};
+
 const fetcher = (fn: () => Promise<any>) => fn().then(res => res.data);
 
 export function useProducts(params?: any) {
@@ -11,7 +63,7 @@ export function useProducts(params?: any) {
   );
 
   return {
-    products: data?.data as Product[],
+    products: normalizeArray(data?.data) as Product[],
     meta: data?.meta,
     isLoading: !error && !data,
     isError: error,
@@ -26,7 +78,7 @@ export function useProduct(slug: string) {
   );
 
   return {
-    product: data as Product,
+    product: normalizeEntity(data) as Product,
     isLoading: !error && !data,
     isError: error,
     mutate,
@@ -40,7 +92,7 @@ export function useFeaturedProducts(limit?: number) {
   );
 
   return {
-    products: data as Product[],
+    products: normalizeArray(data) as Product[],
     isLoading: !error && !data,
     isError: error,
   };
@@ -50,7 +102,7 @@ export function useCategories() {
   const { data, error } = useSWR('/categories', () => fetcher(categoriesAPI.getAll));
 
   return {
-    categories: data as Category[],
+    categories: normalizeArray(data) as Category[],
     isLoading: !error && !data,
     isError: error,
   };
@@ -60,7 +112,7 @@ export function useBrands() {
   const { data, error } = useSWR('/brands', () => fetcher(brandsAPI.getAll));
 
   return {
-    brands: data?.data as Brand[],
+    brands: normalizeArray(data?.data) as Brand[],
     isLoading: !error && !data,
     isError: error,
   };
@@ -70,7 +122,7 @@ export function useBrandsList() {
   const { data, error } = useSWR('/brands/list', () => fetcher(brandsAPI.getList));
 
   return {
-    brands: data?.data as Brand[],
+    brands: normalizeArray(data?.data) as Brand[],
     isLoading: !error && !data,
     isError: error,
   };
@@ -82,8 +134,15 @@ export function useBrand(slug: string) {
     () => fetcher(() => brandsAPI.getBySlug(slug))
   );
 
+  const normalizedBrand = data?.data
+    ? {
+        ...normalizeEntity(data.data),
+        products: normalizeArray(data.data.products),
+      }
+    : data?.data;
+
   return {
-    brand: data?.data as Brand,
+    brand: normalizedBrand as Brand,
     isLoading: !error && !data,
     isError: error,
     mutate,
@@ -94,7 +153,7 @@ export function useCart() {
   const { data, error, mutate } = useSWR('/cart', () => fetcher(cartAPI.get));
 
   return {
-    cart: data as Cart,
+    cart: normalizeCart(data),
     isLoading: !error && !data,
     isError: error,
     mutate,
@@ -105,7 +164,7 @@ export function useWishlist() {
   const { data, error, mutate } = useSWR('/wishlist', () => fetcher(wishlistAPI.get));
 
   return {
-    wishlist: data as WishlistItem[],
+    wishlist: normalizeWishlist(data),
     isLoading: !error && !data,
     isError: error,
     mutate,
@@ -116,7 +175,7 @@ export function useOrders() {
   const { data, error, mutate } = useSWR('/orders', () => fetcher(ordersAPI.getAll));
 
   return {
-    orders: data as Order[],
+    orders: normalizeOrders(data),
     isLoading: !error && !data,
     isError: error,
     mutate,
@@ -130,7 +189,7 @@ export function useOrder(id: string) {
   );
 
   return {
-    order: data as Order,
+    order: normalizeOrder(data),
     isLoading: !error && !data,
     isError: error,
     mutate,
@@ -141,7 +200,7 @@ export function useProfile() {
   const { data, error, mutate } = useSWR('/users/profile', () => fetcher(userAPI.getProfile));
 
   return {
-    user: data as User,
+    user: normalizeEntity(data) as User,
     isLoading: !error && !data,
     isError: error,
     mutate,
@@ -152,7 +211,7 @@ export function useAddresses() {
   const { data, error, mutate } = useSWR('/users/addresses', () => fetcher(userAPI.getAddresses));
 
   return {
-    addresses: data as Address[],
+    addresses: normalizeArray(data) as Address[],
     isLoading: !error && !data,
     isError: error,
     mutate,
@@ -163,7 +222,7 @@ export function useBanners() {
   const { data, error } = useSWR('/banners', () => fetcher(bannersAPI.getAll));
 
   return {
-    banners: data as Banner[],
+    banners: normalizeArray(data) as Banner[],
     isLoading: !error && !data,
     isError: error,
   };
@@ -176,7 +235,7 @@ export function useBlogs(params?: any) {
   );
 
   return {
-    blogs: data?.data as Blog[],
+    blogs: normalizeArray(data?.data) as Blog[],
     meta: data?.meta,
     isLoading: !error && !data,
     isError: error,

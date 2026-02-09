@@ -24,6 +24,8 @@ export default function OffersPage() {
   });
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  const getOfferId = (offer: any) => offer?.id || offer?._id || '';
+
   useEffect(() => {
     if (user) {
       fetchOffers();
@@ -80,7 +82,12 @@ export default function OffersPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (offer: any) => {
+    const id = getOfferId(offer);
+    if (!id) {
+      toast.error("Invalid offer ID");
+      return;
+    }
     if (!window.confirm("Are you sure you want to delete this offer?")) return;
 
     try {
@@ -307,7 +314,7 @@ export default function OffersPage() {
                   </thead>
                   <tbody>
                     {offers.map((offer) => (
-                      <tr key={offer.id} className="border-b border-gray-200 hover:bg-gray-50">
+                      <tr key={getOfferId(offer) || offer.title} className="border-b border-gray-200 hover:bg-gray-50">
                         <td className="px-6 py-4">
                           <div>
                             <p className="font-semibold text-gray-900">{offer.title}</p>
@@ -339,7 +346,7 @@ export default function OffersPage() {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => {
-                                setEditingId(offer.id);
+                                setEditingId(getOfferId(offer));
                                 setFormData(offer);
                                 setShowForm(true);
                               }}
@@ -348,11 +355,11 @@ export default function OffersPage() {
                               <Edit2 className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => handleDelete(offer.id)}
-                              disabled={deleting === offer.id}
+                              onClick={() => handleDelete(offer)}
+                              disabled={deleting === getOfferId(offer)}
                               className="text-red-600 hover:text-red-700 p-2 disabled:opacity-50"
                             >
-                              {deleting === offer.id ? (
+                              {deleting === getOfferId(offer) ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
                               ) : (
                                 <Trash2 className="w-4 h-4" />

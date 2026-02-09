@@ -55,7 +55,7 @@ export default function VendorDashboardPage() {
           {!isLoading && orders && orders.length > 0 && (
             <div className="divide-y">
               {orders.slice(0, 5).map((order) => (
-                <div key={order.id} className="py-3 flex items-center justify-between">
+                <div key={order.id || order.orderNumber} className="py-3 flex items-center justify-between">
                   <div>
                     <p className="font-semibold">Order #{order.orderNumber || order.id.slice(0, 6)}</p>
                     <p className="text-xs text-gray-500 uppercase">{order.status}</p>

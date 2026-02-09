@@ -8,7 +8,8 @@ import toast from 'react-hot-toast';
 import Link from 'next/link';
 
 interface Product {
-  id: string;
+  id?: string;
+  _id?: string;
   name: string;
   slug: string;
   price: number;
@@ -49,7 +50,14 @@ export default function AdminProductsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const getProductId = (product: Product) => product.id || product._id || '';
+
+  const handleDelete = async (product: Product) => {
+    const id = getProductId(product);
+    if (!id) {
+      toast.error('Invalid product ID');
+      return;
+    }
     if (!confirm('Are you sure you want to delete this product?')) return;
     try {
       await adminAPI.deleteProduct(id);
@@ -140,8 +148,10 @@ export default function AdminProductsPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredProducts.map((product) => (
-                    <tr key={product.id}>
+                  {filteredProducts.map((product) => {
+                    const productId = getProductId(product);
+                    return (
+                    <tr key={productId || product.slug}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           {product.images?.[0] && (
@@ -177,13 +187,13 @@ export default function AdminProductsPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end gap-2">
                           <Link
-                            href={`/admin/products/${product.id}`}
+                            href={productId ? `/admin/products/${productId}` : '/admin/products'}
                             className="text-primary-600 hover:text-primary-900"
                           >
                             <Edit2 className="w-4 h-4" />
                           </Link>
                           <button
-                            onClick={() => handleDelete(product.id)}
+                            onClick={() => handleDelete(product)}
                             className="text-red-600 hover:text-red-900"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -191,7 +201,8 @@ export default function AdminProductsPage() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

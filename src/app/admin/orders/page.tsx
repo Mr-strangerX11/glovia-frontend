@@ -8,7 +8,8 @@ import toast from 'react-hot-toast';
 import Link from 'next/link';
 
 interface Order {
-  id: string;
+  id?: string;
+  _id?: string;
   orderNumber: string;
   user: {
     firstName: string;
@@ -52,6 +53,8 @@ export default function AdminOrdersPage() {
       </div>
     );
   }
+
+  const getOrderId = (order: Order) => order.id || order._id || '';
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -146,7 +149,7 @@ export default function AdminOrdersPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredOrders.map((order) => (
-                    <tr key={order.id}>
+                    <tr key={getOrderId(order) || order.orderNumber}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">#{order.orderNumber}</div>
                       </td>
@@ -173,7 +176,7 @@ export default function AdminOrdersPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <Link
-                          href={`/admin/orders/${order.id}`}
+                          href={getOrderId(order) ? `/admin/orders/${getOrderId(order)}` : '/admin/orders'}
                           className="text-primary-600 hover:text-primary-900 inline-flex items-center gap-1"
                         >
                           <Eye className="w-4 h-4" />
