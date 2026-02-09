@@ -56,11 +56,28 @@ function NewProductContent() {
   const fetchCategories = async () => {
     try {
       setCategoriesLoading(true);
-      const { data } = await categoriesAPI.getAll();
-      setCategories(Array.isArray(data) ? data : data?.data || []);
+      const response = await categoriesAPI.getAll();
+      console.log('Categories API response:', response);
+      
+      // Handle various response formats
+      let categoriesData = [];
+      if (Array.isArray(response.data)) {
+        categoriesData = response.data;
+      } else if (response.data?.data && Array.isArray(response.data.data)) {
+        categoriesData = response.data.data;
+      } else if (response.data?.categories && Array.isArray(response.data.categories)) {
+        categoriesData = response.data.categories;
+      }
+      
+      console.log('Extracted categories:', categoriesData);
+      setCategories(categoriesData);
+      
+      if (categoriesData.length === 0) {
+        toast.error('No categories found. Please create categories first.');
+      }
     } catch (error) {
       console.error('Failed to load categories:', error);
-      toast.error('Failed to load categories');
+      toast.error('Failed to load categories. Please check your connection.');
       setCategories([]);
     } finally {
       setCategoriesLoading(false);
