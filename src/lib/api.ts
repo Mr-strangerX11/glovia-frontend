@@ -138,8 +138,8 @@ export const adminAPI = {
   createUser: (data: any) => api.post('/admin/users', data),
   updateUserRole: (id: string, role: string) => api.put(`/admin/users/${id}/role`, { role }),
   deleteUser: (id: string) => api.delete(`/admin/users/${id}`),
-  initializeUsers: () => api.post('/admin/init/users'),
-  fixSuperAdminRole: () => api.post('/admin/init/fix-superadmin'),
+  initializeUsers: () => api.post('/admin/init'),
+  fixSuperAdminRole: () => api.post('/admin/fix-superadmin'),
   // Settings - Delivery & Discount
   getDeliverySettings: () => api.get('/admin/settings/delivery'),
   updateDeliverySettings: (data: any) => api.put('/admin/settings/delivery', data),
