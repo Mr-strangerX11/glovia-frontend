@@ -37,7 +37,19 @@ export default function AccountPage() {
             <p className="text-sm text-gray-600">Name: {display.firstName} {display.lastName}</p>
             <p className="text-sm text-gray-600">Email: {display.email}</p>
             {display.phone && <p className="text-sm text-gray-600">Phone: {display.phone}</p>}
-            <p className="text-sm text-gray-600">Role: {display.role === 'SUPER_ADMIN' ? 'Super Admin, Admin' : display.role.charAt(0) + display.role.slice(1).toLowerCase().replace('_', ' ')}</p>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">Role:</span>
+              {display.role === 'SUPER_ADMIN' ? (
+                <>
+                  <span className="inline-block bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-semibold">Super Admin</span>
+                  <span className="inline-block bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-semibold">Admin</span>
+                </>
+              ) : (
+                <span className="inline-block bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-semibold">
+                  {display.role.charAt(0) + display.role.slice(1).toLowerCase().replace('_', ' ')}
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="card p-6 space-y-2">
