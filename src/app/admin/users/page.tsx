@@ -121,6 +121,27 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleFixSuperAdmin = async () => {
+    try {
+      const { data } = await adminAPI.fixSuperAdminRole();
+      toast.success(data?.message || 'SuperAdmin role fixed successfully');
+      fetchUsers();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to fix SuperAdmin role');
+    }
+  };
+
+  const handleInitializeUsers = async () => {
+    if (!confirm('This will create/update default users (SuperAdmin, Admin, Vendor, User). Continue?')) return;
+    try {
+      const { data } = await adminAPI.initializeUsers();
+      toast.success('Users initialized successfully');
+      fetchUsers();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to initialize users');
+    }
+  };
+
   if (isChecking || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -153,6 +174,22 @@ export default function AdminUsersPage() {
             <p className="text-gray-600">Manage customers and admins</p>
           </div>
           <div className="flex gap-3">
+            <button
+              onClick={handleFixSuperAdmin}
+              className="btn-outline inline-flex items-center gap-2 text-sm"
+              title="Fix SuperAdmin role if incorrect"
+            >
+              <UserCheck className="w-4 h-4" />
+              Fix SuperAdmin
+            </button>
+            <button
+              onClick={handleInitializeUsers}
+              className="btn-outline inline-flex items-center gap-2 text-sm"
+              title="Initialize default users"
+            >
+              <Plus className="w-4 h-4" />
+              Init Users
+            </button>
             <Link href="/dashboard/admin" className="btn-outline">
               Back to Dashboard
             </Link>
