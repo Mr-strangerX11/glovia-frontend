@@ -42,14 +42,9 @@ export const useAuthStore = create<AuthState>()(
       register: async (data) => {
         try {
           set({ isLoading: true });
-          const response = await authAPI.register(data);
-          const { user, accessToken, refreshToken } = response.data;
-
-          Cookies.set('access_token', accessToken);
-          Cookies.set('refresh_token', refreshToken);
-          Cookies.set('user_id', user.id);
-
-          set({ user, isAuthenticated: true, isLoading: false });
+          await authAPI.register(data);
+          // Do not set user or tokens yet; wait for OTP verification
+          set({ isLoading: false });
         } catch (error) {
           set({ isLoading: false });
           throw error;
