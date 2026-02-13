@@ -75,7 +75,7 @@ function VerifyOtpContent() {
     }
 
     try {
-      let endpoint = "/auth/verify-otp";
+      let endpoint = "/auth/verify-email";
       
       // Different endpoints based on purpose
       if (purpose === "password-reset") {
