@@ -89,6 +89,19 @@ export default function LoginPage() {
           </button>
         </form>
 
+        {/* SuperAdmin Credentials */}
+        <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4">
+          <p className="text-sm font-bold text-purple-900 mb-2">🔐 SuperAdmin Login</p>
+          <div className="space-y-1 text-sm">
+            <p className="text-purple-800">
+              <span className="font-semibold">Email:</span> superadmin@glovia.com.np
+            </p>
+            <p className="text-purple-800">
+              <span className="font-semibold">Password:</span> SuperAdmin123!
+            </p>
+          </div>
+        </div>
+
         <p className="text-center text-sm text-gray-600">
           Don&apos;t have an account? {" "}
           <Link href="/auth/register" className="text-primary-600 font-semibold">
