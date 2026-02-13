@@ -64,10 +64,10 @@ export default function LoginPage() {
             </div>
             <input
               id="password"
-              type="password"
+              type="text"
               required
               className="input"
-              placeholder="••••••••"
+              placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />

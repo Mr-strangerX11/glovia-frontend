@@ -115,7 +115,7 @@ export default function RegisterPage() {
             </label>
             <input
               id="password"
-              type="password"
+              type="text"
               required
               className="input"
               placeholder="Min 8 chars, include A-Z, a-z, 0-9, symbol"

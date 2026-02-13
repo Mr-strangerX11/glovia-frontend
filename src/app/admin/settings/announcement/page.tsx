@@ -14,10 +14,10 @@ export default function AnnouncementSettingsPage() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [formData, setFormData] = useState({
-    text: '🚚 Express Delivery: We deliver within 60 minutes!',
-    icon: '🚚',
-    backgroundColor: '#0066CC',
-    isActive: true,
+    message: '🚚 Express Delivery: We deliver within 60 minutes!',
+    backgroundColor: '#FFD700',
+    textColor: '#000000',
+    enabled: true,
   });
 
   useEffect(() => {
@@ -30,12 +30,15 @@ export default function AnnouncementSettingsPage() {
     try {
       setFetching(true);
       const { data } = await adminAPI.getAnnouncement();
-      setFormData({
-        text: data.text || '🚚 Express Delivery: We deliver within 60 minutes!',
-        icon: data.icon || '🚚',
-        backgroundColor: data.backgroundColor || '#0066CC',
-        isActive: data.isActive !== false,
-      });
+      if (data && data.value) {
+        const parsed = JSON.parse(data.value);
+        setFormData({
+          message: parsed.message || '🚚 Express Delivery: We deliver within 60 minutes!',
+          backgroundColor: parsed.backgroundColor || '#FFD700',
+          textColor: parsed.textColor || '#000000',
+          enabled: parsed.enabled !== false,
+        });
+      }
     } catch (error) {
       console.error('Failed to fetch announcement:', error);
       toast.error('Failed to load announcement settings');
@@ -100,14 +103,13 @@ export default function AnnouncementSettingsPage() {
           {/* Preview Box */}
           <div className="card p-6 mb-6 bg-gray-100">
             <p className="text-sm text-gray-600 font-semibold mb-3">Preview:</p>
-            {formData.isActive ? (
+            {formData.enabled ? (
               <div 
-                className="w-full text-white py-2 px-4 rounded text-sm flex items-center justify-between gap-3"
-                style={{ backgroundColor: formData.backgroundColor }}
+                className="w-full py-2 px-4 rounded text-sm flex items-center justify-between gap-3"
+                style={{ backgroundColor: formData.backgroundColor, color: formData.textColor }}
               >
                 <div className="flex items-center gap-2">
-                  <span>{formData.icon}</span>
-                  <p className="leading-none">{formData.text}</p>
+                  <p className="leading-none">{formData.message}</p>
                 </div>
                 <button className="text-base leading-none hover:opacity-80">×</button>
               </div>
@@ -138,31 +140,17 @@ export default function AnnouncementSettingsPage() {
             <div>
               <label className="label">Announcement Text *</label>
               <textarea
-                value={formData.text}
-                onChange={(e) => handleChange('text', e.target.value)}
+                value={formData.message}
+                onChange={(e) => handleChange('message', e.target.value)}
                 className="input min-h-[80px]"
-                placeholder="Enter announcement text..."
+                placeholder="🚚 Express Delivery: We deliver within 60 minutes!"
                 required
                 maxLength={500}
               />
-              <p className="text-sm text-gray-500 mt-1">{formData.text.length}/500 characters</p>
+              <p className="text-sm text-gray-500 mt-1">{formData.message.length}/500 characters</p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="label">Icon (Emoji) *</label>
-                <input
-                  type="text"
-                  value={formData.icon}
-                  onChange={(e) => handleChange('icon', e.target.value)}
-                  className="input text-2xl text-center"
-                  placeholder="🚚"
-                  maxLength={5}
-                  required
-                />
-                <p className="text-sm text-gray-500 mt-1">Copy an emoji here</p>
-              </div>
-
               <div>
                 <label className="label">Background Color *</label>
                 <div className="flex gap-2">
@@ -177,7 +165,26 @@ export default function AnnouncementSettingsPage() {
                     value={formData.backgroundColor}
                     onChange={(e) => handleChange('backgroundColor', e.target.value)}
                     className="input flex-1"
-                    placeholder="#0066CC"
+                    placeholder="#FFD700"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="label">Text Color *</label>
+                <div className="flex gap-2">
+                  <input
+                    type="color"
+                    value={formData.textColor}
+                    onChange={(e) => handleChange('textColor', e.target.value)}
+                    className="h-10 w-14 rounded border border-gray-300 cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={formData.textColor}
+                    onChange={(e) => handleChange('textColor', e.target.value)}
+                    className="input flex-1"
+                    placeholder="#000000"
                   />
                 </div>
               </div>
@@ -186,15 +193,15 @@ export default function AnnouncementSettingsPage() {
             <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
               <input
                 type="checkbox"
-                id="isActive"
-                checked={formData.isActive}
-                onChange={(e) => handleChange('isActive', e.target.checked)}
+                id="enabled"
+                checked={formData.enabled}
+                onChange={(e) => handleChange('enabled', e.target.checked)}
                 className="w-4 h-4 rounded border-gray-300"
               />
-              <label htmlFor="isActive" className="flex items-center gap-2 cursor-pointer flex-1">
+              <label htmlFor="enabled" className="flex items-center gap-2 cursor-pointer flex-1">
                 <Eye className="w-4 h-4 text-gray-600" />
                 <span className="font-medium">
-                  {formData.isActive ? 'Announcement is Active' : 'Announcement is Inactive'}
+                  {formData.enabled ? 'Announcement is Active' : 'Announcement is Inactive'}
                 </span>
               </label>
             </div>
