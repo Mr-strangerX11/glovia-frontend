@@ -37,7 +37,7 @@ export default function AccountPage() {
             <p className="text-sm text-gray-600">Name: {display.firstName} {display.lastName}</p>
             <p className="text-sm text-gray-600">Email: {display.email}</p>
             {display.phone && <p className="text-sm text-gray-600">Phone: {display.phone}</p>}
-            <p className="text-sm text-gray-600">Role: {display.role}</p>
+            <p className="text-sm text-gray-600">Role: {display.role === 'SUPER_ADMIN' ? 'Super Admin, Admin' : display.role.charAt(0) + display.role.slice(1).toLowerCase().replace('_', ' ')}</p>
           </div>
 
           <div className="card p-6 space-y-2">
