@@ -7,6 +7,7 @@ import { userAPI } from '@/lib/api';
 import { MapPin, Plus, Edit2, Trash2, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import { provinces, getDistrictsForProvince, getMunicipalitiesForDistrict, getWardNumbers } from '@/data/nepalLocations';
 
 interface Address {
   id?: string;
@@ -32,7 +33,7 @@ export default function AddressesPage() {
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
-    province: 'Province 3',
+    province: 'Bagmati Province',
     district: 'Kathmandu',
     municipality: '',
     wardNo: 1,
@@ -191,45 +192,83 @@ export default function AddressesPage() {
                 </div>
                 <div>
                   <label className="label">Province *</label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.province}
-                    onChange={(e) => setFormData({ ...formData, province: e.target.value })}
+                    onChange={(e) => {
+                      const newProvince = e.target.value;
+                      const districts = getDistrictsForProvince(newProvince);
+                      setFormData({ 
+                        ...formData, 
+                        province: newProvince,
+                        district: districts[0] || '',
+                        municipality: ''
+                      });
+                    }}
                     className="input"
                     required
-                  />
+                  >
+                    <option value="">Select Province</option>
+                    {provinces.map((province) => (
+                      <option key={province} value={province}>
+                        {province}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="label">District *</label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.district}
-                    onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+                    onChange={(e) => {
+                      const newDistrict = e.target.value;
+                      setFormData({ 
+                        ...formData, 
+                        district: newDistrict,
+                        municipality: ''
+                      });
+                    }}
                     className="input"
                     required
-                  />
+                  >
+                    <option value="">Select District</option>
+                    {getDistrictsForProvince(formData.province).map((district) => (
+                      <option key={district} value={district}>
+                        {district}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="label">Municipality *</label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.municipality}
                     onChange={(e) => setFormData({ ...formData, municipality: e.target.value })}
                     className="input"
                     required
-                  />
+                  >
+                    <option value="">Select Municipality</option>
+                    {getMunicipalitiesForDistrict(formData.district).map((municipality) => (
+                      <option key={municipality} value={municipality}>
+                        {municipality}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="label">Ward No *</label>
-                  <input
-                    type="number"
+                  <select
                     value={formData.wardNo}
                     onChange={(e) => setFormData({ ...formData, wardNo: parseInt(e.target.value) })}
                     className="input"
-                    min="1"
-                    max="35"
                     required
-                  />
+                  >
+                    <option value="">Select Ward</option>
+                    {getWardNumbers().map((ward) => (
+                      <option key={ward} value={ward}>
+                        Ward {ward}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="md:col-span-2">
                   <label className="label">Area/Tole *</label>
