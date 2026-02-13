@@ -40,7 +40,9 @@ export default function RegisterPage() {
       return;
     }
     try {
-      await register(form);
+      // Remove confirmPassword before sending to API
+      const { confirmPassword, ...registerData } = form;
+      await register(registerData);
       // Redirect to OTP verification page for email verification
       router.push(`/auth/verify-otp?email=${encodeURIComponent(form.email)}&purpose=verification`);
     } catch (err: any) {
