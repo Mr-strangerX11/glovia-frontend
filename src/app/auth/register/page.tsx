@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -14,7 +15,10 @@ export default function RegisterPage() {
     email: "",
     phone: "",
     password: "",
+    confirmPassword: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleChange = (key: string, value: string) => {
@@ -24,6 +28,11 @@ export default function RegisterPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (form.password !== form.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
 
     const strong = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
     if (!strong.test(form.password)) {
@@ -113,16 +122,49 @@ export default function RegisterPage() {
             <label className="text-sm font-medium text-gray-700" htmlFor="password">
               Password
             </label>
-            <input
-              id="password"
-              type="text"
-              required
-              className="input"
-              placeholder="Min 8 chars, include A-Z, a-z, 0-9, symbol"
-              value={form.password}
-              onChange={(e) => handleChange("password", e.target.value)}
-            />
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                required
+                className="input pr-10"
+                placeholder="Min 8 chars, include A-Z, a-z, 0-9, symbol"
+                value={form.password}
+                onChange={(e) => handleChange("password", e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
             <p className="text-xs text-gray-500">Must include uppercase, lowercase, number, and special character.</p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700" htmlFor="confirmPassword">
+              Confirm Password
+            </label>
+            <div className="relative">
+              <input
+                id="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                required
+                className="input pr-10"
+                placeholder="Re-enter your password"
+                value={form.confirmPassword}
+                onChange={(e) => handleChange("confirmPassword", e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
 
           <button type="submit" className="btn-primary w-full" disabled={isLoading}>
