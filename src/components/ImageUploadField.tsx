@@ -52,22 +52,26 @@ export default function ImageUploadField({
         formData.append("file", file);
 
         try {
-          // Try to upload to backend API
-          const response = await fetch("/api/upload", {
+          // Get auth token from localStorage
+          const token = localStorage.getItem("token");
+          if (!token) {
+            toast.error("Please login to upload images");
+            continue;
+          }
+
+          // Upload to backend API
+          const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+          const response = await fetch(`${backendUrl}/upload/image`, {
             method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
             body: formData,
           });
 
           if (!response.ok) {
-            // Fallback: convert to base64 data URL for now
-            console.warn('Upload API not available, using base64 fallback');
-            const reader = new FileReader();
-            const dataUrl = await new Promise<string>((resolve, reject) => {
-              reader.onload = () => resolve(reader.result as string);
-              reader.onerror = reject;
-              reader.readAsDataURL(file);
-            });
-            newUrls.push(dataUrl);
+            const errorData = await response.json().catch(() => ({}));
+            toast.error(errorData.message || `Failed to upload ${file.name}`);
             continue;
           }
 
@@ -76,18 +80,8 @@ export default function ImageUploadField({
             newUrls.push(data.url);
           }
         } catch (error) {
-          // Fallback to base64 if API upload fails
-          try {
-            const reader = new FileReader();
-            const dataUrl = await new Promise<string>((resolve, reject) => {
-              reader.onload = () => resolve(reader.result as string);
-              reader.onerror = reject;
-              reader.readAsDataURL(file);
-            });
-            newUrls.push(dataUrl);
-          } catch (base64Error) {
-            toast.error(`Failed to process ${file.name}`);
-          }
+          console.error('Upload error:', error);
+          toast.error(`Failed to upload ${file.name}`);
         }
       }
 
@@ -95,13 +89,7 @@ export default function ImageUploadField({
         const updatedUrls = [...uploadedUrls, ...newUrls];
         setUploadedUrls(updatedUrls);
         onImagesChange(updatedUrls);
-        const isBase64 = newUrls[0].startsWith('data:');
-        toast.success(`${newUrls.length} image(s) ${isBase64 ? 'loaded' : 'uploaded'} successfully`);
-        if (isBase64) {
-          toast('ℹ️ Images will be stored temporarily. Configure upload API for permanent storage.', {
-            duration: 4000,
-          });
-        }
+        toast.success(`${newUrls.length} image(s) uploaded successfully`);
       }
     } finally {
       setUploading(false);
