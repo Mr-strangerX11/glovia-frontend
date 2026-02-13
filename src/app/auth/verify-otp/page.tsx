@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState, useRef, KeyboardEvent, ClipboardEvent, Suspense } from "react";
+import { FormEvent, useState, useRef, KeyboardEvent, ClipboardEvent, Suspense, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/lib/api";
@@ -16,8 +16,32 @@ function VerifyOtpContent() {
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [resendLoading, setResendLoading] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(120); // 2 minutes in seconds
   
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Countdown timer
+  useEffect(() => {
+    if (timeLeft <= 0) return;
+    
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeLeft]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const handleChange = (index: number, value: string) => {
     if (value.length > 1) {
@@ -130,6 +154,7 @@ function VerifyOtpContent() {
       await api.post(endpoint, { email });
       setSuccessMessage("OTP resent successfully! Check your email.");
       setOtp(["", "", "", "", "", ""]);
+      setTimeLeft(120); // Reset timer to 2 minutes
       inputRefs.current[0]?.focus();
     } catch (err: any) {
       const message = err?.response?.data?.message || "Failed to resend OTP. Please try again.";
@@ -203,8 +228,26 @@ function VerifyOtpContent() {
             </div>
           </div>
 
-          <button type="submit" className="btn-primary w-full" disabled={loading}>
-            {loading ? "Verifying..." : "Verify OTP"}
+          {timeLeft > 0 ? (
+            <div className="text-center">
+              <p className="text-sm text-gray-600">
+                OTP expires in: <span className="font-semibold text-primary-600">{formatTime(timeLeft)}</span>
+              </p>
+            </div>
+          ) : (
+            <div className="text-center">
+              <p className="text-sm text-red-600 font-medium">
+                OTP has expired. Please request a new one.
+              </p>
+            </div>
+          )}
+
+          <button 
+            type="submit" 
+            className="btn-primary w-full" 
+            disabled={loading || timeLeft === 0}
+          >
+            {loading ? "Verifying..." : timeLeft === 0 ? "OTP Expired" : "Verify OTP"}
           </button>
         </form>
 

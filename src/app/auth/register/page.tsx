@@ -29,6 +29,11 @@ export default function RegisterPage() {
     e.preventDefault();
     setError(null);
 
+    if (form.phone.length !== 10 || !/^[0-9]{10}$/.test(form.phone)) {
+      setError("Phone number must be exactly 10 digits");
+      return;
+    }
+
     if (form.password !== form.confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -108,16 +113,23 @@ export default function RegisterPage() {
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700" htmlFor="phone">
-              Phone (optional)
+              Phone *
             </label>
             <input
               id="phone"
               type="tel"
+              required
               className="input"
               placeholder="98XXXXXXXX"
+              pattern="[0-9]{10}"
+              maxLength={10}
               value={form.phone}
-              onChange={(e) => handleChange("phone", e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value.replace(/[^0-9]/g, '');
+                handleChange("phone", value);
+              }}
             />
+            <p className="text-xs text-gray-500">Enter 10-digit mobile number</p>
           </div>
 
           <div className="space-y-2">
