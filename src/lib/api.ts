@@ -132,7 +132,8 @@ export const adminAPI = {
   getOrder: (id: string) => api.get(`/admin/orders/${id}`),
   updateOrder: (id: string, data: any) => api.put(`/admin/orders/${id}`, data),
   // Users
-  getAllUsers: () => api.get('/admin/users'),
+  getAllUsers: (params?: { page?: number; limit?: number; role?: string }) => 
+    api.get('/admin/users', { params }),
   getAllCustomers: () => api.get('/admin/customers'),
   createUser: (data: any) => api.post('/admin/users', data),
   updateUserRole: (id: string, role: string) => api.put(`/admin/users/${id}/role`, { role }),

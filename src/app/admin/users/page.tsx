@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { adminAPI } from '@/lib/api';
-import { Plus, Loader2, Search, UserCheck } from 'lucide-react';
+import { Plus, Loader2, Search, UserCheck, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 
@@ -27,6 +27,7 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -44,7 +45,8 @@ export default function AdminUsersPage() {
 
   const fetchUsers = async () => {
     try {
-      const { data } = await adminAPI.getAllUsers();
+      // Fetch all users with a high limit to show everyone
+      const { data } = await adminAPI.getAllUsers({ page: 1, limit: 1000 });
       const usersList = data?.data || data || [];
       setUsers(usersList);
     } catch (error) {
@@ -80,6 +82,7 @@ export default function AdminUsersPage() {
       phone: '',
       role: 'CUSTOMER',
     });
+    setShowPassword(false);
     setShowForm(false);
   };
 
@@ -222,14 +225,23 @@ export default function AdminUsersPage() {
                 </div>
                 <div>
                   <label className="label">Password *</label>
-                  <input
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="input"
-                    required
-                    minLength={8}
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      className="input pr-10"
+                      required
+                      minLength={8}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label className="label">First Name *</label>
