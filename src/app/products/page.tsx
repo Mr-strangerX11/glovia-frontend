@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useMemo, Suspense } from "react";
-import { useProducts, useCategories, useBrands } from "@/hooks/useData";
+import { useProducts, useCategories, useBrands, useWishlist } from "@/hooks/useData";
 import Image from "next/image";
+import { Heart } from "lucide-react";
 
 function ProductsContent() {
   const searchParams = useSearchParams();
@@ -16,6 +17,7 @@ function ProductsContent() {
 
   const { categories } = useCategories();
   const { brands } = useBrands();
+  const { wishlist } = useWishlist();
 
   const categoryId = useMemo(() => {
     if (!category || !categories) return undefined;
@@ -32,6 +34,13 @@ function ProductsContent() {
     brandId,
     search,
   });
+
+  const wishlistIds = useMemo(() => {
+    if (!wishlist) return new Set<string>();
+    return new Set(
+      wishlist.map((item: any) => item.product?.id || item.productId || item.product?._id).filter(Boolean)
+    );
+  }, [wishlist]);
 
   const title = useMemo(() => {
     if (category) return `Products - ${category}`;
@@ -151,7 +160,10 @@ function ProductsContent() {
 
         {!isLoading && products && products.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {products.map((product) => (
+            {products.map((product) => {
+              const productId = product.id || (product as any)._id;
+              const isWishlisted = wishlistIds.has(productId);
+              return (
               <Link key={product.id || product.slug} href={`/products/${product.slug}`} className="card group">
                 <div className="relative aspect-square overflow-hidden">
                   <Image
@@ -161,6 +173,20 @@ function ProductsContent() {
                     sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     className="object-cover group-hover:scale-110 transition-transform duration-300"
                   />
+                  <span
+                    className={`absolute top-3 right-3 inline-flex items-center justify-center w-9 h-9 rounded-full border ${
+                      isWishlisted
+                        ? "border-red-200 bg-red-50"
+                        : "border-gray-200 bg-white/90"
+                    }`}
+                    aria-label={isWishlisted ? "Wishlisted" : "Not wishlisted"}
+                  >
+                    <Heart
+                      className={`w-4 h-4 ${
+                        isWishlisted ? "text-red-500 fill-red-500" : "text-gray-600"
+                      }`}
+                    />
+                  </span>
                 </div>
                 <div className="p-4 space-y-1">
                   <p className="text-xs text-gray-500">{product.category?.name}</p>
@@ -168,7 +194,8 @@ function ProductsContent() {
                   <p className="text-primary-600 font-bold">NPR {product.price}</p>
                 </div>
               </Link>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
