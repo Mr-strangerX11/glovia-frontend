@@ -14,9 +14,24 @@ function ProductsContent() {
   const brand = searchParams.get("brand") || undefined;
   const search = searchParams.get("search") || searchParams.get("q") || undefined;
 
-  const { products, isLoading } = useProducts({ category, brand, search });
   const { categories } = useCategories();
   const { brands } = useBrands();
+
+  const categoryId = useMemo(() => {
+    if (!category || !categories) return undefined;
+    return categories.find((cat) => cat.slug === category)?.id;
+  }, [category, categories]);
+
+  const brandId = useMemo(() => {
+    if (!brand || !brands) return undefined;
+    return brands.find((b) => b.slug === brand)?.id;
+  }, [brand, brands]);
+
+  const { products, isLoading } = useProducts({
+    categoryId,
+    brandId,
+    search,
+  });
 
   const title = useMemo(() => {
     if (category) return `Products - ${category}`;

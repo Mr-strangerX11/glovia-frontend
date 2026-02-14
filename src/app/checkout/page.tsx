@@ -47,6 +47,7 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CASH_ON_DELIVERY");
   const [note, setNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [trustMessage, setTrustMessage] = useState<string | null>(null);
 
   const items = cart?.items ?? [];
   const total = cart?.total ?? 0;
@@ -72,6 +73,7 @@ export default function CheckoutPage() {
 
     try {
       setIsSubmitting(true);
+      setTrustMessage(null);
       const payload = {
         addressId: effectiveAddressId,
         items: items.map((item) => ({
@@ -88,7 +90,15 @@ export default function CheckoutPage() {
       toast.success("Order placed successfully!");
       router.push(`/account/orders/${response.data._id || response.data.id}`);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to place order");
+      const errorData = error.response?.data;
+      if (errorData?.message === 'Insufficient verification to place orders') {
+        const missing = Array.isArray(errorData?.missing) ? errorData.missing.join(' & ') : 'email/phone verification';
+        const message = `Verify ${missing} to place orders.`;
+        setTrustMessage(message);
+        toast.error(message);
+      } else {
+        toast.error(errorData?.message || "Failed to place order");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -124,6 +134,11 @@ export default function CheckoutPage() {
         ) : (
           <div className="grid lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
+              {trustMessage && (
+                <div className="border border-red-200 bg-red-50 text-red-700 rounded-lg p-4">
+                  {trustMessage}
+                </div>
+              )}
               <div className="card p-6 space-y-4">
                 <h2 className="text-lg font-semibold">Delivery Address</h2>
 
