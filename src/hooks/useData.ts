@@ -1,4 +1,5 @@
 import useSWR from 'swr';
+import Cookies from 'js-cookie';
 import { productsAPI, categoriesAPI, brandsAPI, cartAPI, wishlistAPI, ordersAPI, userAPI, bannersAPI, blogsAPI, adminAPI } from '@/lib/api';
 import { Product, Category, Brand, Cart, WishlistItem, Order, User, Address, Banner, Blog } from '@/types';
 
@@ -172,7 +173,11 @@ export function useWishlist() {
 }
 
 export function useOrders() {
-  const { data, error, mutate } = useSWR('/orders', () => fetcher(ordersAPI.getAll));
+  const hasToken = typeof window !== 'undefined' && !!Cookies.get('access_token');
+  const { data, error, mutate } = useSWR(
+    hasToken ? '/orders' : null,
+    () => fetcher(ordersAPI.getAll)
+  );
 
   return {
     orders: normalizeOrders(data),
@@ -183,8 +188,9 @@ export function useOrders() {
 }
 
 export function useOrder(id: string) {
+  const hasToken = typeof window !== 'undefined' && !!Cookies.get('access_token');
   const { data, error, mutate } = useSWR(
-    id ? `/orders/${id}` : null,
+    id && hasToken ? `/orders/${id}` : null,
     () => fetcher(() => ordersAPI.getById(id))
   );
 

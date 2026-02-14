@@ -37,6 +37,8 @@ function ProductsContent() {
   const { products, isLoading } = useProducts({
     categoryId,
     brandId,
+    category,
+    brand,
     search,
   });
 
