@@ -61,7 +61,8 @@ export default function ImageUploadField({
           }
 
           // Upload to backend API
-          const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+          const rawBackendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+          const backendUrl = rawBackendUrl.startsWith("http") ? rawBackendUrl : `https://${rawBackendUrl}`;
           const response = await fetch(`${backendUrl}/upload/image`, {
             method: "POST",
             headers: {
@@ -71,8 +72,15 @@ export default function ImageUploadField({
           });
 
           if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            toast.error(errorData.message || `Failed to upload ${file.name}`);
+            const contentType = response.headers.get("content-type") || "";
+            if (contentType.includes("application/json")) {
+              const errorData = await response.json().catch(() => ({}));
+              toast.error(errorData.message || `Failed to upload ${file.name}`);
+            } else {
+              const errorText = await response.text().catch(() => "");
+              console.error("Upload failed:", errorText);
+              toast.error(`Upload failed (${response.status}). Check backend URL and auth.`);
+            }
             continue;
           }
 
