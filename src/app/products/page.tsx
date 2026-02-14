@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useMemo, Suspense, useState } from "react";
-import { useProducts, useCategories, useBrands, useWishlist } from "@/hooks/useData";
+import { useProducts, useCategories, useBrands, useWishlist, useFeaturedProducts } from "@/hooks/useData";
 import Image from "next/image";
 import { Heart } from "lucide-react";
 import toast from "react-hot-toast";
@@ -39,6 +39,8 @@ function ProductsContent() {
     brandId,
     search,
   });
+
+  const { products: featuredProducts } = useFeaturedProducts(12);
 
   const wishlistIds = useMemo(() => {
     if (!wishlist) return new Set<string>();
@@ -194,7 +196,59 @@ function ProductsContent() {
         </div>
 
         {isLoading && <p className="text-gray-600">Loading products...</p>}
-        {!isLoading && (!products || products.length === 0) && (
+        {!isLoading && (!products || products.length === 0) && !category && !brand && !search && featuredProducts?.length > 0 && (
+          <div>
+            <p className="text-sm text-gray-500 mb-3">Featured Products</p>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {featuredProducts.map((product) => {
+                const productId = product.id || (product as any)._id;
+                const isWishlisted = wishlistIds.has(productId);
+                return (
+                  <Link key={product.id || product.slug} href={`/products/${product.slug}`} className="card group">
+                    <div className="relative aspect-square overflow-hidden">
+                      <Image
+                        src={product.images?.[0]?.url || "/placeholder.jpg"}
+                        alt={product.name}
+                        fill
+                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          if (!updatingId) {
+                            handleWishlistToggle(productId);
+                          }
+                        }}
+                        className={`absolute top-3 right-3 inline-flex items-center justify-center w-9 h-9 rounded-full border transition-colors ${
+                          isWishlisted
+                            ? "border-red-200 bg-red-50"
+                            : "border-gray-200 bg-white/90 hover:bg-white"
+                        } ${updatingId === productId ? "opacity-60" : ""}`}
+                        aria-label={isWishlisted ? "Wishlisted" : "Add to wishlist"}
+                      >
+                        <Heart
+                          className={`w-4 h-4 ${
+                            isWishlisted ? "text-red-500 fill-red-500" : "text-gray-600"
+                          }`}
+                        />
+                      </button>
+                    </div>
+                    <div className="p-4 space-y-1">
+                      <p className="text-xs text-gray-500">{product.category?.name}</p>
+                      <h3 className="font-semibold line-clamp-2">{product.name}</h3>
+                      <p className="text-primary-600 font-bold">NPR {product.price}</p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {!isLoading && (!products || products.length === 0) && (category || brand || search) && (
           <p className="text-gray-600">No products found.</p>
         )}
 
