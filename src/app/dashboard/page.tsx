@@ -11,7 +11,12 @@ export default function DashboardRouterPage() {
   useEffect(() => {
     if (isChecking || !user) return;
 
-    if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") {
+
+    if (user.role === "SUPER_ADMIN") {
+      router.replace("/dashboard/superadmin");
+      return;
+    }
+    if (user.role === "ADMIN") {
       router.replace("/dashboard/admin");
       return;
     }

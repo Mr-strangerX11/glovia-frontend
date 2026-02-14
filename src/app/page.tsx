@@ -37,47 +37,47 @@ Please add this email to the newsletter mailing list.
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary-50 via-white to-accent-50 py-20 md:py-32">
+      <section className="relative bg-gradient-to-br from-primary-50 via-white to-accent-50 py-12 sm:py-20 md:py-32">
         <div className="container">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6 animate-slide-up">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm">
-                <Sparkles className="w-4 h-4 text-primary-600" />
-                <span className="text-sm font-medium">Made for Nepal</span>
+          <div className="grid md:grid-cols-2 gap-8 sm:gap-12 items-center">
+            <div className="space-y-4 sm:space-y-6 animate-slide-up">
+              <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white rounded-full shadow-sm">
+                <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-primary-600" />
+                <span className="text-xs sm:text-sm font-medium">Made for Nepal</span>
               </div>
               
-              <h1 className="text-5xl md:text-6xl font-serif font-bold leading-tight">
+              <h1 className="text-3xl sm:text-5xl md:text-6xl font-serif font-bold leading-tight">
                 Embrace Your
                 <span className="block gradient-text">Natural Beauty</span>
               </h1>
               
-              <p className="text-lg text-gray-600">
+              <p className="text-base sm:text-lg text-gray-600">
                 Premium cosmetics and skincare products crafted for Nepali skin. 
                 Experience the perfect blend of nature and science.
               </p>
               
-              <div className="flex flex-wrap gap-4">
-                <Link href="/products" className="btn-primary">
-                  Shop Now <ArrowRight className="w-5 h-5 ml-2" />
+              <div className="flex flex-wrap gap-3 sm:gap-4">
+                <Link href="/products" className="btn-primary text-sm sm:text-base">
+                  Shop Now <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
                 </Link>
-                <Link href="/about" className="btn-outline">
+                <Link href="/about" className="btn-outline text-sm sm:text-base">
                   Our Story
                 </Link>
               </div>
 
-              <div className="flex items-center gap-8 pt-4">
+              <div className="flex items-center gap-4 sm:gap-8 pt-2 sm:pt-4">
                 <div>
-                  <div className="text-3xl font-bold text-primary-600">5000+</div>
-                  <div className="text-sm text-gray-600">Happy Customers</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-primary-600">5000+</div>
+                  <div className="text-xs sm:text-sm text-gray-600">Happy Customers</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold text-primary-600">100%</div>
-                  <div className="text-sm text-gray-600">Authentic Products</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-primary-600">100%</div>
+                  <div className="text-xs sm:text-sm text-gray-600">Authentic Products</div>
                 </div>
               </div>
             </div>
 
-            <div className="relative h-[500px] animate-fade-in">
+            <div className="relative h-64 sm:h-[500px] animate-fade-in">
               <div className="absolute inset-0 bg-gradient-to-br from-primary-200/50 to-accent-200/50 rounded-3xl blur-3xl"></div>
               <div className="relative h-full flex items-center justify-center">
                 <div className="w-64 h-64 md:w-80 md:h-80 relative">
@@ -97,16 +97,16 @@ Please add this email to the newsletter mailing list.
       </section>
 
       {/* Categories */}
-      <section className="py-16 bg-white">
+      <section className="py-12 sm:py-16 bg-white">
         <div className="container">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold mb-3 sm:mb-4">
               Shop by Category
             </h2>
-            <p className="text-gray-600">Discover products for every beauty need</p>
+            <p className="text-sm sm:text-base text-gray-600">Discover products for every beauty need</p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             {[
               { name: 'Skincare', icon: '✨', href: '/products?category=skincare' },
               { name: 'Haircare', icon: '💇', href: '/products?category=haircare' },
@@ -116,12 +116,12 @@ Please add this email to the newsletter mailing list.
               <Link
                 key={category.name}
                 href={category.href}
-                className="card group p-8 text-center hover:shadow-xl transition-all"
+                className="card group p-4 sm:p-6 md:p-8 text-center hover:shadow-xl transition-all"
               >
-                <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">
+                <div className="text-3xl sm:text-4xl md:text-5xl mb-3 sm:mb-4 group-hover:scale-110 transition-transform">
                   {category.icon}
                 </div>
-                <h3 className="text-lg font-semibold">{category.name}</h3>
+                <h3 className="text-sm sm:text-base md:text-lg font-semibold">{category.name}</h3>
               </Link>
             ))}
           </div>
@@ -129,21 +129,21 @@ Please add this email to the newsletter mailing list.
       </section>
 
       {/* Featured Products */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-12 sm:py-16 bg-gray-50">
         <div className="container">
-          <div className="flex justify-between items-center mb-12">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 sm:mb-12 gap-3">
             <div>
-              <h2 className="text-3xl md:text-4xl font-serif font-bold mb-2">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold mb-2">
                 Featured Products
               </h2>
-              <p className="text-gray-600">Handpicked favorites for you</p>
+              <p className="text-sm sm:text-base text-gray-600">Handpicked favorites for you</p>
             </div>
-            <Link href="/products" className="btn-outline hidden md:inline-flex">
+            <Link href="/products" className="btn-outline text-sm">
               View All
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             {featuredProducts?.map((product) => (
               <div key={product.id || product.slug} className="card group">
                 <div className="relative aspect-square overflow-hidden">
@@ -164,40 +164,40 @@ Please add this email to the newsletter mailing list.
                   </button>
                 </div>
                 
-                <div className="p-4">
-                  <div className="text-xs text-gray-500 mb-1">
+                <div className="p-3 sm:p-4">
+                  <div className="text-[10px] sm:text-xs text-gray-500 mb-1">
                     {product.category.name}
                   </div>
-                  <h3 className="font-semibold mb-2 line-clamp-2">
+                  <h3 className="font-semibold mb-2 line-clamp-2 text-xs sm:text-sm md:text-base">
                     {product.name}
                   </h3>
                   
                   <div className="flex items-center gap-1 mb-2">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-medium">
+                    <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-yellow-400 text-yellow-400" />
+                    <span className="text-xs sm:text-sm font-medium">
                       {product.averageRating?.toFixed(1) || '0.0'}
                     </span>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-[10px] sm:text-xs text-gray-500">
                       ({product.reviewCount || 0})
                     </span>
                   </div>
                   
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-lg font-bold text-primary-600">
+                      <div className="text-sm sm:text-base md:text-lg font-bold text-primary-600">
                         NPR {product.price}
                       </div>
                       {product.compareAtPrice && (
-                        <div className="text-sm text-gray-400 line-through">
+                        <div className="text-xs sm:text-sm text-gray-400 line-through">
                           NPR {product.compareAtPrice}
                         </div>
                       )}
                     </div>
                     <Link
                       href={`/products/${product.slug}`}
-                      className="w-9 h-9 bg-primary-600 text-white rounded-full flex items-center justify-center hover:bg-primary-700 transition-colors"
+                      className="w-8 h-8 sm:w-9 sm:h-9 bg-primary-600 text-white rounded-full flex items-center justify-center hover:bg-primary-700 transition-colors"
                     >
-                      <ShoppingBag className="w-4 h-4" />
+                      <ShoppingBag className="w-3 h-3 sm:w-4 sm:h-4" />
                     </Link>
                   </div>
                 </div>

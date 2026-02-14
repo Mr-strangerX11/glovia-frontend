@@ -170,19 +170,19 @@ function NewProductContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10">
+    <div className="min-h-screen bg-gray-50 py-6 sm:py-10">
       <div className="container">
         <div className="max-w-3xl mx-auto">
-          <div className="mb-6">
+          <div className="mb-4 sm:mb-6">
             <Link
               href="/admin/products"
-              className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+              className="inline-flex items-center gap-2 text-sm sm:text-base text-gray-600 hover:text-gray-900 mb-3 sm:mb-4"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Products
             </Link>
-            <h1 className="text-3xl font-bold">Add New Product</h1>
-            <p className="text-gray-600">Create a new product in your catalog</p>
+            <h1 className="text-2xl sm:text-3xl font-bold">Add New Product</h1>
+            <p className="text-sm sm:text-base text-gray-600">Create a new product in your catalog</p>
             
             {/* Selected Brand Preview */}
             {selectedBrand && (
@@ -203,9 +203,9 @@ function NewProductContent() {
             )}
           </div>
 
-          <form onSubmit={handleSubmit} className="card p-6 space-y-6">
+          <form onSubmit={handleSubmit} className="card p-4 sm:p-6 space-y-4 sm:space-y-6">
             <div>
-              <label className="label">Product Name *</label>
+              <label className="label text-sm sm:text-base">Product Name *</label>
               <input
                 type="text"
                 value={formData.name}
@@ -237,7 +237,7 @@ function NewProductContent() {
               />
             </div>
 
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <div>
                 <label className="label">Price (NPR) *</label>
                 <input
@@ -286,7 +286,7 @@ function NewProductContent() {
               </div>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="label">SKU *</label>
                 <input

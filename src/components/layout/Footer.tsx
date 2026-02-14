@@ -20,12 +20,12 @@ export default function Footer() {
 
   return (
     <footer className="bg-secondary-900 text-white">
-      <div className="container py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="container py-8 sm:py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           {/* Brand */}
           <div>
-            <h3 className="text-2xl font-serif font-bold mb-4">Glovia Nepal</h3>
-            <p className="text-gray-300 mb-4">
+            <h3 className="text-xl sm:text-2xl font-serif font-bold mb-3 sm:mb-4">Glovia Nepal</h3>
+            <p className="text-sm sm:text-base text-gray-300 mb-4">
               Premium beauty and cosmetic products crafted for Nepali skin. 
               Embrace your natural beauty with Glovia.
             </p>
@@ -59,8 +59,8 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
-            <ul className="space-y-2">
+            <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Quick Links</h4>
+            <ul className="space-y-2 text-sm sm:text-base">
               <li>
                 <Link href="/products" className="text-gray-300 hover:text-primary-400 transition-colors">
                   Shop All Products
@@ -86,8 +86,8 @@ export default function Footer() {
 
           {/* Customer Service */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Customer Service</h4>
-            <ul className="space-y-2">
+            <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Customer Service</h4>
+            <ul className="space-y-2 text-sm sm:text-base">
               <li>
                 <Link href="/shipping" className="text-gray-300 hover:text-primary-400 transition-colors">
                   Shipping Policy
@@ -113,8 +113,8 @@ export default function Footer() {
 
           {/* Contact Info */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Contact Us</h4>
-            <ul className="space-y-3">
+            <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Contact Us</h4>
+            <ul className="space-y-3 text-sm sm:text-base">
               <li className="flex items-start gap-2">
                 <MapPin className="w-5 h-5 mt-0.5 flex-shrink-0" />
                 <span className="text-gray-300">
@@ -138,13 +138,13 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-white/10 mt-8 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
-            <p>© {currentYear} Glovia Nepal. All rights reserved.</p>
-            <div className="flex gap-4">
-              <span>Made for Nepal🇳🇵</span>
-              <span>Mr kashi chaudhary</span>
-              <span>With Love ❤️</span>
+        <div className="border-t border-white/10 mt-6 sm:mt-8 pt-6 sm:pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-400">
+            <p className="text-center md:text-left">© {currentYear} Glovia Nepal. All rights reserved.</p>
+            <div className="flex flex-wrap justify-center gap-2 sm:gap-4">
+              <span className="whitespace-nowrap">Made for Nepal🇳🇵</span>
+              <span className="whitespace-nowrap">Mr kashi chaudhary</span>
+              <span className="whitespace-nowrap">With Love ❤️</span>
             </div>
           </div>
         </div>

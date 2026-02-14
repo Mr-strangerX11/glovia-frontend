@@ -104,31 +104,31 @@ function ProductsContent() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="container py-10 space-y-8">
+      <div className="container py-6 sm:py-10 space-y-6 sm:space-y-8">
         {/* Header */}
         <div>
-          <p className="text-sm text-gray-500">Catalog</p>
-          <h1 className="text-3xl font-bold">{title}</h1>
+          <p className="text-xs sm:text-sm text-gray-500">Catalog</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">{title}</h1>
         </div>
 
         {/* Featured Brands Section */}
         {Array.isArray(brands) && brands.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Shop by Brand</h2>
-              <Link href="/brands" className="text-primary-600 hover:underline text-sm font-medium">
+              <h2 className="text-lg sm:text-xl font-semibold">Shop by Brand</h2>
+              <Link href="/brands" className="text-primary-600 hover:underline text-xs sm:text-sm font-medium">
                 View All Brands →
               </Link>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
               {brands.slice(0, 6).map((b) => (
                 <button
                   key={b.slug}
                   onClick={() => router.push(`/products?brand=${b.slug}`)}
-                  className="card p-4 hover:shadow-lg transition-shadow text-center group cursor-pointer bg-white border border-gray-200"
+                  className="card p-3 sm:p-4 hover:shadow-lg transition-shadow text-center group cursor-pointer bg-white border border-gray-200"
                 >
                   {b.logo ? (
-                    <div className="h-16 flex items-center justify-center mb-2">
+                    <div className="h-12 sm:h-16 flex items-center justify-center mb-2">
                       <img
                         src={b.logo}
                         alt={b.name}
@@ -136,11 +136,11 @@ function ProductsContent() {
                       />
                     </div>
                   ) : (
-                    <div className="h-16 bg-gray-100 rounded flex items-center justify-center mb-2 group-hover:bg-gray-200 transition-colors">
+                    <div className="h-12 sm:h-16 bg-gray-100 rounded flex items-center justify-center mb-2 group-hover:bg-gray-200 transition-colors">
                       <span className="text-xs text-gray-500 font-bold">{b.name.charAt(0)}</span>
                     </div>
                   )}
-                  <p className="font-semibold text-sm line-clamp-2 group-hover:text-primary-600">
+                  <p className="font-semibold text-xs sm:text-sm line-clamp-2 group-hover:text-primary-600">
                     {b.name}
                   </p>
                 </button>
@@ -202,8 +202,8 @@ function ProductsContent() {
         {isLoading && <p className="text-gray-600">Loading products...</p>}
         {!isLoading && (!products || products.length === 0) && !category && !brand && !search && featuredProducts?.length > 0 && (
           <div>
-            <p className="text-sm text-gray-500 mb-3">Featured Products</p>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <p className="text-xs sm:text-sm text-gray-500 mb-3">Featured Products</p>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
               {featuredProducts.map((product) => {
                 const productId = product.id || (product as any)._id;
                 const isWishlisted = wishlistIds.has(productId);
@@ -244,10 +244,10 @@ function ProductsContent() {
                         )}
                       </button>
                     </div>
-                    <div className="p-4 space-y-1">
-                      <p className="text-xs text-gray-500">{product.category?.name}</p>
-                      <h3 className="font-semibold line-clamp-2">{product.name}</h3>
-                      <p className="text-primary-600 font-bold">NPR {product.price}</p>
+                    <div className="p-3 sm:p-4 space-y-1">
+                      <p className="text-[10px] sm:text-xs text-gray-500">{product.category?.name}</p>
+                      <h3 className="font-semibold text-xs sm:text-sm md:text-base line-clamp-2">{product.name}</h3>
+                      <p className="text-primary-600 font-bold text-sm sm:text-base">NPR {product.price}</p>
                     </div>
                   </Link>
                 );
@@ -261,7 +261,7 @@ function ProductsContent() {
         )}
 
         {!isLoading && products && products.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             {products.map((product) => {
               const productId = product.id || (product as any)._id;
               const isWishlisted = wishlistIds.has(productId);
@@ -298,10 +298,10 @@ function ProductsContent() {
                     />
                   </button>
                 </div>
-                <div className="p-4 space-y-1">
-                  <p className="text-xs text-gray-500">{product.category?.name}</p>
-                  <h3 className="font-semibold line-clamp-2">{product.name}</h3>
-                  <p className="text-primary-600 font-bold">NPR {product.price}</p>
+                <div className="p-3 sm:p-4 space-y-1">
+                  <p className="text-[10px] sm:text-xs text-gray-500">{product.category?.name}</p>
+                  <h3 className="font-semibold text-xs sm:text-sm md:text-base line-clamp-2">{product.name}</h3>
+                  <p className="text-primary-600 font-bold text-sm sm:text-base">NPR {product.price}</p>
                 </div>
               </Link>
               );

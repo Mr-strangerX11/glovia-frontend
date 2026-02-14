@@ -31,13 +31,13 @@ export default function Header() {
       {/* Top Bar */}
       <div className="bg-primary-600 text-white py-2">
         <div className="container">
-          <div className="flex justify-between items-center text-sm">
-            <p>✨ Free Delivery on orders above NPR 2,999</p>
+          <div className="flex justify-between items-center text-xs sm:text-sm">
+            <p className="truncate">✨ Free Delivery on orders above NPR 2,999</p>
             <div className="hidden md:flex items-center gap-4">
-              <Link href="/track-order" className="hover:underline">
+              <Link href="/track-order" className="hover:underline whitespace-nowrap">
                 Track Order
               </Link>
-              <Link href="/blog" className="hover:underline">
+              <Link href="/blog" className="hover:underline whitespace-nowrap">
                 Beauty Tips
               </Link>
             </div>
@@ -46,11 +46,11 @@ export default function Header() {
       </div>
 
       {/* Main Header */}
-      <div className="container py-4">
-        <div className="flex items-center justify-between gap-4">
+      <div className="container py-3 sm:py-4">
+        <div className="flex items-center justify-between gap-2 sm:gap-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center">
-            <h1 className="text-2xl md:text-3xl font-serif font-bold gradient-text">
+          <Link href="/" className="flex items-center flex-shrink-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold gradient-text">
               Glovia Nepal
             </h1>
           </Link>
@@ -72,20 +72,20 @@ export default function Header() {
           </nav>
 
           {/* Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-2">
             {/* Search */}
             <button
               onClick={() => setSearchOpen(!searchOpen)}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors"
               aria-label="Search"
             >
-              <Search className="w-5 h-5" />
+              <Search className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
             {/* Wishlist */}
             <Link
               href="/wishlist"
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors hidden sm:flex"
               aria-label="Wishlist"
             >
               <Heart className="w-5 h-5" />
@@ -94,12 +94,12 @@ export default function Header() {
             {/* Cart */}
             <Link
               href="/cart"
-              className="relative p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="relative p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors"
               aria-label="Cart"
             >
-              <ShoppingCart className="w-5 h-5" />
+              <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
               {cart && cart.itemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full text-[10px] sm:text-xs">
                   {cart.itemCount}
                 </span>
               )}
@@ -108,32 +108,32 @@ export default function Header() {
             {/* User Menu */}
             {isAuthenticated ? (
               <div className="relative group">
-                <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                  <User className="w-5 h-5" />
+                <button className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors">
+                  <User className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                  <Link href="/dashboard" className="block px-4 py-2 hover:bg-gray-100">
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                  <Link href="/dashboard" className="block px-4 py-2 hover:bg-gray-100 text-sm">
                     Dashboard
                   </Link>
-                  <Link href="/account" className="block px-4 py-2 hover:bg-gray-100">
+                  <Link href="/account" className="block px-4 py-2 hover:bg-gray-100 text-sm">
                     My Account
                   </Link>
-                  <Link href="/account/orders" className="block px-4 py-2 hover:bg-gray-100">
+                  <Link href="/account/orders" className="block px-4 py-2 hover:bg-gray-100 text-sm">
                     Orders
                   </Link>
-                  <Link href="/account/addresses" className="block px-4 py-2 hover:bg-gray-100">
+                  <Link href="/account/addresses" className="block px-4 py-2 hover:bg-gray-100 text-sm">
                     Addresses
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600"
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600 text-sm"
                   >
                     Logout
                   </button>
                 </div>
               </div>
             ) : (
-              <Link href="/auth/login" className="btn-primary text-sm">
+              <Link href="/auth/login" className="btn-primary text-xs sm:text-sm px-3 sm:px-6 py-2 sm:py-3">
                 Login
               </Link>
             )}
@@ -141,7 +141,7 @@ export default function Header() {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 hover:bg-gray-100 rounded-full"
+              className="lg:hidden p-1.5 sm:p-2 hover:bg-gray-100 rounded-full"
               aria-label="Menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
