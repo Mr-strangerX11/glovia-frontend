@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useMemo, Suspense, useState } from "react";
 import { useProducts, useCategories, useBrands, useWishlist, useFeaturedProducts } from "@/hooks/useData";
 import Image from "next/image";
-import { Heart } from "lucide-react";
+import { Heart, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuthStore } from "@/store/authStore";
 import { wishlistAPI } from "@/lib/api";
@@ -73,8 +73,10 @@ function ProductsContent() {
         if (itemId) {
           await wishlistAPI.remove(itemId);
         }
+        toast.success("Removed from wishlist");
       } else {
         await wishlistAPI.add(productId);
+        toast.success("Added to wishlist");
       }
       await mutateWishlist();
     } catch (error: any) {
@@ -229,11 +231,15 @@ function ProductsContent() {
                         } ${updatingId === productId ? "opacity-60" : ""}`}
                         aria-label={isWishlisted ? "Wishlisted" : "Add to wishlist"}
                       >
-                        <Heart
-                          className={`w-4 h-4 ${
-                            isWishlisted ? "text-red-500 fill-red-500" : "text-gray-600"
-                          }`}
-                        />
+                        {updatingId === productId ? (
+                          <Loader2 className="w-4 h-4 animate-spin text-gray-600" />
+                        ) : (
+                          <Heart
+                            className={`w-4 h-4 ${
+                              isWishlisted ? "text-red-500 fill-red-500" : "text-gray-600"
+                            }`}
+                          />
+                        )}
                       </button>
                     </div>
                     <div className="p-4 space-y-1">
