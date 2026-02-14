@@ -61,8 +61,17 @@ export default function ImageUploadField({
           }
 
           // Upload to backend API
-          const rawBackendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
-          const backendUrl = rawBackendUrl.startsWith("http") ? rawBackendUrl : `https://${rawBackendUrl}`;
+          const rawBackendUrl =
+            process.env.NEXT_PUBLIC_API_URL ||
+            process.env.NEXT_PUBLIC_API_URLS ||
+            "http://localhost:3001";
+          let backendUrl = rawBackendUrl.startsWith("http")
+            ? rawBackendUrl
+            : `https://${rawBackendUrl}`;
+          backendUrl = backendUrl.replace(/\/+$/, "");
+          if (!backendUrl.includes("/api/")) {
+            backendUrl = `${backendUrl}/api/v1`;
+          }
           const response = await fetch(`${backendUrl}/upload/image`, {
             method: "POST",
             headers: {
