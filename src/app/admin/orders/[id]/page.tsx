@@ -54,6 +54,7 @@ export default function OrderDetailPage() {
   const [updating, setUpdating] = useState(false);
   const [showDiscountForm, setShowDiscountForm] = useState(false);
   const [showDeliveryForm, setShowDeliveryForm] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   const [formData, setFormData] = useState({
     status: '',
@@ -179,7 +180,6 @@ export default function OrderDetailPage() {
   const calculatedTotal = order.subtotal + formData.deliveryCharge - formData.discount;
 
   // Cancel order handler
-  const [cancelling, setCancelling] = useState(false);
   const handleCancel = async () => {
     if (!order) return;
     if (!window.confirm("Are you sure you want to cancel this order?")) return;
