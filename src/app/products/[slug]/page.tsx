@@ -20,6 +20,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
+import { useWishlist } from "@/hooks/useData";
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -35,10 +36,24 @@ export default function ProductDetailPage() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+
+  const { wishlist, mutate: mutateWishlist } = useWishlist();
 
   useEffect(() => {
     fetchProductData();
   }, [slug]);
+
+  useEffect(() => {
+    if (!product) return;
+    const wishlistItems = wishlist || [];
+    const productId = product.id || product._id;
+    const alreadyWishlisted = wishlistItems.some((item: any) => {
+      const itemProductId = item.product?.id || item.productId || item.product?._id;
+      return itemProductId === productId;
+    });
+    setIsWishlisted(alreadyWishlisted);
+  }, [product, wishlist]);
 
   const fetchProductData = async () => {
     try {
@@ -101,9 +116,16 @@ export default function ProductDetailPage() {
       return;
     }
 
+    if (isWishlisted) {
+      toast.success("Already in wishlist");
+      return;
+    }
+
     try {
       setIsAddingToWishlist(true);
       await wishlistAPI.add(product._id);
+      await mutateWishlist();
+      setIsWishlisted(true);
       toast.success("Added to wishlist!");
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to add to wishlist");
@@ -352,9 +374,17 @@ export default function ProductDetailPage() {
                   <button
                     onClick={handleAddToWishlist}
                     disabled={isAddingToWishlist}
-                    className="w-12 h-12 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className={`w-12 h-12 flex items-center justify-center border rounded-lg transition-colors ${
+                      isWishlisted
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-300 hover:bg-gray-50"
+                    }`}
                   >
-                    <Heart className="w-5 h-5" />
+                    <Heart
+                      className={`w-5 h-5 ${
+                        isWishlisted ? "text-red-500 fill-red-500" : "text-gray-700"
+                      }`}
+                    />
                   </button>
                 </div>
               </div>
