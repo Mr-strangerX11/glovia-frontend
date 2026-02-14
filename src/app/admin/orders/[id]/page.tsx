@@ -178,6 +178,24 @@ export default function OrderDetailPage() {
 
   const calculatedTotal = order.subtotal + formData.deliveryCharge - formData.discount;
 
+  // Cancel order handler
+  const [cancelling, setCancelling] = useState(false);
+  const handleCancel = async () => {
+    if (!order) return;
+    if (!window.confirm("Are you sure you want to cancel this order?")) return;
+    setCancelling(true);
+    try {
+      const orderId = getOrderId(order);
+      await adminAPI.updateOrder(orderId, { status: "CANCELLED" });
+      toast.success("Order cancelled");
+      await fetchOrder();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to cancel order");
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-10">
       <div className="container">
@@ -202,6 +220,15 @@ export default function OrderDetailPage() {
                 {order.status}
               </span>
             </div>
+            {order.status !== "CANCELLED" && (
+              <button
+                className="btn-outline text-red-600 mt-4"
+                onClick={handleCancel}
+                disabled={cancelling}
+              >
+                {cancelling ? "Cancelling..." : "Cancel Order"}
+              </button>
+            )}
           </div>
 
           {/* Main Content */}
@@ -381,6 +408,51 @@ export default function OrderDetailPage() {
                     <option value="DELIVERED">Delivered</option>
                     <option value="CANCELLED">Cancelled</option>
                   </select>
+                </div>
+
+                <div className="flex gap-2 mb-2">
+                  {order.status !== "SHIPPED" && order.status !== "DELIVERED" && order.status !== "CANCELLED" && (
+                    <button
+                      type="button"
+                      className="btn-outline"
+                      onClick={async () => {
+                        setUpdating(true);
+                        try {
+                          await adminAPI.updateOrder(getOrderId(order), { status: "SHIPPED" });
+                          toast.success("Order marked as On the Way");
+                          await fetchOrder();
+                        } catch (e) {
+                          toast.error("Failed to update status");
+                        } finally {
+                          setUpdating(false);
+                        }
+                      }}
+                      disabled={updating}
+                    >
+                      Mark as On the Way
+                    </button>
+                  )}
+                  {order.status === "SHIPPED" && (
+                    <button
+                      type="button"
+                      className="btn-outline"
+                      onClick={async () => {
+                        setUpdating(true);
+                        try {
+                          await adminAPI.updateOrder(getOrderId(order), { status: "DELIVERED" });
+                          toast.success("Order marked as Complete");
+                          await fetchOrder();
+                        } catch (e) {
+                          toast.error("Failed to update status");
+                        } finally {
+                          setUpdating(false);
+                        }
+                      }}
+                      disabled={updating}
+                    >
+                      Mark as Complete
+                    </button>
+                  )}
                 </div>
 
                 <div>

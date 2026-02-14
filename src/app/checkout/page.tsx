@@ -90,7 +90,7 @@ export default function CheckoutPage() {
       const response = await ordersAPI.create(payload);
       await mutateCart();
       toast.success("Order placed successfully!");
-      router.push(`/account/orders/${response.data._id || response.data.id}`);
+      router.push("/checkout/confirmation");
     } catch (error: any) {
       const errorData = error.response?.data;
       if (errorData?.message === 'Insufficient verification to place orders') {
