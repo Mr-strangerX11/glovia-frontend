@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Cookies from "js-cookie";
 import { Upload, X, Image as ImageIcon } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -52,8 +53,8 @@ export default function ImageUploadField({
         formData.append("file", file);
 
         try {
-          // Get auth token from localStorage
-          const token = localStorage.getItem("token");
+          // Get auth token from cookies (set on login)
+          const token = Cookies.get("access_token");
           if (!token) {
             toast.error("Please login to upload images");
             continue;
