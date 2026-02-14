@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useMemo, Suspense } from "react";
+import { useMemo, Suspense, useState } from "react";
 import { useProducts, useCategories, useBrands, useWishlist } from "@/hooks/useData";
 import Image from "next/image";
 import { Heart } from "lucide-react";
+import toast from "react-hot-toast";
+import { useAuthStore } from "@/store/authStore";
+import { wishlistAPI } from "@/lib/api";
 
 function ProductsContent() {
   const searchParams = useSearchParams();
@@ -17,7 +20,9 @@ function ProductsContent() {
 
   const { categories } = useCategories();
   const { brands } = useBrands();
-  const { wishlist } = useWishlist();
+  const { wishlist, mutate: mutateWishlist } = useWishlist();
+  const { user } = useAuthStore();
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const categoryId = useMemo(() => {
     if (!category || !categories) return undefined;
@@ -41,6 +46,41 @@ function ProductsContent() {
       wishlist.map((item: any) => item.product?.id || item.productId || item.product?._id).filter(Boolean)
     );
   }, [wishlist]);
+
+  const wishlistItemIdByProduct = useMemo(() => {
+    if (!wishlist) return new Map<string, string>();
+    const map = new Map<string, string>();
+    wishlist.forEach((item: any) => {
+      const productId = item.product?.id || item.productId || item.product?._id;
+      if (productId) map.set(productId, item.id || item._id);
+    });
+    return map;
+  }, [wishlist]);
+
+  const handleWishlistToggle = async (productId: string) => {
+    if (!user) {
+      toast.error("Please login to use wishlist");
+      router.push("/auth/login");
+      return;
+    }
+
+    try {
+      setUpdatingId(productId);
+      if (wishlistIds.has(productId)) {
+        const itemId = wishlistItemIdByProduct.get(productId);
+        if (itemId) {
+          await wishlistAPI.remove(itemId);
+        }
+      } else {
+        await wishlistAPI.add(productId);
+      }
+      await mutateWishlist();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to update wishlist");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
   const title = useMemo(() => {
     if (category) return `Products - ${category}`;
@@ -173,20 +213,28 @@ function ProductsContent() {
                     sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     className="object-cover group-hover:scale-110 transition-transform duration-300"
                   />
-                  <span
-                    className={`absolute top-3 right-3 inline-flex items-center justify-center w-9 h-9 rounded-full border ${
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      if (!updatingId) {
+                        handleWishlistToggle(productId);
+                      }
+                    }}
+                    className={`absolute top-3 right-3 inline-flex items-center justify-center w-9 h-9 rounded-full border transition-colors ${
                       isWishlisted
                         ? "border-red-200 bg-red-50"
-                        : "border-gray-200 bg-white/90"
-                    }`}
-                    aria-label={isWishlisted ? "Wishlisted" : "Not wishlisted"}
+                        : "border-gray-200 bg-white/90 hover:bg-white"
+                    } ${updatingId === productId ? "opacity-60" : ""}`}
+                    aria-label={isWishlisted ? "Wishlisted" : "Add to wishlist"}
                   >
                     <Heart
                       className={`w-4 h-4 ${
                         isWishlisted ? "text-red-500 fill-red-500" : "text-gray-600"
                       }`}
                     />
-                  </span>
+                  </button>
                 </div>
                 <div className="p-4 space-y-1">
                   <p className="text-xs text-gray-500">{product.category?.name}</p>

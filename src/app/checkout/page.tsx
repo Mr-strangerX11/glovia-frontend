@@ -7,8 +7,9 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useAddresses, useCart } from "@/hooks/useData";
-import { ordersAPI } from "@/lib/api";
+import { cartAPI, ordersAPI } from "@/lib/api";
 import { PaymentMethod } from "@/types";
+import { Minus, Plus } from "lucide-react";
 
 const paymentMethods: { value: PaymentMethod; label: string; description: string }[] = [
   {
@@ -48,6 +49,7 @@ export default function CheckoutPage() {
   const [note, setNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [trustMessage, setTrustMessage] = useState<string | null>(null);
+  const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
 
   const items = cart?.items ?? [];
   const total = cart?.total ?? 0;
@@ -101,6 +103,19 @@ export default function CheckoutPage() {
       }
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdateQuantity = async (itemId: string, nextQuantity: number) => {
+    if (nextQuantity < 1) return;
+    try {
+      setUpdatingItemId(itemId);
+      await cartAPI.update(itemId, nextQuantity);
+      await mutateCart();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to update quantity");
+    } finally {
+      setUpdatingItemId(null);
     }
   };
 
@@ -244,7 +259,25 @@ export default function CheckoutPage() {
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium line-clamp-2">{item.product?.name}</p>
-                      <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+                      <div className="mt-2 flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                          className="w-7 h-7 flex items-center justify-center border border-gray-200 rounded text-gray-600 hover:bg-gray-50"
+                          disabled={updatingItemId === item.id || item.quantity <= 1}
+                        >
+                          <Minus className="w-3 h-3" />
+                        </button>
+                        <span className="text-sm text-gray-700">{item.quantity}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                          className="w-7 h-7 flex items-center justify-center border border-gray-200 rounded text-gray-600 hover:bg-gray-50"
+                          disabled={updatingItemId === item.id}
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                      </div>
                     </div>
                     <p className="text-sm font-semibold">NPR {item.product?.price}</p>
                   </div>
