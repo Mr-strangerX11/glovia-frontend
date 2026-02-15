@@ -397,16 +397,16 @@ export default function OrderDetailPage() {
                   <div>
                     <p className="text-gray-500">Name</p>
                     <p className="font-medium">
-                      {order.user.firstName} {order.user.lastName}
+                      {order?.user?.firstName || ''} {order?.user?.lastName || ''}
                     </p>
                   </div>
                   <div>
                     <p className="text-gray-500">Email</p>
-                    <p className="font-medium break-all">{order.user.email}</p>
+                    <p className="font-medium break-all">{order?.user?.email || 'N/A'}</p>
                   </div>
                   <div>
                     <p className="text-gray-500">Phone</p>
-                    <p className="font-medium">{order.user.phone || 'N/A'}</p>
+                    <p className="font-medium">{order?.user?.phone || 'N/A'}</p>
                   </div>
                 </div>
               </div>
@@ -415,9 +415,15 @@ export default function OrderDetailPage() {
               <div className="card p-6">
                 <h3 className="font-semibold mb-4">Delivery Address</h3>
                 <div className="space-y-2 text-sm">
-                  <p className="font-medium">{order.address.fullName}</p>
-                  <p className="text-gray-600">{order.address.area}</p>
-                  <p className="text-gray-600">{order.address.district}</p>
+                  {order?.address ? (
+                    <>
+                      <p className="font-medium">{order.address.fullName || 'N/A'}</p>
+                      <p className="text-gray-600">{order.address.area || 'N/A'}</p>
+                      <p className="text-gray-600">{order.address.district || 'N/A'}</p>
+                    </>
+                  ) : (
+                    <p className="text-gray-500">No address provided</p>
+                  )}
                 </div>
               </div>
 
