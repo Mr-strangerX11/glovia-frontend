@@ -196,6 +196,23 @@ export default function OrderDetailPage() {
     }
   };
 
+  // Delete order handler
+  const handleDelete = async () => {
+    if (!order) return;
+    if (!window.confirm("Are you sure you want to DELETE this order permanently? This action cannot be undone.")) return;
+    
+    try {
+      setUpdating(true);
+      const orderId = getOrderId(order);
+      await adminAPI.deleteOrder(orderId);
+      toast.success("Order deleted successfully");
+      router.push('/admin/orders');
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to delete order");
+      setUpdating(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-10">
       <div className="container">
@@ -220,15 +237,24 @@ export default function OrderDetailPage() {
                 {order.status}
               </span>
             </div>
-            {order.status !== "CANCELLED" && (
+            <div className="flex gap-3 mt-4">
+              {order.status !== "CANCELLED" && (
+                <button
+                  className="btn-outline text-red-600"
+                  onClick={handleCancel}
+                  disabled={cancelling}
+                >
+                  {cancelling ? "Cancelling..." : "Cancel Order"}
+                </button>
+              )}
               <button
-                className="btn-outline text-red-600 mt-4"
-                onClick={handleCancel}
-                disabled={cancelling}
+                className="btn-outline bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
+                onClick={handleDelete}
+                disabled={updating}
               >
-                {cancelling ? "Cancelling..." : "Cancel Order"}
+                {updating ? "Deleting..." : "Delete Order"}
               </button>
-            )}
+            </div>
           </div>
 
           {/* Main Content */}
