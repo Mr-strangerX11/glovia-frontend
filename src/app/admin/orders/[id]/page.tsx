@@ -66,10 +66,10 @@ export default function OrderDetailPage() {
   });
 
   useEffect(() => {
-    if (user && params.id) {
+    if (user && params && params.id) {
       fetchOrder();
     }
-  }, [user, params.id]);
+  }, [user, params]);
 
   const getOrderId = (targetOrder: Order) => targetOrder.id || targetOrder._id || '';
   const getOrderItemId = (item: OrderItem) => item.id || item._id || '';
@@ -77,6 +77,7 @@ export default function OrderDetailPage() {
   const fetchOrder = async () => {
     try {
       setLoading(true);
+      if (!params || !params.id) return;
       const { data } = await adminAPI.getOrder(params.id as string);
       setOrder(data);
       setFormData({
