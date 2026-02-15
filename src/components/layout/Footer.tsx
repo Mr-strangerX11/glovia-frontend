@@ -39,7 +39,7 @@ export default function Footer() {
                 <Facebook className="w-5 h-5" />
               </a>
               <a
-                href="https://www.instagram.com/glovia_nepal/"
+                href="https://www.instagram.com/glovia_nepal?igsh=OTZtdHpmZXMyOWlk"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-white/10 hover:bg-primary-600 rounded-full flex items-center justify-center transition-colors"
