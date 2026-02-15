@@ -286,17 +286,22 @@ export default function CheckoutPage() {
 
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between text-sm text-gray-600">
-                  <span>Items ({items.length})</span>
-                  <span>NPR {total}</span>
+                  <span>Subtotal ({items.length} items)</span>
+                  <span className="font-medium">NPR {total.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm text-gray-600">
-                  <span>Delivery</span>
-                  <span>Calculated at checkout</span>
+                  <span>Delivery Charge</span>
+                  <span className="font-medium">Calculated at checkout</span>
                 </div>
-                <div className="flex justify-between text-lg font-bold">
-                  <span>Total</span>
-                  <span>NPR {total}</span>
+                <div className="flex justify-between text-sm text-green-600 font-medium">
+                  <span>Discount</span>
+                  <span>-NPR 0</span>
                 </div>
+                <div className="border-t pt-3 mt-3 flex justify-between text-lg font-bold">
+                  <span>Total Amount</span>
+                  <span className="text-primary-600">NPR {total.toLocaleString()}</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">Final amount including delivery will be shown after placing order</p>
               </div>
 
               <button

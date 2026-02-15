@@ -81,8 +81,27 @@ export default function OrderDetailPage() {
         </div>
       </div>
       <div className="mb-6">
-        <h2 className="font-semibold mb-2">Total</h2>
-        <div className="text-xl font-bold text-primary-600">NPR {order.total}</div>
+        <h2 className="font-semibold mb-3">Order Summary</h2>
+        <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Subtotal</span>
+            <span className="font-medium">NPR {order.subtotal?.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Delivery Charge</span>
+            <span className="font-medium">NPR {order.deliveryCharge?.toLocaleString()}</span>
+          </div>
+          {order.discount > 0 && (
+            <div className="flex justify-between text-sm text-green-600 font-medium">
+              <span>Discount</span>
+              <span>-NPR {order.discount?.toLocaleString()}</span>
+            </div>
+          )}
+          <div className="border-t pt-2 mt-2 flex justify-between text-lg font-bold">
+            <span>Total Amount</span>
+            <span className="text-primary-600">NPR {order.total?.toLocaleString()}</span>
+          </div>
+        </div>
       </div>
       {order.status !== "CANCELLED" && (
         <button
