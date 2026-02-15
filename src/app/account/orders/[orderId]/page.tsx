@@ -15,13 +15,14 @@ export default function OrderDetailPage() {
   const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
-    if (params.orderId) fetchOrder();
+    if (params && params.orderId) fetchOrder();
     // eslint-disable-next-line
-  }, [params.orderId]);
+  }, [params]);
 
   const fetchOrder = async () => {
     try {
       setLoading(true);
+      if (!params || !params.orderId) return;
       const { data } = await ordersAPI.getById(params.orderId as string);
       setOrder(data);
     } catch (error) {
