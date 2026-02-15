@@ -59,9 +59,165 @@ export default function OrderDetailPage() {
   const [formData, setFormData] = useState({
     status: '',
     discount: 0,
+    deliveryCharge: 0,
+    trackingNumber: '',
+    deliveryPartner: '',
+    adminNote: '',
+  });
+
+  useEffect(() => {
+    if (user && params && params.id) {
+      fetchOrder();
+    }
+  }, [user, params]);
+
+  const getOrderId = (targetOrder: Order) => targetOrder.id || targetOrder._id || '';
+  const getOrderItemId = (item: OrderItem) => item.id || item._id || '';
+
+  const fetchOrder = async () => {
+    try {
+      setLoading(true);
+      if (!params || !params.id) return;
+      const { data } = await adminAPI.getOrder(params.id as string);
+      setOrder(data);
+      setFormData({
+        status: data.status,
+        discount: data.discount || 0,
+        deliveryCharge: data.deliveryCharge || 0,
+        trackingNumber: '',
+        deliveryPartner: '',
+        adminNote: '',
+      });
+    } catch (error) {
+      console.error('Failed to fetch order:', error);
+      toast.error('Failed to load order details');
+      router.push('/admin/orders');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!order) return;
+
+    setUpdating(true);
+    try {
+      const updateData: any = {
+        status: formData.status,
+        trackingNumber: formData.trackingNumber || undefined,
+        deliveryPartner: formData.deliveryPartner || undefined,
+        adminNote: formData.adminNote || undefined,
+      };
+
+      if (formData.discount !== order.discount) {
+        updateData.discount = formData.discount;
+      }
+      if (formData.deliveryCharge !== order.deliveryCharge) {
+        updateData.deliveryCharge = formData.deliveryCharge;
+      }
+
+      const orderId = getOrderId(order);
+      if (!orderId) {
+        toast.error('Invalid order ID');
+        return;
+      }
+      await adminAPI.updateOrder(orderId, updateData);
+      toast.success('Order updated successfully');
+      await fetchOrder();
+      setShowDiscountForm(false);
+      setShowDeliveryForm(false);
+    } catch (error: any) {
+      console.error('Failed to update order:', error);
+      toast.error(error.response?.data?.message || 'Failed to update order');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  if (isChecking || !user) {
     return (
-      <div className="min-h-screen bg-gray-50 py-6 px-2 sm:px-4">
-        <div className="container max-w-5xl mx-auto">
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-10">
+        <div className="container">
+          <div className="text-center py-12">
+            <p className="text-gray-600 mb-4">Order not found</p>
+            <Link href="/admin/orders" className="btn-primary">
+              Back to Orders
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      PENDING: 'bg-yellow-100 text-yellow-800',
+      CONFIRMED: 'bg-blue-100 text-blue-800',
+      PROCESSING: 'bg-purple-100 text-purple-800',
+      SHIPPED: 'bg-indigo-100 text-indigo-800',
+      DELIVERED: 'bg-green-100 text-green-800',
+      CANCELLED: 'bg-red-100 text-red-800',
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800';
+  };
+
+  const calculatedTotal = order.subtotal + formData.deliveryCharge - formData.discount;
+
+  // Cancel order handler
+  const handleCancel = async () => {
+    if (!order) return;
+    if (!window.confirm("Are you sure you want to cancel this order?")) return;
+    setCancelling(true);
+    try {
+      const orderId = getOrderId(order);
+      await adminAPI.updateOrder(orderId, { status: "CANCELLED" });
+      toast.success("Order cancelled");
+      await fetchOrder();
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to cancel order");
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  // Delete order handler
+  const handleDelete = async () => {
+    if (!order) return;
+    if (!window.confirm("Are you sure you want to DELETE this order permanently? This action cannot be undone.")) return;
+    
+    try {
+      setUpdating(true);
+      const orderId = getOrderId(order);
+      await adminAPI.deleteOrder(orderId);
+      toast.success("Order deleted successfully");
+      router.push('/admin/orders');
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to delete order");
+      setUpdating(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-10">
+      <div className="container">
+        <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-6">
             <Link
@@ -71,21 +227,21 @@ export default function OrderDetailPage() {
               <ArrowLeft className="w-4 h-4" />
               Back to Orders
             </Link>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div className="flex items-start justify-between">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold">Order #{order.orderNumber}</h1>
-                <p className="text-gray-600 text-sm sm:text-base">
+                <h1 className="text-3xl font-bold">Order #{order.orderNumber}</h1>
+                <p className="text-gray-600">
                   Placed on {new Date(order.createdAt).toLocaleDateString()}
                 </p>
               </div>
-              <span className={`px-4 py-2 rounded-full text-sm font-semibold mt-2 sm:mt-0 ${getStatusColor(order.status)}`}>
+              <span className={`px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor(order.status)}`}>
                 {order.status}
               </span>
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 mt-4 sticky bottom-0 z-10 bg-gray-50 py-2 sm:static sm:bg-transparent sm:py-0">
+            <div className="flex gap-3 mt-4">
               {order.status !== "CANCELLED" && (
                 <button
-                  className="btn-outline text-red-600 w-full sm:w-auto"
+                  className="btn-outline text-red-600"
                   onClick={handleCancel}
                   disabled={cancelling}
                 >
@@ -93,7 +249,7 @@ export default function OrderDetailPage() {
                 </button>
               )}
               <button
-                className="btn-outline bg-red-50 text-red-600 border-red-200 hover:bg-red-100 w-full sm:w-auto"
+                className="btn-outline bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
                 onClick={handleDelete}
                 disabled={updating}
               >
@@ -102,25 +258,25 @@ export default function OrderDetailPage() {
             </div>
           </div>
 
-          {/* Main Content Responsive Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-            {/* Order Items & Pricing */}
-            <div className="col-span-1 md:col-span-1 lg:col-span-2 space-y-6">
+          {/* Main Content */}
+          <div className="grid grid-cols-3 gap-6 mb-6">
+            {/* Order Items */}
+            <div className="col-span-2 space-y-6">
               {/* Items */}
-              <div className="card p-4 sm:p-6 overflow-x-auto">
+              <div className="card p-6">
                 <h2 className="text-lg font-semibold mb-4">Order Items</h2>
-                <div className="space-y-3 min-w-[320px]">
+                <div className="space-y-3">
                   {order.items && order.items.length > 0 ? (
                     order.items.map((item) => (
-                      <div key={getOrderItemId(item) || `${item.product?.sku || 'unknown'}-${item.price}`} className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-2 border-b last:border-0 gap-2">
+                      <div key={getOrderItemId(item) || `${item.product?.sku || 'unknown'}-${item.price}`} className="flex justify-between items-center py-2 border-b last:border-0">
                         <div>
-                          <p className="font-medium text-base sm:text-lg">{item.product?.name || 'Product'}</p>
-                          <p className="text-xs sm:text-sm text-gray-500">SKU: {item.product?.sku || 'N/A'}</p>
-                          <p className="text-xs sm:text-sm text-gray-600">Quantity: {item.quantity}</p>
+                          <p className="font-medium">{item.product?.name || 'Product'}</p>
+                          <p className="text-sm text-gray-500">SKU: {item.product?.sku || 'N/A'}</p>
+                          <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
                         </div>
-                        <div className="text-left sm:text-right">
-                          <p className="font-semibold text-base sm:text-lg">NPR {Number(item.total).toLocaleString()}</p>
-                          <p className="text-xs sm:text-sm text-gray-500">
+                        <div className="text-right">
+                          <p className="font-semibold">NPR {Number(item.total).toLocaleString()}</p>
+                          <p className="text-sm text-gray-500">
                             NPR {Number(item.price).toLocaleString()} × {item.quantity}
                           </p>
                         </div>
@@ -133,7 +289,7 @@ export default function OrderDetailPage() {
               </div>
 
               {/* Pricing Breakdown with Admin Controls */}
-              <div className="card p-4 sm:p-6">
+              <div className="card p-6">
                 <h2 className="text-lg font-semibold mb-4">Pricing Details</h2>
                 <div className="space-y-3">
                   <div className="flex justify-between py-2">
@@ -149,7 +305,9 @@ export default function OrderDetailPage() {
                         <span className="text-gray-600">Discount</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className={`font-semibold ${formData.discount > 0 ? 'text-green-600' : ''}`}>-NPR {Number(formData.discount).toLocaleString()}</span>
+                        <span className={`font-semibold ${formData.discount > 0 ? 'text-green-600' : ''}`}>
+                          -NPR {Number(formData.discount).toLocaleString()}
+                        </span>
                         <button
                           type="button"
                           onClick={() => setShowDiscountForm(!showDiscountForm)}
@@ -185,7 +343,9 @@ export default function OrderDetailPage() {
                         <span className="text-gray-600">Delivery Charge</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="font-semibold">NPR {Number(formData.deliveryCharge).toLocaleString()}</span>
+                        <span className="font-semibold">
+                          NPR {Number(formData.deliveryCharge).toLocaleString()}
+                        </span>
                         <button
                           type="button"
                           onClick={() => setShowDeliveryForm(!showDeliveryForm)}
@@ -223,164 +383,6 @@ export default function OrderDetailPage() {
                         NPR {Number(calculatedTotal).toLocaleString()}
                       </span>
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Sidebar */}
-            <div className="space-y-6">
-              {/* Customer Info */}
-              <div className="card p-4 sm:p-6">
-                <h3 className="font-semibold mb-4">Customer</h3>
-                <div className="space-y-2 text-sm">
-                  <div>
-                    <p className="text-gray-500">Name</p>
-                    <p className="font-medium">
-                      {order.user.firstName} {order.user.lastName}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Email</p>
-                    <p className="font-medium break-all">{order.user.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Phone</p>
-                    <p className="font-medium">{order.user.phone || 'N/A'}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Delivery Address */}
-              <div className="card p-4 sm:p-6">
-                <h3 className="font-semibold mb-4">Delivery Address</h3>
-                <div className="space-y-2 text-sm">
-                  <p className="font-medium">{order.address.fullName}</p>
-                  <p className="text-gray-600">{order.address.area}</p>
-                  <p className="text-gray-600">{order.address.district}</p>
-                </div>
-              </div>
-
-              {/* Status & Tracking */}
-              <form onSubmit={handleSubmit} className="card p-4 sm:p-6 space-y-4">
-                <h3 className="font-semibold">Update Order</h3>
-
-                <div>
-                  <label className="text-sm font-medium block mb-1">Status</label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="input"
-                  >
-                    <option value="PENDING">Pending</option>
-                    <option value="CONFIRMED">Confirmed</option>
-                    <option value="PROCESSING">Processing</option>
-                    <option value="SHIPPED">Shipped</option>
-                    <option value="DELIVERED">Delivered</option>
-                    <option value="CANCELLED">Cancelled</option>
-                  </select>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-2 mb-2">
-                  {order.status !== "SHIPPED" && order.status !== "DELIVERED" && order.status !== "CANCELLED" && (
-                    <button
-                      type="button"
-                      className="btn-outline w-full sm:w-auto"
-                      onClick={async () => {
-                        setUpdating(true);
-                        try {
-                          await adminAPI.updateOrder(getOrderId(order), { status: "SHIPPED" });
-                          toast.success("Order marked as On the Way");
-                          await fetchOrder();
-                        } catch (e) {
-                          toast.error("Failed to update status");
-                        } finally {
-                          setUpdating(false);
-                        }
-                      }}
-                      disabled={updating}
-                    >
-                      Mark as On the Way
-                    </button>
-                  )}
-                  {order.status === "SHIPPED" && (
-                    <button
-                      type="button"
-                      className="btn-outline w-full sm:w-auto"
-                      onClick={async () => {
-                        setUpdating(true);
-                        try {
-                          await adminAPI.updateOrder(getOrderId(order), { status: "DELIVERED" });
-                          toast.success("Order marked as Complete");
-                          await fetchOrder();
-                        } catch (e) {
-                          toast.error("Failed to update status");
-                        } finally {
-                          setUpdating(false);
-                        }
-                      }}
-                      disabled={updating}
-                    >
-                      Mark as Complete
-                    </button>
-                  )}
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium block mb-1">Tracking Number</label>
-                  <input
-                    type="text"
-                    value={formData.trackingNumber}
-                    onChange={(e) => setFormData({ ...formData, trackingNumber: e.target.value })}
-                    placeholder="e.g., TRK123456"
-                    className="input"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium block mb-1">Delivery Partner</label>
-                  <input
-                    type="text"
-                    value={formData.deliveryPartner}
-                    onChange={(e) => setFormData({ ...formData, deliveryPartner: e.target.value })}
-                    placeholder="e.g., Courier Company Name"
-                    className="input"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium block mb-1">Admin Note</label>
-                  <textarea
-                    value={formData.adminNote}
-                    onChange={(e) => setFormData({ ...formData, adminNote: e.target.value })}
-                    placeholder="Internal notes..."
-                    className="input h-20"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={updating}
-                  className="w-full btn-primary inline-flex items-center justify-center gap-2"
-                >
-                  {updating ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4" />
-                      Save Changes
-                    </>
-                  )}
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
                   </div>
                 </div>
               </div>
