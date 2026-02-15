@@ -37,9 +37,11 @@ function NewProductContent() {
 
   useEffect(() => {
     // Get brand from query parameter (from product page)
-    const brandParam = searchParams.get('brand');
-    if (brandParam) {
-      setFormData(prev => ({ ...prev, brandId: brandParam }));
+    if (searchParams) {
+      const brandParam = searchParams.get('brand');
+      if (brandParam) {
+        setFormData(prev => ({ ...prev, brandId: brandParam }));
+      }
     }
   }, [searchParams]);
 
