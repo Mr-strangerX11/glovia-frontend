@@ -152,6 +152,10 @@ export default function SuperAdminDashboardPage() {
               <ShoppingBag className="w-8 h-8 text-green-400 group-hover:text-green-600 mx-auto mb-2" />
               <p className="text-sm font-semibold text-green-700 group-hover:text-green-800">Manage Orders</p>
             </Link>
+            <Link href="/admin/products" className="group p-4 border-2 border-dashed border-indigo-300 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all text-center">
+              <Package className="w-8 h-8 text-indigo-400 group-hover:text-indigo-600 mx-auto mb-2" />
+              <p className="text-sm font-semibold text-indigo-700 group-hover:text-indigo-800">Manage Products</p>
+            </Link>
             <button
               onClick={handleFixSuperAdmin}
               className="group p-4 border-2 border-dashed border-red-300 rounded-lg hover:border-red-500 hover:bg-red-50 transition-all text-center flex flex-col items-center"

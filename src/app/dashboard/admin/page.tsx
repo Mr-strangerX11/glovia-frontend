@@ -81,7 +81,11 @@ export default function AdminDashboardPage() {
             <h1 className="text-3xl font-bold">Welcome, {user.firstName}</h1>
             <p className="text-gray-600">Manage products, orders, and customers.</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
+            <Link href="/admin/products" className="btn-outline flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              Manage Products
+            </Link>
             <Link href="/admin/products/new" className="btn-primary">
               Add Product
             </Link>
