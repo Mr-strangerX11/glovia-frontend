@@ -94,13 +94,15 @@ function NewProductContent() {
       setBrands(brandsList);
       
       // If brand was passed via query param, auto-populate the select
-      const brandParam = searchParams.get('brand');
-      if (brandParam && brandsList && brandsList.length > 0) {
-        const foundBrand = brandsList.find((b: any) => getBrandId(b) === brandParam || b.slug === brandParam);
-        if (foundBrand) {
-          const brandId = getBrandId(foundBrand);
-          setFormData(prev => ({ ...prev, brandId }));
-          setSelectedBrand(foundBrand.name);
+      if (searchParams) {
+        const brandParam = searchParams.get('brand');
+        if (brandParam && brandsList && brandsList.length > 0) {
+          const foundBrand = brandsList.find((b: any) => getBrandId(b) === brandParam || b.slug === brandParam);
+          if (foundBrand) {
+            const brandId = getBrandId(foundBrand);
+            setFormData(prev => ({ ...prev, brandId }));
+            setSelectedBrand(foundBrand.name);
+          }
         }
       }
     } catch (error) {
