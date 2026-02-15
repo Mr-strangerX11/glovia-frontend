@@ -25,7 +25,7 @@ import { useWishlist } from "@/hooks/useData";
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const slug = params.slug as string;
+  const slug = (params?.slug as string) || "";
   const { user } = useAuthStore();
 
   const [product, setProduct] = useState<any>(null);
