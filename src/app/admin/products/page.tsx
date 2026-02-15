@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
-import { adminAPI, categoriesAPI } from '@/lib/api';
+import { adminAPI, categoriesAPI, productsAPI } from '@/lib/api';
 import { Plus, Edit2, Trash2, Loader2, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
@@ -36,12 +36,28 @@ export default function AdminProductsPage() {
 
   const fetchData = async () => {
     try {
-      const [productsRes, categoriesRes] = await Promise.all([
-        adminAPI.getAllProducts(),
-        categoriesAPI.getAll(),
-      ]);
-      setProducts(productsRes.data?.data || productsRes.data || []);
-      setCategories(categoriesRes.data || []);
+      // Try to fetch from admin endpoint first, fall back to public products API
+      let products = [];
+      let categories = [];
+      
+      try {
+        const adminProductsRes = await adminAPI.getAllProducts();
+        products = adminProductsRes.data?.data || adminProductsRes.data || [];
+      } catch (adminError) {
+        console.warn('Admin products endpoint failed, trying public API:', adminError);
+        const publicProductsRes = await productsAPI.getAll();
+        products = publicProductsRes.data?.data || publicProductsRes.data || [];
+      }
+      
+      try {
+        const categoriesRes = await categoriesAPI.getAll();
+        categories = categoriesRes.data || [];
+      } catch (catError) {
+        console.warn('Categories API failed:', catError);
+      }
+      
+      setProducts(products);
+      setCategories(categories);
     } catch (error) {
       console.error('Failed to load products:', error);
       toast.error('Failed to load products');
