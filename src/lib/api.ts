@@ -121,6 +121,7 @@ export const adminAPI = {
   getDashboard: () => api.get('/admin/dashboard'),
   getBrandAnalytics: () => api.get('/brands/admin/analytics'),
   // Products
+  getAllProducts: (params?: any) => api.get('/admin/products', { params }),
   getProduct: (id: string) => api.get(`/admin/products/${id}`),
   createProduct: (data: any) => api.post('/admin/products', data),
   updateProduct: (id: string, data: any) => api.put(`/admin/products/${id}`, data),

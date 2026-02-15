@@ -37,13 +37,13 @@ export default function AdminProductsPage() {
   const fetchData = async () => {
     try {
       const [productsRes, categoriesRes] = await Promise.all([
-        adminAPI.getDashboard(), // We'll use products from backend
+        adminAPI.getAllProducts(),
         categoriesAPI.getAll(),
       ]);
+      setProducts(productsRes.data?.data || productsRes.data || []);
       setCategories(categoriesRes.data || []);
-      // For now, showing empty until we add proper products list endpoint
-      setProducts([]);
     } catch (error) {
+      console.error('Failed to load products:', error);
       toast.error('Failed to load products');
     } finally {
       setLoading(false);
