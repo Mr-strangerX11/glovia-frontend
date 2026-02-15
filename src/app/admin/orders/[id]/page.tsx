@@ -265,21 +265,25 @@ export default function OrderDetailPage() {
               <div className="card p-6">
                 <h2 className="text-lg font-semibold mb-4">Order Items</h2>
                 <div className="space-y-3">
-                  {order.items.map((item) => (
-                    <div key={getOrderItemId(item) || `${item.product.sku}-${item.price}`} className="flex justify-between items-center py-2 border-b last:border-0">
-                      <div>
-                        <p className="font-medium">{item.product.name}</p>
-                        <p className="text-sm text-gray-500">SKU: {item.product.sku}</p>
-                        <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                  {order.items && order.items.length > 0 ? (
+                    order.items.map((item) => (
+                      <div key={getOrderItemId(item) || `${item.product?.sku || 'unknown'}-${item.price}`} className="flex justify-between items-center py-2 border-b last:border-0">
+                        <div>
+                          <p className="font-medium">{item.product?.name || 'Product'}</p>
+                          <p className="text-sm text-gray-500">SKU: {item.product?.sku || 'N/A'}</p>
+                          <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold">NPR {Number(item.total).toLocaleString()}</p>
+                          <p className="text-sm text-gray-500">
+                            NPR {Number(item.price).toLocaleString()} × {item.quantity}
+                          </p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold">NPR {Number(item.total).toLocaleString()}</p>
-                        <p className="text-sm text-gray-500">
-                          NPR {Number(item.price).toLocaleString()} × {item.quantity}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p className="text-gray-500">No items in this order</p>
+                  )}
                 </div>
               </div>
 

@@ -65,19 +65,29 @@ export default function OrderDetailPage() {
       <div className="mb-6">
         <h2 className="font-semibold mb-2">Items</h2>
         <ul className="space-y-2">
-          {order.items?.map((item: any) => (
-            <li key={item.id || item._id} className="flex justify-between border-b pb-2">
-              <span>{item.product?.name} x {item.quantity}</span>
-              <span>NPR {item.total}</span>
-            </li>
-          ))}
+          {order.items && order.items.length > 0 ? (
+            order.items.map((item: any) => (
+              <li key={item.id || item._id} className="flex justify-between border-b pb-2">
+                <span>{item.product?.name || 'Product'} x {item.quantity}</span>
+                <span>NPR {Number(item.total).toLocaleString()}</span>
+              </li>
+            ))
+          ) : (
+            <li className="text-gray-500">No items in this order</li>
+          )}
         </ul>
       </div>
       <div className="mb-6">
         <h2 className="font-semibold mb-2">Delivery Address</h2>
         <div className="text-gray-700">
-          {order.address?.fullName}<br />
-          {order.address?.district}, {order.address?.area}
+          {order.address ? (
+            <>
+              {order.address.fullName}<br />
+              {order.address.district}, {order.address.area}
+            </>
+          ) : (
+            <span className="text-gray-500">Address not available</span>
+          )}
         </div>
       </div>
       <div className="mb-6">
@@ -85,21 +95,21 @@ export default function OrderDetailPage() {
         <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Subtotal</span>
-            <span className="font-medium">NPR {order.subtotal?.toLocaleString()}</span>
+            <span className="font-medium">NPR {Number(order.subtotal || 0).toLocaleString()}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Delivery Charge</span>
-            <span className="font-medium">NPR {order.deliveryCharge?.toLocaleString()}</span>
+            <span className="font-medium">NPR {Number(order.deliveryCharge || 0).toLocaleString()}</span>
           </div>
-          {order.discount > 0 && (
+          {order.discount && order.discount > 0 && (
             <div className="flex justify-between text-sm text-green-600 font-medium">
               <span>Discount</span>
-              <span>-NPR {order.discount?.toLocaleString()}</span>
+              <span>-NPR {Number(order.discount).toLocaleString()}</span>
             </div>
           )}
           <div className="border-t pt-2 mt-2 flex justify-between text-lg font-bold">
             <span>Total Amount</span>
-            <span className="text-primary-600">NPR {order.total?.toLocaleString()}</span>
+            <span className="text-primary-600">NPR {Number(order.total || 0).toLocaleString()}</span>
           </div>
         </div>
       </div>
