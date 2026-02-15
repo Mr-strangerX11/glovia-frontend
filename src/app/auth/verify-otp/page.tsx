@@ -8,8 +8,8 @@ import api from "@/lib/api";
 function VerifyOtpContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const email = searchParams.get("email") || "";
-  const purpose = searchParams.get("purpose") || "verification"; // verification, password-reset, login
+  const email = searchParams?.get("email") || "";
+  const purpose = searchParams?.get("purpose") || "verification"; // verification, password-reset, login
 
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
   const [error, setError] = useState<string | null>(null);
