@@ -14,9 +14,9 @@ function ProductsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const category = searchParams.get("category") || undefined;
-  const brand = searchParams.get("brand") || undefined;
-  const search = searchParams.get("search") || searchParams.get("q") || undefined;
+  const category = searchParams?.get("category") || undefined;
+  const brand = searchParams?.get("brand") || undefined;
+  const search = searchParams?.get("search") || searchParams?.get("q") || undefined;
 
   const { categories } = useCategories();
   const { brands } = useBrands();
@@ -96,7 +96,7 @@ function ProductsContent() {
   }, [category, brand, search]);
 
   const handleSearch = (value: string) => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(searchParams?.toString() || "");
     if (value) params.set("search", value);
     else params.delete("search");
     router.push(`/products?${params.toString()}`);

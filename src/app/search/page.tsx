@@ -9,7 +9,7 @@ import Image from "next/image";
 function SearchContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const query = searchParams.get("q") || "";
+  const query = searchParams?.get("q") || "";
   const { products, isLoading } = useProducts({ search: query });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
