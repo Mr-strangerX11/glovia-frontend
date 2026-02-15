@@ -124,6 +124,7 @@ export const adminAPI = {
   createProduct: (data: any) => api.post('/admin/products', data),
   updateProduct: (id: string, data: any) => api.put(`/admin/products/${id}`, data),
   deleteProduct: (id: string) => api.delete(`/admin/products/${id}`),
+  restoreProduct: (id: string) => api.patch(`/admin/products/${id}/restore`),
   // Brands
   createBrand: (data: any) => api.post('/brands', data),
   updateBrand: (id: string, data: any) => api.put(`/brands/${id}`, data),
