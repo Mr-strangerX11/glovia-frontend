@@ -55,6 +55,7 @@ export default function OrderDetailPage() {
   const [showDiscountForm, setShowDiscountForm] = useState(false);
   const [showDeliveryForm, setShowDeliveryForm] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [formData, setFormData] = useState({
     status: '',
@@ -198,7 +199,6 @@ export default function OrderDetailPage() {
   };
 
   // Delete order handler
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const handleDelete = () => {
     setShowDeleteModal(true);
   };
