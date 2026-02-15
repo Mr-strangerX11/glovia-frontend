@@ -198,10 +198,12 @@ export default function OrderDetailPage() {
   };
 
   // Delete order handler
-  const handleDelete = async () => {
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const handleDelete = () => {
+    setShowDeleteModal(true);
+  };
+  const confirmDelete = async () => {
     if (!order) return;
-    if (!window.confirm("Are you sure you want to DELETE this order permanently? This action cannot be undone.")) return;
-    
     try {
       setUpdating(true);
       const orderId = getOrderId(order);
@@ -211,11 +213,26 @@ export default function OrderDetailPage() {
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Failed to delete order");
       setUpdating(false);
+    } finally {
+      setShowDeleteModal(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 py-10">
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded shadow-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Delete Order</h2>
+            <p className="mb-4">Are you sure you want to delete this order permanently? This action cannot be undone.</p>
+            <div className="flex justify-end gap-2">
+              <button className="btn-outline" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+              <button className="btn-primary bg-red-600 hover:bg-red-700" onClick={confirmDelete}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="container">
         <div className="max-w-4xl mx-auto">
           {/* Header */}

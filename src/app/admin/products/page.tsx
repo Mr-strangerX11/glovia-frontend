@@ -27,6 +27,10 @@ export default function AdminProductsPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+  const [undoProduct, setUndoProduct] = useState<Product | null>(null);
+  const [undoTimeout, setUndoTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -53,18 +57,43 @@ export default function AdminProductsPage() {
   const getProductId = (product: Product) => product.id || product._id || '';
 
   const handleDelete = async (product: Product) => {
-    const id = getProductId(product);
+    setDeleteTarget(product);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    const id = getProductId(deleteTarget);
     if (!id) {
       toast.error('Invalid product ID');
+      setShowDeleteModal(false);
       return;
     }
-    if (!confirm('Are you sure you want to delete this product?')) return;
     try {
       await adminAPI.deleteProduct(id);
       toast.success('Product deleted successfully');
-      fetchData();
+      setUndoProduct(deleteTarget);
+      setProducts(products.filter(p => getProductId(p) !== id));
+      setShowDeleteModal(false);
+      // Set undo timeout
+      const timeout = setTimeout(() => setUndoProduct(null), 7000);
+      setUndoTimeout(timeout);
     } catch (error) {
       toast.error('Failed to delete product');
+      setShowDeleteModal(false);
+    }
+  };
+
+  const handleUndoDelete = async () => {
+    if (!undoProduct) return;
+    try {
+      await adminAPI.restoreProduct(getProductId(undoProduct));
+      toast.success('Product restored');
+      fetchData();
+      setUndoProduct(null);
+      if (undoTimeout) clearTimeout(undoTimeout);
+    } catch (error) {
+      toast.error('Failed to restore product');
     }
   };
 
@@ -82,6 +111,26 @@ export default function AdminProductsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-10">
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded shadow-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Delete Product</h2>
+            <p className="mb-4">Are you sure you want to delete <span className="font-semibold">{deleteTarget.name}</span>? This action cannot be undone.</p>
+            <div className="flex justify-end gap-2">
+              <button className="btn-outline" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+              <button className="btn-primary bg-red-600 hover:bg-red-700" onClick={confirmDelete}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Undo Snackbar */}
+      {undoProduct && (
+        <div className="fixed bottom-6 right-6 z-50 bg-white border border-gray-200 shadow-lg rounded px-4 py-3 flex items-center gap-3">
+          <span>Product deleted.</span>
+          <button className="btn-outline" onClick={handleUndoDelete}>Undo</button>
+        </div>
+      )}
       <div className="container space-y-6">
         <div className="flex items-center justify-between">
           <div>
