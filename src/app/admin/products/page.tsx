@@ -171,10 +171,13 @@ export default function AdminProductsPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           {product.images?.[0] && (
-                            <img
+                            <Image
                               src={product.images[0].url}
                               alt={product.name}
+                              width={40}
+                              height={40}
                               className="w-10 h-10 rounded object-cover mr-3"
+                              loading="lazy"
                             />
                           )}
                           <div>

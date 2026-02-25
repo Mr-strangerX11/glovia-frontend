@@ -1,63 +1,14 @@
-'use client';
+import dynamic from "next/dynamic";
+import { fetchFeaturedProducts, fetchBanners } from "@/lib/serverApi";
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { ArrowRight, Star, ShoppingBag, Heart, Sparkles } from 'lucide-react';
-import { useFeaturedProducts, useBanners } from '@/hooks/useData';
-import { useState, FormEvent } from 'react';
+const HomeContent = dynamic(() => import("./HomeContent.client"), { ssr: false });
 
-export default function HomePage() {
-  const { products: featuredProducts } = useFeaturedProducts(8);
-  const { banners } = useBanners();
-  const [newsletterEmail, setNewsletterEmail] = useState('');
-
-  const handleNewsletterSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    
-    // Create email content
-    const subject = 'Newsletter Subscription Request';
-    const body = `
-New newsletter subscription request:
-
-Email: ${newsletterEmail}
-
-Please add this email to the newsletter mailing list.
-    `.trim();
-    
-    // Create mailto link
-    const mailtoLink = `mailto:glovianepal@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    
-    // Open email client
-    window.location.href = mailtoLink;
-    
-    // Clear form
-    setNewsletterEmail('');
-  };
-
-  return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary-50 via-white to-accent-50 py-12 sm:py-20 md:py-32">
-        <div className="container">
-          <div className="grid md:grid-cols-2 gap-8 sm:gap-12 items-center">
-            <div className="space-y-4 sm:space-y-6 animate-slide-up">
-              <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white rounded-full shadow-sm">
-                <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-primary-600" />
-                <span className="text-xs sm:text-sm font-medium">Made for Nepal</span>
-              </div>
-              
-              <h1 className="text-3xl sm:text-5xl md:text-6xl font-serif font-bold leading-tight">
-                Embrace Your
-                <span className="block gradient-text">Natural Beauty</span>
-              </h1>
-              
-              <p className="text-base sm:text-lg text-gray-600">
-                Premium cosmetics and skincare products crafted for Nepali skin. 
-                Experience the perfect blend of nature and science.
-              </p>
-              
-              <div className="flex flex-wrap gap-3 sm:gap-4">
-                <Link href="/products" className="btn-primary text-sm sm:text-base">
+export default async function HomePage() {
+  // Fetch data on the server
+  const featuredProducts = await fetchFeaturedProducts(8);
+  const banners = await fetchBanners();
+  return <HomeContent featuredProducts={featuredProducts} banners={banners} />;
+}
                   Shop Now <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
                 </Link>
                 <Link href="/about" className="btn-outline text-sm sm:text-base">
@@ -67,7 +18,7 @@ Please add this email to the newsletter mailing list.
 
               <div className="flex items-center gap-4 sm:gap-8 pt-2 sm:pt-4">
                 <div>
-                  <div className="text-2xl sm:text-3xl font-bold text-primary-600">5000+</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-primary-600">50+</div>
                   <div className="text-xs sm:text-sm text-gray-600">Happy Customers</div>
                 </div>
                 <div>

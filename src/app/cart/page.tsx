@@ -7,10 +7,14 @@ import { cartAPI } from "@/lib/api";
 import { useState } from "react";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
+import Recommendations from '@/components/Recommendations';
+import WalletInfo from '@/components/WalletInfo';
+import LoyaltyInfo from '@/components/LoyaltyInfo';
 
 export default function CartPage() {
   const { cart, isLoading, mutate } = useCart();
   const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
+  const userId = "user-123"; // logic to get user id from auth store or props
 
   const total = cart?.total ?? 0;
   const items = cart?.items ?? [];
@@ -119,6 +123,10 @@ export default function CartPage() {
           </div>
         )}
       </div>
+      {/* AI Recommendations Section */}
+      <Recommendations />
+      <WalletInfo userId={userId} />
+      <LoyaltyInfo userId={userId} />
     </div>
   );
 }

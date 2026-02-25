@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useWishlist } from "@/hooks/useData";
+import Recommendations from '@/components/Recommendations';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -261,6 +262,23 @@ export default function ProductDetailPage() {
               </Link>
             )}
 
+            {/* Price & Discount */}
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-2xl font-bold text-primary-600">
+                NPR {discountedPrice?.toLocaleString()}
+              </span>
+              {product.discountPercentage > 0 && (
+                <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold">
+                  {product.discountPercentage}% OFF
+                </span>
+              )}
+              {product.compareAtPrice && product.compareAtPrice > discountedPrice && (
+                <span className="text-gray-400 line-through text-base">
+                  NPR {product.compareAtPrice.toLocaleString()}
+                </span>
+              )}
+            </div>
+
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
                 {product.name}
@@ -478,6 +496,9 @@ export default function ProductDetailPage() {
             </div>
           </div>
         )}
+
+        {/* AI Recommendations Section */}
+        <Recommendations userId={user?.id} productId={product?._id} />
       </div>
     </div>
   );

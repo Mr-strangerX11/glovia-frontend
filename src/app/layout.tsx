@@ -2,9 +2,13 @@ import type { Metadata } from 'next';
 import { Inter, Playfair_Display } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
-import Header from '@/components/layout/Header';
+import { Header } from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import AnnouncementBar from '@/components/common/AnnouncementBar';
+import Head from 'next/head';
+import { useEffect } from 'react';
+import ChatBot from '@/components/ChatBot';
+import PopupOffer from '@/components/PopupOffer';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' });
@@ -34,8 +38,17 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js');
+    }
+  }, []);
+
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
+      <Head>
+        <link rel="manifest" href="/manifest.json" />
+      </Head>
       <body className="font-sans">
         <Toaster
           position="top-right"
@@ -63,6 +76,8 @@ export default function RootLayout({
         <Header />
         <main className="min-h-screen">{children}</main>
         <Footer />
+        <PopupOffer />
+        <ChatBot />
       </body>
     </html>
   );

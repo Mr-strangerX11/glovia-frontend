@@ -2,6 +2,7 @@
 
 import { BookOpen } from 'lucide-react';
 import Link from 'next/link';
+import Head from 'next/head';
 
 export default function BlogPage() {
   const blogPosts = [
@@ -35,7 +36,27 @@ export default function BlogPage() {
   ];
 
   return (
-    <div className="container py-12">
+    <>
+      <Head>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Blog",
+          "name": "Glovia Nepal Blog",
+          "description": "Beauty tips, skincare routines, and product guides for Nepal.",
+          "blogPost": blogPosts.map(post => ({
+            "@type": "BlogPosting",
+            "headline": post.title,
+            "image": post.image,
+            "author": {
+              "@type": "Person",
+              "name": post.author
+            },
+            "datePublished": post.date,
+            "description": post.excerpt
+          }))
+        }) }} />
+      </Head>
+
       <div className="text-center mb-12">
         <BookOpen className="w-16 h-16 text-primary-600 mx-auto mb-4" />
         <h1 className="text-4xl font-serif font-bold mb-4">Beauty Tips & Guides</h1>
@@ -72,10 +93,6 @@ export default function BlogPage() {
           </article>
         ))}
       </div>
-
-      <div className="text-center mt-12">
-        <p className="text-gray-600">More beauty tips and guides coming soon!</p>
-      </div>
-    </div>
+    </>
   );
 }

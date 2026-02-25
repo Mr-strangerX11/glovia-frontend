@@ -11,6 +11,7 @@ import ImageUploadField from '@/components/ImageUploadField';
 
 // Separate component to handle search params
 function NewProductContent() {
+    const [errors, setErrors] = useState<any>({});
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isChecking } = useAuthGuard({ roles: ['ADMIN', 'SUPER_ADMIN'] });
@@ -27,6 +28,7 @@ function NewProductContent() {
     price: 0,
     discountPercentage: 0,
     stockQuantity: 0,
+    quantityMl: 0,
     sku: '',
     categoryId: '',
     brandId: '',
@@ -146,20 +148,40 @@ function NewProductContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
+    // Client-side validation
+    const newErrors: any = {};
+    if (!formData.name.trim()) newErrors.name = 'Product name is required.';
+    if (!formData.slug.trim()) newErrors.slug = 'Slug is required.';
+    if (!formData.description.trim()) newErrors.description = 'Description is required.';
+    if (!formData.sku.trim()) newErrors.sku = 'SKU is required.';
+    if (!formData.categoryId) newErrors.categoryId = 'Category is required.';
+    if (formData.price <= 0) newErrors.price = 'Price must be greater than 0.';
+    if (formData.stockQuantity < 0) newErrors.stockQuantity = 'Stock cannot be negative.';
+    if (formData.discountPercentage < 0 || formData.discountPercentage > 100) newErrors.discountPercentage = 'Discount must be 0-100%.';
+    // Basic check for at least one image
+    const imageUrls = formData.images.filter((img) => img.trim() !== '');
+    if (imageUrls.length === 0) newErrors.images = 'At least one product image is required.';
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error('Please fix the errors in the form.');
+      return;
+    }
     setLoading(true);
-
     try {
-      const imageUrls = formData.images.filter((img) => img.trim() !== '');
-      
       await adminAPI.createProduct({
         ...formData,
         images: imageUrls.length > 0 ? imageUrls : undefined,
       });
-
       toast.success('Product created successfully');
       router.push('/admin/products');
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to create product');
+      // Show backend error
+      const msg = error.response?.data?.message || 'Failed to create product';
+      toast.error(msg);
+      // Try to map backend errors to fields
+      if (typeof msg === 'string' && msg.toLowerCase().includes('sku')) setErrors((e:any)=>({...e,sku:msg}));
+      if (typeof msg === 'string' && msg.toLowerCase().includes('slug')) setErrors((e:any)=>({...e,slug:msg}));
     } finally {
       setLoading(false);
     }
@@ -217,6 +239,7 @@ function NewProductContent() {
                 className="input"
                 required
               />
+              {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
             </div>
 
             <div>
@@ -228,6 +251,7 @@ function NewProductContent() {
                 className="input"
                 required
               />
+              {errors.slug && <p className="text-sm text-red-600 mt-1">{errors.slug}</p>}
               <p className="text-sm text-gray-500 mt-1">URL-friendly version of the name</p>
             </div>
 
@@ -239,6 +263,7 @@ function NewProductContent() {
                 className="input min-h-[100px]"
                 required
               />
+              {errors.description && <p className="text-sm text-red-600 mt-1">{errors.description}</p>}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -253,6 +278,7 @@ function NewProductContent() {
                   step="0.01"
                   required
                 />
+                {errors.price && <p className="text-sm text-red-600 mt-1">{errors.price}</p>}
               </div>
 
               <div>
@@ -267,6 +293,7 @@ function NewProductContent() {
                     max="100"
                     step="0.01"
                   />
+                  {errors.discountPercentage && <p className="text-sm text-red-600 mt-1">{errors.discountPercentage}</p>}
                   {formData.price > 0 && formData.discountPercentage > 0 && (
                     <p className="text-sm text-green-600 font-medium">
                       Final: ₨{(formData.price * (1 - formData.discountPercentage / 100)).toFixed(2)}
@@ -287,6 +314,7 @@ function NewProductContent() {
                   min="0"
                   required
                 />
+                {errors.stockQuantity && <p className="text-sm text-red-600 mt-1">{errors.stockQuantity}</p>}
               </div>
             </div>
 
@@ -300,6 +328,7 @@ function NewProductContent() {
                   className="input"
                   required
                 />
+                {errors.sku && <p className="text-sm text-red-600 mt-1">{errors.sku}</p>}
               </div>
 
               <div>
@@ -311,6 +340,7 @@ function NewProductContent() {
                   disabled={categoriesLoading}
                   required
                 >
+                {errors.categoryId && <p className="text-sm text-red-600 mt-1">{errors.categoryId}</p>}
                   <option value="">
                     {categoriesLoading ? 'Loading categories...' : 'Select Category'}
                   </option>
@@ -362,6 +392,7 @@ function NewProductContent() {
                 onImagesChange={(urls) => setFormData({ ...formData, images: urls })}
                 maxImages={5}
               />
+              {errors.images && <p className="text-sm text-red-600 mt-1">{errors.images}</p>}
             </div>
 
             <div className="flex items-center gap-6">
@@ -386,6 +417,17 @@ function NewProductContent() {
               </label>
             </div>
 
+            <div className="mb-4">
+              <label className="block mb-1 font-medium">Quantity (ml)</label>
+              <input
+                type="number"
+                min="0"
+                className="w-full p-2 border rounded"
+                value={formData.quantityMl}
+                onChange={e => setFormData({ ...formData, quantityMl: Number(e.target.value) })}
+                placeholder="Enter quantity in ml"
+              />
+            </div>
             <div className="flex gap-3 pt-4 border-t">
               <button type="submit" disabled={loading} className="btn-primary">
                 {loading ? (

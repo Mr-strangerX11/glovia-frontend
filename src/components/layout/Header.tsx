@@ -1,15 +1,44 @@
-'use client';
+"use client";
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Search, ShoppingCart, Heart, User, Menu, X } from 'lucide-react';
+import { Search, ShoppingCart, Heart, User, Menu, X, Moon, Sun } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useCart } from '@/hooks/useData';
 import { useRouter } from 'next/navigation';
 
-export default function Header() {
+export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [dark, setDark] = useState(typeof window !== 'undefined' ? document.documentElement.classList.contains('dark') : false);
+
+  const toggleDark = () => {
+    if (typeof window === 'undefined') return;
+    const html = document.documentElement;
+    if (html.classList.contains('dark')) {
+      html.classList.remove('dark');
+      setDark(false);
+      localStorage.setItem('theme', 'light');
+    } else {
+      html.classList.add('dark');
+      setDark(true);
+      localStorage.setItem('theme', 'dark');
+    }
+  };
+
+  // On mount, sync with localStorage
+  useState(() => {
+    if (typeof window !== 'undefined') {
+      const theme = localStorage.getItem('theme');
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+        setDark(true);
+      } else {
+        document.documentElement.classList.remove('dark');
+        setDark(false);
+      }
+    }
+  });
   const { user, isAuthenticated, logout } = useAuthStore();
   const { cart } = useCart();
   const router = useRouter();
@@ -73,6 +102,14 @@ export default function Header() {
 
           {/* Actions */}
           <div className="flex items-center gap-1 sm:gap-2">
+            {/* Dark mode toggle */}
+            <button
+              onClick={toggleDark}
+              className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+              aria-label="Toggle dark mode"
+            >
+              {dark ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-gray-700" />}
+            </button>
             {/* Search */}
             <button
               onClick={() => setSearchOpen(!searchOpen)}

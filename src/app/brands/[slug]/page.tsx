@@ -37,10 +37,13 @@ function ProductCard({ product }: ProductCardProps) {
         {/* Image */}
         <div className="h-48 bg-gray-100 overflow-hidden">
           {product.images && product.images[0] ? (
-            <img
+            <Image
               src={product.images[0]}
               alt={product.name}
+              width={192}
+              height={192}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+              loading="lazy"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">

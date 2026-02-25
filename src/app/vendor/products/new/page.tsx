@@ -10,6 +10,7 @@ import Link from 'next/link';
 import ImageUploadField from '@/components/ImageUploadField';
 
 export default function VendorNewProductPage() {
+    const [errors, setErrors] = useState<any>({});
   const router = useRouter();
   const { user, isChecking } = useAuthGuard({ roles: ['VENDOR'] });
   const [categories, setCategories] = useState<any[]>([]);
@@ -101,10 +102,26 @@ export default function VendorNewProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
+    // Client-side validation
+    const newErrors: any = {};
+    if (!formData.name.trim()) newErrors.name = 'Product name is required.';
+    if (!formData.slug.trim()) newErrors.slug = 'Slug is required.';
+    if (!formData.description.trim()) newErrors.description = 'Description is required.';
+    if (!formData.sku.trim()) newErrors.sku = 'SKU is required.';
+    if (!formData.categoryId) newErrors.categoryId = 'Category is required.';
+    if (formData.price <= 0) newErrors.price = 'Price must be greater than 0.';
+    if (formData.stockQuantity < 0) newErrors.stockQuantity = 'Stock cannot be negative.';
+    // Basic check for at least one image
+    const imageUrls = formData.images.filter((img) => img.trim() !== '');
+    if (imageUrls.length === 0) newErrors.images = 'At least one product image is required.';
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error('Please fix the errors in the form.');
+      return;
+    }
     setLoading(true);
-
     try {
-      const imageUrls = formData.images.filter((img) => img.trim() !== '');
       await vendorAPI.createProduct({
         ...formData,
         images: imageUrls.length > 0 ? imageUrls : undefined,
@@ -112,7 +129,11 @@ export default function VendorNewProductPage() {
       toast.success('Product created successfully');
       router.push('/vendor/products');
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to create product');
+      // Show backend error
+      const msg = error.response?.data?.message || 'Failed to create product';
+      toast.error(msg);
+      if (typeof msg === 'string' && msg.toLowerCase().includes('sku')) setErrors((e:any)=>({...e,sku:msg}));
+      if (typeof msg === 'string' && msg.toLowerCase().includes('slug')) setErrors((e:any)=>({...e,slug:msg}));
     } finally {
       setLoading(false);
     }
@@ -152,6 +173,7 @@ export default function VendorNewProductPage() {
                 className="input"
                 required
               />
+              {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
             </div>
 
             <div>
@@ -163,6 +185,7 @@ export default function VendorNewProductPage() {
                 className="input"
                 required
               />
+              {errors.slug && <p className="text-sm text-red-600 mt-1">{errors.slug}</p>}
               <p className="text-sm text-gray-500 mt-1">URL-friendly version of the name</p>
             </div>
 
@@ -174,6 +197,7 @@ export default function VendorNewProductPage() {
                 className="input min-h-[100px]"
                 required
               />
+              {errors.description && <p className="text-sm text-red-600 mt-1">{errors.description}</p>}
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
@@ -188,6 +212,7 @@ export default function VendorNewProductPage() {
                   step="0.01"
                   required
                 />
+                {errors.price && <p className="text-sm text-red-600 mt-1">{errors.price}</p>}
               </div>
 
               <div>
@@ -202,6 +227,7 @@ export default function VendorNewProductPage() {
                   min="0"
                   required
                 />
+                {errors.stockQuantity && <p className="text-sm text-red-600 mt-1">{errors.stockQuantity}</p>}
               </div>
             </div>
 
@@ -215,6 +241,7 @@ export default function VendorNewProductPage() {
                   className="input"
                   required
                 />
+                {errors.sku && <p className="text-sm text-red-600 mt-1">{errors.sku}</p>}
               </div>
 
               <div>
@@ -226,6 +253,7 @@ export default function VendorNewProductPage() {
                   disabled={categoriesLoading}
                   required
                 >
+                {errors.categoryId && <p className="text-sm text-red-600 mt-1">{errors.categoryId}</p>}
                   <option value="">
                     {categoriesLoading ? 'Loading categories...' : 'Select Category'}
                   </option>
@@ -270,6 +298,7 @@ export default function VendorNewProductPage() {
                 onImagesChange={(urls) => setFormData({ ...formData, images: urls })}
                 maxImages={5}
               />
+              {errors.images && <p className="text-sm text-red-600 mt-1">{errors.images}</p>}
             </div>
 
             <div className="flex items-center gap-6">

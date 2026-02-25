@@ -89,10 +89,13 @@ export default function OrdersPage() {
                   {order.items?.slice(0, 2).map((item: any) => (
                     <div key={item.id || item.product?.sku} className="flex gap-3">
                       {item.product?.images?.[0] && (
-                        <img
+                        <Image
                           src={item.product.images[0].url}
                           alt={item.product.name}
+                          width={64}
+                          height={64}
                           className="w-16 h-16 object-cover rounded"
+                          loading="lazy"
                         />
                       )}
                       <div className="flex-1">

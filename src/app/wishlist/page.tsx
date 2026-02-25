@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useWishlist } from "@/hooks/useData";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
+import Recommendations from '@/components/Recommendations';
 
 export default function WishlistPage() {
   const { user, isChecking } = useAuthGuard();
@@ -56,6 +57,8 @@ export default function WishlistPage() {
           </div>
         )}
       </div>
+      {/* AI Recommendations Section */}
+      <Recommendations />
     </div>
   );
 }
