@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import WalletInfo from '@/components/WalletInfo';
 import LoyaltyInfo from '@/components/LoyaltyInfo';
+import { Loader2 } from "lucide-react";
 
 export default function DashboardRouterPage() {
   const router = useRouter();
@@ -12,7 +13,6 @@ export default function DashboardRouterPage() {
 
   useEffect(() => {
     if (isChecking || !user) return;
-
 
     if (user.role === "SUPER_ADMIN") {
       router.replace("/dashboard/superadmin");
@@ -31,18 +31,28 @@ export default function DashboardRouterPage() {
     router.replace("/dashboard/customer");
   }, [isChecking, router, user]);
 
-  const userId = user.id;
+  if (isChecking || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center space-y-2">
+          <p className="text-sm text-gray-600">Checking your account...</p>
+          <Loader2 className="w-10 h-10 animate-spin mx-auto text-primary-600" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center space-y-2">
         <p className="text-sm text-gray-600">Checking your account...</p>
-        <div className="w-10 h-10 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto" />
+        <Loader2 className="w-10 h-10 animate-spin mx-auto text-primary-600" />
       </div>
       <div className="absolute bottom-0 right-0 w-full max-w-md p-4">
-        <WalletInfo userId={userId} />
-        <LoyaltyInfo userId={userId} />
+        <WalletInfo userId={user.id} />
+        <LoyaltyInfo userId={user.id} />
       </div>
     </div>
   );
 }
+
