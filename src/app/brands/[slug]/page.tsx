@@ -6,6 +6,7 @@ import { Loader2, Package, ArrowLeft, Star, ShoppingCart } from 'lucide-react';
 import { useState } from 'react';
 import { cartAPI } from '@/lib/api';
 import toast from 'react-hot-toast';
+import Image from 'next/image';
 
 interface ProductCardProps {
   product: any;

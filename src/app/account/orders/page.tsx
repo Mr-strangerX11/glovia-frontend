@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useOrders } from '@/hooks/useData';
 import { Package, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function OrdersPage() {
   const router = useRouter();

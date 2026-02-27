@@ -6,6 +6,7 @@ import { adminAPI, categoriesAPI, productsAPI } from '@/lib/api';
 import { Plus, Edit2, Trash2, Loader2, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface Product {
   id?: string;
