@@ -28,6 +28,8 @@ export default function AdminUsersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [editingPermissionsUser, setEditingPermissionsUser] = useState<User | null>(null);
+  const [permissionsDraft, setPermissionsDraft] = useState<any>({});
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -36,6 +38,16 @@ export default function AdminUsersPage() {
     phone: '',
     role: 'CUSTOMER',
   });
+
+  const permissionKeys = [
+    { key: 'canEditProducts', label: 'Edit Products' },
+    { key: 'canViewOrders', label: 'View Orders' },
+    { key: 'canManageUsers', label: 'Manage Users' },
+    { key: 'canManageBanners', label: 'Manage Banners' },
+    { key: 'canViewAnalytics', label: 'View Analytics' },
+    { key: 'canManagePromos', label: 'Manage Promos' },
+    { key: 'canViewAuditLogs', label: 'View Audit Logs' },
+  ];
 
   useEffect(() => {
     if (user) {
@@ -143,6 +155,32 @@ export default function AdminUsersPage() {
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to initialize users');
     }
+  };
+
+  const openPermissionsModal = (targetUser: User) => {
+    setEditingPermissionsUser(targetUser);
+    setPermissionsDraft({ ...(targetUser as any).permissions || {} });
+  };
+
+  const handlePermissionToggle = (perm: string) => {
+    setPermissionsDraft((prev: any) => ({ ...prev, [perm]: !prev[perm] }));
+  };
+
+  const handleSavePermissions = async () => {
+    if (!editingPermissionsUser) return;
+    try {
+      await adminAPI.updateUserPermissions(getUserId(editingPermissionsUser), permissionsDraft);
+      toast.success('Permissions updated');
+      setEditingPermissionsUser(null);
+      fetchUsers();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to update permissions');
+    }
+  };
+
+  const handleClosePermissions = () => {
+    setEditingPermissionsUser(null);
+    setPermissionsDraft({});
   };
 
   if (isChecking || !user) {
@@ -387,83 +425,22 @@ export default function AdminUsersPage() {
                           {new Date(u.createdAt).toLocaleDateString()}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right flex flex-col gap-2 items-end">
-                        <button
-                          onClick={() => handleDelete(u, `${u.firstName} ${u.lastName}`)}
-                          className="text-red-600 hover:text-red-900 text-sm font-medium"
-                        >
-                          Delete
-                        </button>
-                        <button
-                          onClick={() => setEditingPermissionsUser(u)}
-                          className="text-primary-600 hover:text-primary-900 text-xs font-medium underline"
-                        >
-                          Edit Permissions
-                        </button>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <div className="flex flex-col gap-2 items-end">
+                          <button
+                            onClick={() => handleDelete(u, `${u.firstName} ${u.lastName}`)}
+                            className="text-red-600 hover:text-red-900 text-sm font-medium"
+                          >
+                            Delete
+                          </button>
+                          <button
+                            onClick={() => openPermissionsModal(u)}
+                            className="text-primary-600 hover:text-primary-900 text-xs font-medium underline"
+                          >
+                            Edit Permissions
+                          </button>
+                        </div>
                       </td>
-                      // Permissions modal state
-                      const [editingPermissionsUser, setEditingPermissionsUser] = useState<User | null>(null);
-                      const [permissionsDraft, setPermissionsDraft] = useState<any>({});
-
-                      const permissionKeys = [
-                        { key: 'canEditProducts', label: 'Edit Products' },
-                        { key: 'canViewOrders', label: 'View Orders' },
-                        { key: 'canManageUsers', label: 'Manage Users' },
-                        { key: 'canManageBanners', label: 'Manage Banners' },
-                        { key: 'canViewAnalytics', label: 'View Analytics' },
-                        { key: 'canManagePromos', label: 'Manage Promos' },
-                        { key: 'canViewAuditLogs', label: 'View Audit Logs' },
-                      ];
-
-                      const openPermissionsModal = (user: User) => {
-                        setEditingPermissionsUser(user);
-                        setPermissionsDraft({ ...(user as any).permissions || {} });
-                      };
-
-                      const handlePermissionToggle = (perm: string) => {
-                        setPermissionsDraft((prev: any) => ({ ...prev, [perm]: !prev[perm] }));
-                      };
-
-                      const handleSavePermissions = async () => {
-                        if (!editingPermissionsUser) return;
-                        try {
-                          await adminAPI.updateUserPermissions(getUserId(editingPermissionsUser), permissionsDraft);
-                          toast.success('Permissions updated');
-                          setEditingPermissionsUser(null);
-                          fetchUsers();
-                        } catch (error: any) {
-                          toast.error(error.response?.data?.message || 'Failed to update permissions');
-                        }
-                      };
-
-                      const handleClosePermissions = () => {
-                        setEditingPermissionsUser(null);
-                        setPermissionsDraft({});
-                      };
-                          {/* Permissions Modal */}
-                          {editingPermissionsUser && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                              <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-                                <h3 className="text-lg font-bold mb-4">Edit Permissions for {editingPermissionsUser.firstName} {editingPermissionsUser.lastName}</h3>
-                                <div className="space-y-2 mb-4">
-                                  {permissionKeys.map((perm) => (
-                                    <label key={perm.key} className="flex items-center gap-2">
-                                      <input
-                                        type="checkbox"
-                                        checked={!!permissionsDraft[perm.key]}
-                                        onChange={() => handlePermissionToggle(perm.key)}
-                                      />
-                                      <span>{perm.label}</span>
-                                    </label>
-                                  ))}
-                                </div>
-                                <div className="flex gap-3 justify-end">
-                                  <button className="btn-outline" onClick={handleClosePermissions}>Cancel</button>
-                                  <button className="btn-primary" onClick={handleSavePermissions}>Save</button>
-                                </div>
-                              </div>
-                            </div>
-                          )}
                     </tr>
                   ))}
                 </tbody>
@@ -472,6 +449,38 @@ export default function AdminUsersPage() {
           )}
         </div>
       </div>
+
+      {/* Permissions Modal */}
+      {editingPermissionsUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-bold mb-4">
+              Edit Permissions for {editingPermissionsUser.firstName} {editingPermissionsUser.lastName}
+            </h3>
+            <div className="space-y-2 mb-4">
+              {permissionKeys.map((perm) => (
+                <label key={perm.key} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={!!permissionsDraft[perm.key]}
+                    onChange={() => handlePermissionToggle(perm.key)}
+                  />
+                  <span>{perm.label}</span>
+                </label>
+              ))}
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button className="btn-outline" onClick={handleClosePermissions}>
+                Cancel
+              </button>
+              <button className="btn-primary" onClick={handleSavePermissions}>
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
