@@ -142,6 +142,7 @@ export const adminAPI = {
   getAllCustomers: () => api.get('/admin/customers'),
   createUser: (data: any) => api.post('/admin/users', data),
   updateUserRole: (id: string, role: string) => api.put(`/admin/users/${id}/role`, { role }),
+  updateUserPermissions: (id: string, permissions: any) => api.put(`/admin/users/${id}/permissions`, { permissions }),
   deleteUser: (id: string) => api.delete(`/admin/users/${id}`),
   initializeUsers: () => api.post('/admin/init'),
   fixSuperAdminRole: () => api.post('/admin/fix-superadmin'),
