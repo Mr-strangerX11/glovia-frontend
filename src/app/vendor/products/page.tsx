@@ -19,6 +19,30 @@ interface Product {
   images?: { url: string }[];
 }
 
+function extractRowsAndMeta(payload: any): { rows: Product[]; totalPages: number } {
+  if (Array.isArray(payload)) {
+    return { rows: payload as Product[], totalPages: 0 };
+  }
+
+  const directRows = Array.isArray(payload?.data) ? payload.data : null;
+  if (directRows) {
+    return {
+      rows: directRows as Product[],
+      totalPages: Number(payload?.meta?.totalPages || 0),
+    };
+  }
+
+  const nestedRows = Array.isArray(payload?.data?.data) ? payload.data.data : null;
+  if (nestedRows) {
+    return {
+      rows: nestedRows as Product[],
+      totalPages: Number(payload?.data?.meta?.totalPages || 0),
+    };
+  }
+
+  return { rows: [], totalPages: 0 };
+}
+
 export default function VendorProductsPage() {
   const { user, isChecking } = useAuthGuard({ roles: ['VENDOR'] });
   const [products, setProducts] = useState<Product[]>([]);
@@ -35,15 +59,11 @@ export default function VendorProductsPage() {
 
     while (page <= totalPages) {
       const { data } = await vendorAPI.getProducts({ page, limit: pageSize });
-      const rows = Array.isArray(data?.data)
-        ? data.data
-        : Array.isArray(data)
-          ? data
-          : [];
+      const { rows, totalPages: parsedTotalPages } = extractRowsAndMeta(data);
 
       allRows.push(...rows);
 
-      const nextTotalPages = Number(data?.meta?.totalPages || 0);
+      const nextTotalPages = parsedTotalPages;
       if (nextTotalPages > 0) {
         totalPages = nextTotalPages;
       } else if (rows.length < pageSize) {

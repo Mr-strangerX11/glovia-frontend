@@ -22,6 +22,30 @@ interface Product {
   images?: { url: string }[];
 }
 
+function extractRowsAndMeta(payload: any): { rows: Product[]; totalPages: number } {
+  if (Array.isArray(payload)) {
+    return { rows: payload as Product[], totalPages: 0 };
+  }
+
+  const directRows = Array.isArray(payload?.data) ? payload.data : null;
+  if (directRows) {
+    return {
+      rows: directRows as Product[],
+      totalPages: Number(payload?.meta?.totalPages || 0),
+    };
+  }
+
+  const nestedRows = Array.isArray(payload?.data?.data) ? payload.data.data : null;
+  if (nestedRows) {
+    return {
+      rows: nestedRows as Product[],
+      totalPages: Number(payload?.data?.meta?.totalPages || 0),
+    };
+  }
+
+  return { rows: [], totalPages: 0 };
+}
+
 export default function AdminProductsPage() {
   const { user, isChecking } = useAuthGuard({ roles: ['ADMIN', 'SUPER_ADMIN'] });
   const [products, setProducts] = useState<Product[]>([]);
@@ -40,15 +64,11 @@ export default function AdminProductsPage() {
     while (page <= totalPages) {
       const response = await request({ page, limit: pageSize });
       const payload = response?.data;
-      const rows = Array.isArray(payload?.data)
-        ? payload.data
-        : Array.isArray(payload)
-          ? payload
-          : [];
+      const { rows, totalPages: parsedTotalPages } = extractRowsAndMeta(payload);
 
       allRows.push(...rows);
 
-      const nextTotalPages = Number(payload?.meta?.totalPages || 0);
+      const nextTotalPages = parsedTotalPages;
       if (nextTotalPages > 0) {
         totalPages = nextTotalPages;
       } else if (rows.length < pageSize) {
