@@ -1,4 +1,4 @@
-const CACHE_NAME = 'glovia-v1';
+const CACHE_NAME = 'glovia-v2';
 const OFFLINE_URL = '/offline';
 
 const STATIC_ASSETS = [
@@ -6,6 +6,9 @@ const STATIC_ASSETS = [
   '/offline',
   '/manifest.json',
   '/placeholder.jpg',
+  '/og-image.jpg',
+  '/icon-192.svg',
+  '/icon-512.svg',
 ];
 
 // Install event - cache static assets
@@ -36,49 +39,31 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
+  const isSameOrigin = url.origin === self.location.origin;
 
   // Skip non-GET requests
   if (request.method !== 'GET') {
     return;
   }
 
-  // Skip API requests - always go to network
-  if (url.pathname.startsWith('/api/')) {
-    event.respondWith(
-      fetch(request).catch(() => {
-        return new Response(
-          JSON.stringify({ error: 'Network error' }),
-          {
-            status: 503,
-            headers: { 'Content-Type': 'application/json' },
-          }
-        );
-      })
-    );
+  // Never intercept cross-origin requests (prevents CORS side effects)
+  if (!isSameOrigin) {
     return;
   }
 
-  // Network first for HTML pages
+  // Skip API and Next.js runtime assets - always network
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/_next/')) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  // Network first for HTML pages (do not cache full pages to avoid hydration mismatch)
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
-        .then((response) => {
-          // Cache the response
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseClone);
-          });
-          return response;
-        })
+        .then((response) => response)
         .catch(() => {
-          // Try cache first
-          return caches.match(request).then((cachedResponse) => {
-            if (cachedResponse) {
-              return cachedResponse;
-            }
-            // Return offline page
-            return caches.match(OFFLINE_URL);
-          });
+          return caches.match(OFFLINE_URL);
         })
     );
     return;
@@ -128,8 +113,7 @@ self.addEventListener('push', (event) => {
   
   const options = {
     body: data.body || 'New notification from Glovia Nepal',
-    icon: '/icon-192.png',
-    badge: '/badge-72.png',
+    icon: '/icon-192.svg',
     vibrate: [100, 50, 100],
     data: {
       url: data.url || '/',

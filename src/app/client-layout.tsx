@@ -14,7 +14,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const isOnline = useOnlineStatus();
 
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
+    if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
       navigator.serviceWorker.register('/service-worker.js').then((registration) => {
         console.log('Service Worker registered:', registration);
         

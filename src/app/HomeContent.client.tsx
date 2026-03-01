@@ -95,7 +95,7 @@ export default function HomeContent({ featuredProducts, banners }: HomeContentPr
       <Link href={`/products/${product.slug}`} className="block">
         <div className="relative h-56 overflow-hidden">
           <Image
-            src={product.images?.[0]?.url || '/og-image.jpg'}
+            src={product.images?.[0]?.url || '/icon-512.svg'}
             alt={product.images?.[0]?.altText || product.name}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -189,9 +189,9 @@ export default function HomeContent({ featuredProducts, banners }: HomeContentPr
             <p className="mt-2 text-sm text-white/85">Rotate targeted campaigns with conversion-first visuals and first-buyer discount popups.</p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            {(heroBanners.length ? heroBanners.slice(0, 2) : [{ id: 'sale', title: 'Mega Sale', image: '/og-image.jpg' }, { id: 'new', title: 'New Collection', image: '/og-image.jpg' }]).map((banner, i) => (
+            {(heroBanners.length ? heroBanners.slice(0, 2) : [{ id: 'sale', title: 'Mega Sale', image: '/icon-512.svg' }, { id: 'new', title: 'New Collection', image: '/icon-512.svg' }]).map((banner, i) => (
               <div key={banner.id || i} className="relative h-32 overflow-hidden rounded-2xl border border-white/20">
-                <Image src={banner.image || '/og-image.jpg'} alt={banner.title || 'Banner'} fill className="object-cover" />
+                <Image src={banner.image || '/icon-512.svg'} alt={banner.title || 'Banner'} fill className="object-cover" />
                 <div className="absolute inset-0 bg-black/35 p-3">
                   <p className="text-xs font-semibold uppercase">Campaign</p>
                   <p className="mt-1 text-sm font-bold">{banner.title || 'Special Offer'}</p>

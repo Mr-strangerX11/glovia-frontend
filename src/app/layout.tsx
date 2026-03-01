@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     siteName: 'Glovia Nepal',
     images: [
       {
-        url: '/og-image.jpg',
+        url: '/icon-512.svg',
         width: 1200,
         height: 630,
         alt: 'Glovia Nepal',
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Glovia Nepal - Premium Beauty & Cosmetics',
     description: 'Discover premium beauty and cosmetic products made for Nepal.',
-    images: ['/og-image.jpg'],
+    images: ['/icon-512.svg'],
   },
   robots: {
     index: true,

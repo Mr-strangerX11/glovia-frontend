@@ -170,7 +170,7 @@ export function SeoHead({
   brand
 }: SeoHeadProps) {
   const siteName = 'Glovia Nepal';
-  const defaultImage = '/og-image.jpg';
+  const defaultImage = '/icon-512.svg';
   const fullUrl = url ? `${process.env.NEXT_PUBLIC_SITE_URL || ''}${url}` : undefined;
   
   // Generate structured data based on type

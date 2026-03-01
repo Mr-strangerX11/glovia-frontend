@@ -87,10 +87,15 @@ export default function HeroThreeScene() {
     });
 
     let animationFrame = 0;
-    const clock = new THREE.Clock();
+    let lastTime = performance.now();
+    let elapsed = 0;
 
     const animate = () => {
-      const elapsed = clock.getElapsedTime();
+      const now = performance.now();
+      const delta = (now - lastTime) / 1000;
+      lastTime = now;
+      elapsed += delta;
+
       heroCore.rotation.x = Math.sin(elapsed * 0.8) * 0.35;
       heroCore.position.y = 0.2 + Math.sin(elapsed * 1.1) * 0.12;
       cards.forEach((card, index) => {
