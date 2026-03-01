@@ -274,11 +274,11 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-primary-50/30 pb-28 md:pb-8">
       {/* Breadcrumb */}
-      <div className="bg-white border-b">
+      <div className="bg-white/90 border-b backdrop-blur-sm">
         <div className="container py-4">
-          <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-2 text-sm overflow-x-auto whitespace-nowrap scrollbar-thin">
             <Link href="/" className="text-gray-600 hover:text-gray-900">
               Home
             </Link>
@@ -308,17 +308,20 @@ export default function ProductDetailPage() {
 
       <div className="container py-8">
         {/* Back Button */}
-        <Link
-          href="/products"
-          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Products
-        </Link>
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <Link
+            href="/products"
+            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Products
+          </Link>
+          <p className="text-xs sm:text-sm text-gray-500">Beauty Catalog • Premium Product View</p>
+        </div>
 
-        <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,540px)] lg:gap-10">
           {/* Product Images */}
-          <div className="space-y-4">
+          <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -397,12 +400,12 @@ export default function ProductDetailPage() {
 
             {/* Thumbnail Gallery */}
             {productImages.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto">
+              <div className="flex gap-2 overflow-x-auto pb-1">
                 {productImages.map((image: any, index: number) => (
                   <motion.button
                     key={index}
                     onClick={() => setSelectedImage(index)}
-                    className={`relative aspect-square w-20 flex-shrink-0 rounded-lg overflow-hidden border-2 ${
+                    className={`relative aspect-square w-16 sm:w-20 flex-shrink-0 rounded-lg overflow-hidden border-2 ${
                       selectedImage === index
                         ? "border-primary-600"
                         : "border-gray-200"
@@ -423,7 +426,7 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Product Info */}
-          <div className="space-y-6">
+          <div className="space-y-6 rounded-2xl border border-white/60 bg-white/85 p-4 shadow-sm backdrop-blur-md sm:p-6">
             {product.brand && (
               <Link
                 href={`/brands/${product.brand.slug}`}
@@ -602,7 +605,7 @@ export default function ProductDetailPage() {
                           )
                         )
                       }
-                      className="w-20 text-center border border-gray-300 rounded-lg px-3 py-2"
+                      className="w-20 sm:w-24 text-center border border-gray-300 rounded-lg px-3 py-2"
                     />
                     <button
                       onClick={() =>
@@ -619,7 +622,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto]">
                   <motion.button
                     onClick={handleAddToCart}
                     disabled={isAddingToCart}
@@ -641,7 +644,7 @@ export default function ProductDetailPage() {
                   <button
                     onClick={handleAddToWishlist}
                     disabled={isAddingToWishlist}
-                    className={`w-12 h-12 flex items-center justify-center border rounded-lg transition-colors ${
+                    className={`h-12 w-full sm:w-12 flex items-center justify-center border rounded-lg transition-colors ${
                       isWishlisted
                         ? "border-red-300 bg-red-50"
                         : "border-gray-300 hover:bg-gray-50"
@@ -658,7 +661,7 @@ export default function ProductDetailPage() {
             )}
 
             {/* Features */}
-            <div className="border-t border-gray-200 pt-6 space-y-3">
+            <div className="border-t border-gray-200 pt-6 grid gap-3">
               <div className="flex items-center gap-3 text-gray-700">
                 <Truck className="w-5 h-5 text-primary-600" />
                 <span>Free delivery on orders above NPR 2,999</span>
@@ -679,13 +682,13 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Product Details Tabs */}
-        <div className="mt-12 bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="mt-12 bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
           <div className="border-b border-gray-200">
-            <div className="container px-6 py-4">
+            <div className="px-4 py-4 sm:px-6">
               <h2 className="text-xl font-semibold">Product Details</h2>
             </div>
           </div>
-          <div className="p-6 space-y-6">
+          <div className="p-4 space-y-6 sm:p-6">
             <div>
               <h3 className="font-semibold text-lg mb-2">Description</h3>
               <p className="text-gray-700">{product.description || "No detailed description provided yet."}</p>
@@ -726,6 +729,27 @@ export default function ProductDetailPage() {
                 ))}
               </div>
             </div>
+
+            <div>
+              <h3 className="font-semibold text-lg mb-2">Recent Reviews</h3>
+              {reviews.length === 0 ? (
+                <p className="text-sm text-gray-500">No reviews yet. Be the first to review this product.</p>
+              ) : (
+                <div className="space-y-2">
+                  {reviews.slice(0, 3).map((review: any) => (
+                    <article key={review.id || review._id} className="rounded-lg border border-gray-200 p-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm font-semibold text-gray-900">
+                          {review.user?.firstName || "Customer"} {review.user?.lastName || ""}
+                        </p>
+                        <p className="text-xs font-medium text-amber-600">★ {Number(review.rating || 0).toFixed(1)}</p>
+                      </div>
+                      <p className="mt-1 text-sm text-gray-600">{review.comment || "Great product quality."}</p>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -733,12 +757,12 @@ export default function ProductDetailPage() {
         {relatedProducts.length > 0 && (
           <div className="mt-12">
             <h2 className="text-2xl font-bold mb-6">You May Also Like</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {relatedProducts.map((relatedProduct) => (
                 <Link
                   key={relatedProduct._id}
                   href={`/products/${relatedProduct.slug}`}
-                  className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
+                  className="bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
                 >
                   <div className="aspect-square relative">
                     <Image

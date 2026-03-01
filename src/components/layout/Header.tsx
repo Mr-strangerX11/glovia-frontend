@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Search, ShoppingCart, Heart, User, Menu, X, Moon, Sun, Store, Globe, Home } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useCart } from '@/hooks/useData';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function Header() {
@@ -45,20 +45,33 @@ export function Header() {
   const { user, isAuthenticated, logout } = useAuthStore();
   const { cart } = useCart();
   const router = useRouter();
+  const pathname = usePathname();
+  const currentPath = pathname || '/';
 
   const handleLogout = async () => {
     await logout();
     router.push('/');
   };
 
-  const categories = [
-    { name: 'Skincare', href: '/products?category=skincare' },
-    { name: 'Haircare', href: '/products?category=haircare' },
-    { name: 'Makeup', href: '/products?category=makeup' },
-    { name: 'Organic', href: '/products?category=organic' },
-    { name: 'Electronics', href: '/products?category=electronics' },
-    { name: 'Groceries', href: '/products?category=groceries' },
-  ];
+  const categories = useMemo(
+    () => [
+      { name: 'Skincare', href: '/products?category=skincare' },
+      { name: 'Haircare', href: '/products?category=haircare' },
+      { name: 'Makeup', href: '/products?category=makeup' },
+      { name: 'Organic', href: '/products?category=organic' },
+      { name: 'Electronics', href: '/products?category=electronics' },
+      { name: 'Groceries', href: '/products?category=groceries' },
+    ],
+    []
+  );
+
+  const isRouteActive = (href: string) => {
+    if (href.startsWith('/products?category=')) {
+      return currentPath === '/products';
+    }
+    if (href === '/') return currentPath === '/';
+    return currentPath.startsWith(href);
+  };
 
   const searchSuggestions = useMemo(() => {
     if (!searchQuery.trim()) return [];
@@ -69,11 +82,11 @@ export function Header() {
   }, [categories, searchQuery]);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/20 bg-white/75 shadow-sm backdrop-blur-xl dark:bg-gray-950/70">
+    <header className="sticky top-0 z-50 border-b border-white/20 bg-white/80 shadow-sm backdrop-blur-xl dark:bg-gray-950/75">
       {/* Top Bar */}
       <div className="bg-secondary-900 text-white py-2">
         <div className="container">
-          <div className="flex justify-between items-center text-xs sm:text-sm">
+          <div className="flex justify-between items-center text-xs sm:text-sm gap-2">
             <p className="truncate">✨ Free delivery over NPR 2,999 • Premium Marketplace for Nepal</p>
             <div className="hidden md:flex items-center gap-4 text-white/95">
               <button
@@ -113,12 +126,23 @@ export function Header() {
               <Link
                 key={category.name}
                 href={category.href}
-                className="text-gray-700 hover:text-primary-600 font-medium transition-colors dark:text-gray-100"
+                className={`font-medium transition-colors dark:text-gray-100 ${
+                  isRouteActive(category.href)
+                    ? 'text-primary-600'
+                    : 'text-gray-700 hover:text-primary-600'
+                }`}
               >
                 {category.name}
               </Link>
             ))}
-            <Link href="/about" className="text-gray-700 hover:text-primary-600 font-medium transition-colors">
+            <Link
+              href="/about"
+              className={`font-medium transition-colors ${
+                isRouteActive('/about')
+                  ? 'text-primary-600'
+                  : 'text-gray-700 hover:text-primary-600'
+              }`}
+            >
               About
             </Link>
           </nav>
@@ -193,7 +217,7 @@ export function Header() {
                 </div>
               </div>
             ) : (
-              <Link href="/auth/login" className="btn-primary text-xs sm:text-sm px-3 sm:px-6 py-2 sm:py-3">
+              <Link href="/auth/login" className="btn-primary text-xs sm:text-sm px-3 sm:px-6 py-2 sm:py-3 rounded-xl">
                 Sign In
               </Link>
             )}
@@ -261,51 +285,100 @@ export function Header() {
         </AnimatePresence>
       </div>
 
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden border-t animate-slide-down">
-          <nav className="container py-4 flex flex-col gap-2">
-            {categories.map((category) => (
-              <Link
-                key={category.name}
-                href={category.href}
-                className="px-4 py-2 hover:bg-gray-100 rounded-lg"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {category.name}
-              </Link>
-            ))}
-            <Link
-              href="/about"
-              className="px-4 py-2 hover:bg-gray-100 rounded-lg"
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            <motion.button
+              className="fixed inset-0 z-50 bg-black/40 lg:hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               onClick={() => setMobileMenuOpen(false)}
+              aria-label="Close mobile menu"
+            />
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 26, stiffness: 220 }}
+              className="fixed left-0 top-0 z-[60] h-full w-[86%] max-w-sm border-r border-white/20 bg-white/95 p-4 shadow-2xl backdrop-blur-xl lg:hidden dark:bg-gray-950/95"
             >
-              About
-            </Link>
-            <Link
-              href="/vendor"
-              className="px-4 py-2 hover:bg-gray-100 rounded-lg"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Seller Dashboard
-            </Link>
-          </nav>
-        </div>
-      )}
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-base font-semibold text-secondary-900 dark:text-gray-100">Browse Categories</h3>
+                <button
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="rounded-lg border border-gray-200 p-2 dark:border-gray-700"
+                  aria-label="Close"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <nav className="flex flex-col gap-2">
+                {categories.map((category) => (
+                  <Link
+                    key={category.name}
+                    href={category.href}
+                    className={`rounded-xl px-4 py-2.5 text-sm font-medium transition ${
+                      isRouteActive(category.href)
+                        ? 'bg-primary-50 text-primary-700'
+                        : 'text-secondary-800 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {category.name}
+                  </Link>
+                ))}
+                <Link
+                  href="/about"
+                  className={`rounded-xl px-4 py-2.5 text-sm font-medium transition ${
+                    isRouteActive('/about')
+                      ? 'bg-primary-50 text-primary-700'
+                      : 'text-secondary-800 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-800'
+                  }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  About
+                </Link>
+                <Link
+                  href="/vendor"
+                  className="rounded-xl px-4 py-2.5 text-sm font-medium text-secondary-800 transition hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-800"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Seller Dashboard
+                </Link>
+              </nav>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/20 bg-white/90 backdrop-blur-xl md:hidden dark:bg-gray-950/90">
-        <div className="mx-auto grid max-w-md grid-cols-4 px-3 py-2">
-          <Link href="/" className="flex flex-col items-center gap-1 py-1 text-xs font-medium text-secondary-900 dark:text-gray-100">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/20 bg-white/90 pb-[calc(env(safe-area-inset-bottom)+0.2rem)] backdrop-blur-xl md:hidden dark:bg-gray-950/90">
+        <div className="mx-auto grid max-w-md grid-cols-4 px-2 py-2">
+          <Link
+            href="/"
+            className={`flex flex-col items-center gap-1 rounded-xl py-1 text-xs font-medium transition ${
+              isRouteActive('/')
+                ? 'bg-primary-50 text-primary-700'
+                : 'text-secondary-900 dark:text-gray-100'
+            }`}
+          >
             <Home className="h-4 w-4" /> Home
           </Link>
           <button
             type="button"
             onClick={() => setMobileMenuOpen((prev) => !prev)}
-            className="flex flex-col items-center gap-1 py-1 text-xs font-medium text-secondary-900 dark:text-gray-100"
+            className="flex flex-col items-center gap-1 rounded-xl py-1 text-xs font-medium text-secondary-900 transition dark:text-gray-100"
           >
             <Menu className="h-4 w-4" /> Categories
           </button>
-          <Link href="/cart" className="relative flex flex-col items-center gap-1 py-1 text-xs font-medium text-secondary-900 dark:text-gray-100">
+          <Link
+            href="/cart"
+            className={`relative flex flex-col items-center gap-1 rounded-xl py-1 text-xs font-medium transition ${
+              isRouteActive('/cart')
+                ? 'bg-primary-50 text-primary-700'
+                : 'text-secondary-900 dark:text-gray-100'
+            }`}
+          >
             <ShoppingCart className="h-4 w-4" /> Cart
             {cart && cart.itemCount > 0 ? (
               <span className="absolute right-5 top-0 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary-600 px-1 text-[10px] text-white">
@@ -313,7 +386,14 @@ export function Header() {
               </span>
             ) : null}
           </Link>
-          <Link href={isAuthenticated ? '/account' : '/auth/login'} className="flex flex-col items-center gap-1 py-1 text-xs font-medium text-secondary-900 dark:text-gray-100">
+          <Link
+            href={isAuthenticated ? '/account' : '/auth/login'}
+            className={`flex flex-col items-center gap-1 rounded-xl py-1 text-xs font-medium transition ${
+              isRouteActive('/account') || isRouteActive('/auth')
+                ? 'bg-primary-50 text-primary-700'
+                : 'text-secondary-900 dark:text-gray-100'
+            }`}
+          >
             <User className="h-4 w-4" /> Account
           </Link>
         </div>

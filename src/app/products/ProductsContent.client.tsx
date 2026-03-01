@@ -416,12 +416,13 @@ export default function ProductsContent({
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-primary-50/20 to-secondary-50/20">
       <div className="container py-6 sm:py-10 space-y-6 sm:space-y-8">
-        <div className="flex items-end justify-between gap-3">
+        <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
           <p className="text-xs sm:text-sm text-gray-500">Catalog</p>
           <h1 className="text-2xl sm:text-3xl font-bold">
             {category ? `Products - ${category}` : brand ? `Products - ${brand}` : searchValue ? `Search: ${searchValue}` : "All Products"}
           </h1>
+          <p className="mt-1 text-xs sm:text-sm text-gray-600">Premium beauty discovery with smart filters and AI-assisted browsing.</p>
           </div>
           <button
             onClick={() => setIsMobileFilterOpen(true)}
@@ -433,11 +434,11 @@ export default function ProductsContent({
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
-          <div className="hidden lg:block">{filterPanel}</div>
+          <div className="hidden lg:block lg:sticky lg:top-24 lg:self-start">{filterPanel}</div>
 
           <div className="space-y-4">
-            <div className="flex flex-col gap-3 rounded-2xl border border-white/50 bg-white/80 p-4 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-1 items-center gap-2">
+            <div className="flex flex-col gap-3 rounded-2xl border border-white/50 bg-white/80 p-4 shadow-sm backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex w-full flex-1 items-center gap-2">
                 <input
                   type="text"
                   placeholder="Search products..."
@@ -448,9 +449,9 @@ export default function ProductsContent({
                   }}
                   className="input w-full"
                 />
-                <button onClick={() => handleSearch(searchValue)} className="btn-outline px-4 py-2">Go</button>
+                <button onClick={() => handleSearch(searchValue)} className="btn-outline px-3 py-2 sm:px-4">Go</button>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                 <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Sort</label>
                 <select
                   value={sortBy}
@@ -475,7 +476,7 @@ export default function ProductsContent({
             {!isLoading && (!products || products.length === 0) && !category && !brand && !searchValue && featuredProducts?.length > 0 && (
               <div>
                 <p className="mb-3 text-xs text-gray-500 sm:text-sm">Featured Products</p>
-                <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
                   {featuredProducts.map((product: any) => renderProductCard(product))}
                 </div>
               </div>
@@ -490,7 +491,7 @@ export default function ProductsContent({
 
             {/* Product Grid */}
             {!isLoading && filteredProducts.length > 0 && (
-              <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
                 {filteredProducts.map((product: any) => renderProductCard(product))}
               </div>
             )}
