@@ -5,7 +5,7 @@ import { Toaster } from 'react-hot-toast';
 import { Header } from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import AnnouncementBar from '@/components/common/AnnouncementBar';
-import ClientLayout from './ClientLayout';
+import ClientLayout from './client-layout';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { getOrganizationStructuredData, getWebsiteStructuredData } from '@/lib/seoStructuredData';
 
