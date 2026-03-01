@@ -89,6 +89,7 @@ The requested backend structure and data modeling deliverables are included in:
 - [docs/database-schema.sql](docs/database-schema.sql)
 - [docs/sample-product-seed.json](docs/sample-product-seed.json)
 - [docs/IMPLEMENTATION_OUTPUTS.md](docs/IMPLEMENTATION_OUTPUTS.md)
+- [docs/GLOVIA_BEAUTY_CATALOG_BLUEPRINT.md](docs/GLOVIA_BEAUTY_CATALOG_BLUEPRINT.md)
 
 These include:
 - Backend module/folder structure

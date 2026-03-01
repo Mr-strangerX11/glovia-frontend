@@ -8,6 +8,17 @@ import { useAuthStore } from "@/store/authStore";
 import { wishlistAPI } from "@/lib/api";
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  GLOVIA_AI_SHORTCUTS,
+  GLOVIA_MAIN_CATEGORIES,
+  GLOVIA_PRICE_FILTERS,
+  GLOVIA_SMART_TAGS,
+  GLOVIA_SUBCATEGORY_GROUPS,
+  inferMainCategorySlug,
+  inferSmartTags,
+  type MainCategorySlug,
+  type SmartTag,
+} from "@/data/beautyCatalog";
 
 const Recommendations = dynamic(() => import('@/components/Recommendations'), {
   ssr: false,
@@ -73,6 +84,9 @@ export default function ProductsContent({
   const [ratingFilter, setRatingFilter] = useState(0);
   const [sortBy, setSortBy] = useState("relevance");
   const [selectedBrand, setSelectedBrand] = useState(initialBrand || "all");
+  const [selectedMainCategory, setSelectedMainCategory] = useState<"all" | MainCategorySlug>("all");
+  const [selectedPriceFilter, setSelectedPriceFilter] = useState<(typeof GLOVIA_PRICE_FILTERS)[number]["id"]>("all");
+  const [selectedSmartTag, setSelectedSmartTag] = useState<"all" | SmartTag>("all");
 
   const allProducts = useMemo(() => {
     const collection = Array.isArray(products) ? products : [];
@@ -109,12 +123,19 @@ export default function ProductsContent({
       const name = String(product.name || "").toLowerCase();
       const description = String(product.description || "").toLowerCase();
 
+      const mainCategory = inferMainCategorySlug(product);
+      const matchedPriceFilter = GLOVIA_PRICE_FILTERS.find((item) => item.id === selectedPriceFilter) || GLOVIA_PRICE_FILTERS[0];
+      const smartTags = inferSmartTags(product);
+
       const matchesBrand = selectedBrand === "all" || selectedBrand === productBrandSlug;
-      const matchesPrice = productPrice <= priceCap;
+      const matchesPriceCap = productPrice <= priceCap;
+      const matchesPresetPrice = productPrice >= matchedPriceFilter.min && productPrice <= matchedPriceFilter.max;
       const matchesRating = productRating >= ratingFilter;
       const matchesSearch = !searchTerm || name.includes(searchTerm) || description.includes(searchTerm);
+      const matchesMainCategory = selectedMainCategory === "all" || selectedMainCategory === mainCategory;
+      const matchesSmartTag = selectedSmartTag === "all" || smartTags.includes(selectedSmartTag);
 
-      return matchesBrand && matchesPrice && matchesRating && matchesSearch;
+      return matchesBrand && matchesPriceCap && matchesPresetPrice && matchesRating && matchesSearch && matchesMainCategory && matchesSmartTag;
     });
 
     normalized.sort((a: any, b: any) => {
@@ -136,21 +157,27 @@ export default function ProductsContent({
     });
 
     return normalized;
-  }, [allProducts, selectedBrand, priceCap, ratingFilter, searchValue, sortBy]);
+  }, [allProducts, selectedBrand, priceCap, ratingFilter, searchValue, sortBy, selectedMainCategory, selectedPriceFilter, selectedSmartTag]);
 
   const activeFilters = useMemo(() => {
     let count = 0;
     if (selectedBrand !== "all") count += 1;
     if (ratingFilter > 0) count += 1;
     if (priceCap < maxPrice) count += 1;
+    if (selectedMainCategory !== "all") count += 1;
+    if (selectedPriceFilter !== "all") count += 1;
+    if (selectedSmartTag !== "all") count += 1;
     return count;
-  }, [selectedBrand, ratingFilter, priceCap, maxPrice]);
+  }, [selectedBrand, ratingFilter, priceCap, maxPrice, selectedMainCategory, selectedPriceFilter, selectedSmartTag]);
 
   const resetFilters = () => {
     setSelectedBrand(initialBrand || "all");
     setRatingFilter(0);
     setPriceCap(maxPrice);
     setSortBy("relevance");
+    setSelectedMainCategory("all");
+    setSelectedPriceFilter("all");
+    setSelectedSmartTag("all");
   };
 
   const renderProductCard = (product: any) => {
@@ -199,11 +226,11 @@ export default function ProductsContent({
                 />
               )}
             </button>
-            {product.isBestSeller && (
-              <span className="absolute left-3 top-3 rounded-full bg-primary-600 px-2.5 py-1 text-[10px] font-semibold uppercase text-white">
-                Best Seller
+            {inferSmartTags(product).slice(0, 1).map((tag) => (
+              <span key={tag} className="absolute left-3 top-3 rounded-full bg-primary-600 px-2.5 py-1 text-[10px] font-semibold uppercase text-white">
+                {tag}
               </span>
-            )}
+            ))}
           </div>
           <div className="space-y-1.5 p-3 sm:p-4">
             <p className="text-[10px] text-gray-500 sm:text-xs">{product.category?.name}</p>
@@ -254,6 +281,41 @@ export default function ProductsContent({
       </div>
 
       <div>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Main Category</p>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => setSelectedMainCategory("all")}
+            className={`rounded-lg border px-2 py-2 text-xs font-semibold transition ${selectedMainCategory === "all" ? "border-primary-600 bg-primary-50 text-primary-700" : "border-gray-200 text-gray-700 hover:bg-gray-50"}`}
+          >
+            All
+          </button>
+          {GLOVIA_MAIN_CATEGORIES.map((item) => (
+            <button
+              key={item.slug}
+              onClick={() => setSelectedMainCategory(item.slug)}
+              className={`rounded-lg border px-2 py-2 text-xs font-semibold transition ${selectedMainCategory === item.slug ? "border-primary-600 bg-primary-50 text-primary-700" : "border-gray-200 text-gray-700 hover:bg-gray-50"}`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {selectedMainCategory !== "all" && (
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Subcategories</p>
+          <div className="space-y-2">
+            {GLOVIA_SUBCATEGORY_GROUPS[selectedMainCategory].map((group) => (
+              <div key={group.group} className="rounded-lg border border-gray-200 p-2">
+                <p className="text-[11px] font-semibold text-gray-700">{group.group}</p>
+                <p className="mt-1 text-[11px] text-gray-500 line-clamp-2">{group.items.join(" · ")}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div>
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Brand</p>
         <select
           value={selectedBrand}
@@ -281,6 +343,17 @@ export default function ProductsContent({
           onChange={(e) => setPriceCap(Number(e.target.value))}
           className="w-full accent-primary-600"
         />
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          {GLOVIA_PRICE_FILTERS.map((priceFilter) => (
+            <button
+              key={priceFilter.id}
+              onClick={() => setSelectedPriceFilter(priceFilter.id)}
+              className={`rounded-lg border px-2 py-2 text-xs font-semibold transition ${selectedPriceFilter === priceFilter.id ? "border-primary-600 bg-primary-50 text-primary-700" : "border-gray-200 text-gray-700 hover:bg-gray-50"}`}
+            >
+              {priceFilter.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div>
@@ -298,6 +371,42 @@ export default function ProductsContent({
             >
               {value === 0 ? "All" : `${value}+`}
             </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Smart Tags</p>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => setSelectedSmartTag("all")}
+            className={`rounded-lg border px-2 py-2 text-xs font-semibold transition ${selectedSmartTag === "all" ? "border-primary-600 bg-primary-50 text-primary-700" : "border-gray-200 text-gray-700 hover:bg-gray-50"}`}
+          >
+            All Tags
+          </button>
+          {GLOVIA_SMART_TAGS.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setSelectedSmartTag(tag)}
+              className={`rounded-lg border px-2 py-2 text-xs font-semibold transition ${selectedSmartTag === tag ? "border-primary-600 bg-primary-50 text-primary-700" : "border-gray-200 text-gray-700 hover:bg-gray-50"}`}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">AI Beauty Assistant</p>
+        <div className="space-y-2">
+          {GLOVIA_AI_SHORTCUTS.map((prompt) => (
+            <Link
+              key={prompt}
+              href={`/ai?prompt=${encodeURIComponent(prompt)}`}
+              className="block rounded-lg border border-indigo-100 bg-indigo-50/70 px-2.5 py-2 text-xs font-medium text-indigo-700 hover:bg-indigo-100"
+            >
+              {prompt}
+            </Link>
           ))}
         </div>
       </div>

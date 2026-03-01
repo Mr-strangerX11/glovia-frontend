@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useWishlist } from "@/hooks/useData";
+import { GLOVIA_AI_SHORTCUTS, inferSmartTags } from "@/data/beautyCatalog";
 
 const Recommendations = dynamic(() => import('@/components/Recommendations'), {
   ssr: false,
@@ -186,6 +187,26 @@ export default function ProductDetailPage() {
     }
     return { eta: "2-4 business days", cost: 199 };
   })();
+
+  const productTags = inferSmartTags(product);
+  const skinTypeCompatibility = Array.isArray(product?.suitableFor) && product.suitableFor.length > 0
+    ? product.suitableFor.map((item: string) => item.replace("_", " "))
+    : ["Oily", "Dry", "Combination", "Sensitive", "Normal"];
+
+  const productFaqs = [
+    {
+      q: `Is ${product?.name} authentic?`,
+      a: "Yes. Glovia verifies sourcing and quality checks before dispatch.",
+    },
+    {
+      q: "How long does delivery take in Nepal?",
+      a: `${deliveryEstimate.eta} depending on district and current order volume.`,
+    },
+    {
+      q: "Can I return this product if it does not suit my skin?",
+      a: "Yes, eligible products support return/exchange according to our policy.",
+    },
+  ];
 
   if (loading) {
     return (
@@ -433,6 +454,13 @@ export default function ProductDetailPage() {
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
                 {product.name}
               </h1>
+              <div className="mb-3 flex flex-wrap gap-2">
+                {productTags.map((tag) => (
+                  <span key={tag} className="rounded-full border border-primary-100 bg-primary-50 px-2.5 py-1 text-[11px] font-semibold text-primary-700">
+                    {tag}
+                  </span>
+                ))}
+              </div>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1">
                   {[...Array(5)].map((_, i) => (
@@ -499,6 +527,32 @@ export default function ProductDetailPage() {
                   </div>
                   <p className="mt-1 text-xs text-gray-500">Shipping cost: NPR {deliveryEstimate.cost}</p>
                 </div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-gray-200 bg-white p-4">
+              <h3 className="mb-2 text-sm font-semibold text-gray-900">Skin Type Compatibility</h3>
+              <div className="flex flex-wrap gap-2">
+                {skinTypeCompatibility.map((skinType: string) => (
+                  <span key={skinType} className="rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                    {skinType}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4">
+              <h3 className="mb-2 text-sm font-semibold text-indigo-900">AI Beauty Assistant</h3>
+              <div className="flex flex-wrap gap-2">
+                {GLOVIA_AI_SHORTCUTS.map((prompt) => (
+                  <Link
+                    key={prompt}
+                    href={`/ai?prompt=${encodeURIComponent(`${prompt} for ${product.name}`)}`}
+                    className="rounded-full border border-indigo-200 bg-white px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                  >
+                    {prompt}
+                  </Link>
+                ))}
               </div>
             </div>
 
@@ -632,6 +686,10 @@ export default function ProductDetailPage() {
             </div>
           </div>
           <div className="p-6 space-y-6">
+            <div>
+              <h3 className="font-semibold text-lg mb-2">Description</h3>
+              <p className="text-gray-700">{product.description || "No detailed description provided yet."}</p>
+            </div>
             {product.ingredients && (
               <div>
                 <h3 className="font-semibold text-lg mb-2">Ingredients</h3>
@@ -656,6 +714,18 @@ export default function ProductDetailPage() {
                 <p className="text-gray-700">{product.sku}</p>
               </div>
             )}
+
+            <div>
+              <h3 className="font-semibold text-lg mb-2">Frequently Asked Questions</h3>
+              <div className="space-y-2">
+                {productFaqs.map((faq) => (
+                  <div key={faq.q} className="rounded-lg border border-gray-200 p-3">
+                    <p className="text-sm font-semibold text-gray-900">{faq.q}</p>
+                    <p className="mt-1 text-sm text-gray-600">{faq.a}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
