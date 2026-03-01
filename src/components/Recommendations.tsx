@@ -1,3 +1,5 @@
+"use client";
+
 import { useRecommendations } from '@/hooks/useRecommendations';
 
 export default function Recommendations({ userId, productId }: { userId?: string; productId?: string }) {

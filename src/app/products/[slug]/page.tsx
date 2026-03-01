@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { productsAPI, cartAPI, wishlistAPI, reviewsAPI } from "@/lib/api";
 import toast from "react-hot-toast";
+import { motion } from "framer-motion";
 import {
   ShoppingCart,
   Heart,
@@ -18,10 +20,18 @@ import {
   Shield,
   ChevronLeft,
   ChevronRight,
+  RotateCcw,
+  Zap,
+  MapPin,
+  Clock3,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useWishlist } from "@/hooks/useData";
-import Recommendations from '@/components/Recommendations';
+
+const Recommendations = dynamic(() => import('@/components/Recommendations'), {
+  ssr: false,
+  loading: () => null,
+});
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -38,6 +48,11 @@ export default function ProductDetailPage() {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [viewerRotation, setViewerRotation] = useState({ x: -7, y: 0 });
+  const [isZooming, setIsZooming] = useState(false);
+  const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
+  const [deliveryDistrict, setDeliveryDistrict] = useState("Kathmandu");
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const { wishlist, mutate: mutateWishlist } = useWishlist();
 
@@ -110,6 +125,28 @@ export default function ProductDetailPage() {
     }
   };
 
+  const handleBuyNow = async () => {
+    if (!user) {
+      toast.error("Please login to continue checkout");
+      router.push("/auth/login");
+      return;
+    }
+
+    try {
+      setIsAddingToCart(true);
+      await cartAPI.add({
+        productId: product._id,
+        quantity,
+      });
+      toast.success("Redirecting to checkout...");
+      router.push("/checkout");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to continue checkout");
+    } finally {
+      setIsAddingToCart(false);
+    }
+  };
+
   const handleAddToWishlist = async () => {
     if (!user) {
       toast.error("Please login to add items to wishlist");
@@ -139,6 +176,17 @@ export default function ProductDetailPage() {
     ? product.price - (product.price * product.discountPercentage) / 100
     : product?.price;
 
+  const deliveryEstimate = (() => {
+    const normalized = deliveryDistrict.toLowerCase();
+    if (["kathmandu", "lalitpur", "bhaktapur"].includes(normalized)) {
+      return { eta: "Same day or next day", cost: 99 };
+    }
+    if (["pokhara", "chitwan", "butwal", "dharan"].includes(normalized)) {
+      return { eta: "1-2 business days", cost: 149 };
+    }
+    return { eta: "2-4 business days", cost: 199 };
+  })();
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -159,6 +207,50 @@ export default function ProductDetailPage() {
             url: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800",
           },
         ];
+
+  const handleViewerMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const bounds = e.currentTarget.getBoundingClientRect();
+    const relativeX = ((e.clientX - bounds.left) / bounds.width) * 100;
+    const relativeY = ((e.clientY - bounds.top) / bounds.height) * 100;
+    setZoomOrigin({ x: Math.min(100, Math.max(0, relativeX)), y: Math.min(100, Math.max(0, relativeY)) });
+
+    if (!dragStartRef.current) {
+      const centerX = bounds.left + bounds.width / 2;
+      const centerY = bounds.top + bounds.height / 2;
+      const rotateY = ((e.clientX - centerX) / bounds.width) * 16;
+      const rotateX = -((e.clientY - centerY) / bounds.height) * 10;
+      setViewerRotation({ x: rotateX, y: rotateY });
+      return;
+    }
+
+    const diffX = e.clientX - dragStartRef.current.x;
+    const diffY = e.clientY - dragStartRef.current.y;
+
+    setViewerRotation((prev) => ({
+      x: Math.max(-18, Math.min(18, prev.x - diffY * 0.14)),
+      y: Math.max(-28, Math.min(28, prev.y + diffX * 0.22)),
+    }));
+
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handleViewerMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const resetViewer = () => {
+    setViewerRotation({ x: -7, y: 0 });
+    setIsZooming(false);
+    setZoomOrigin({ x: 50, y: 50 });
+  };
+
+  const nextImage = () => {
+    setSelectedImage((prev) => (prev + 1) % productImages.length);
+  };
+
+  const previousImage = () => {
+    setSelectedImage((prev) => (prev - 1 + productImages.length) % productImages.length);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -206,14 +298,70 @@ export default function ProductDetailPage() {
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
           {/* Product Images */}
           <div className="space-y-4">
-            <div className="aspect-square bg-white rounded-lg overflow-hidden border border-gray-200 relative group">
-              <Image
-                src={productImages[selectedImage].url}
-                alt={product.name}
-                fill
-                className="object-contain p-4"
-                priority
-              />
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35 }}
+              className="aspect-square bg-gradient-to-br from-white to-slate-50 rounded-2xl overflow-hidden border border-gray-200 relative group [perspective:1300px]"
+            >
+              <motion.div
+                className="relative h-full w-full [transform-style:preserve-3d]"
+                animate={{
+                  rotateX: viewerRotation.x,
+                  rotateY: viewerRotation.y,
+                }}
+                transition={{ type: "spring", stiffness: 140, damping: 18 }}
+                onMouseMove={handleViewerMouseMove}
+                onMouseDown={handleViewerMouseDown}
+                onMouseUp={() => {
+                  dragStartRef.current = null;
+                }}
+                onMouseLeave={() => {
+                  dragStartRef.current = null;
+                  if (!isZooming) {
+                    setViewerRotation({ x: -7, y: 0 });
+                  }
+                }}
+                onClick={() => setIsZooming((prev) => !prev)}
+              >
+                <Image
+                  src={productImages[selectedImage].url}
+                  alt={product.name}
+                  fill
+                  className={`object-contain p-4 transition-transform duration-300 ${isZooming ? "scale-[1.55] cursor-zoom-out" : "cursor-zoom-in"}`}
+                  style={{ transformOrigin: `${zoomOrigin.x}% ${zoomOrigin.y}%` }}
+                  priority
+                />
+              </motion.div>
+
+              <div className="absolute bottom-3 left-3 z-20 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-gray-700 backdrop-blur">
+                Drag to rotate · Tap to zoom
+              </div>
+
+              <div className="absolute right-3 top-3 z-20 flex gap-2">
+                <button
+                  onClick={previousImage}
+                  className="rounded-full border border-white/60 bg-white/90 p-2 text-gray-700 shadow-sm backdrop-blur transition hover:bg-white"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={nextImage}
+                  className="rounded-full border border-white/60 bg-white/90 p-2 text-gray-700 shadow-sm backdrop-blur transition hover:bg-white"
+                  aria-label="Next image"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={resetViewer}
+                  className="rounded-full border border-white/60 bg-white/90 p-2 text-gray-700 shadow-sm backdrop-blur transition hover:bg-white"
+                  aria-label="Reset viewer"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </button>
+              </div>
+
               {product.discountPercentage > 0 && (
                 <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
                   {product.discountPercentage}% OFF
@@ -224,13 +372,13 @@ export default function ProductDetailPage() {
                   NEW
                 </div>
               )}
-            </div>
+            </motion.div>
 
             {/* Thumbnail Gallery */}
             {productImages.length > 1 && (
               <div className="flex gap-2 overflow-x-auto">
                 {productImages.map((image: any, index: number) => (
-                  <button
+                  <motion.button
                     key={index}
                     onClick={() => setSelectedImage(index)}
                     className={`relative aspect-square w-20 flex-shrink-0 rounded-lg overflow-hidden border-2 ${
@@ -238,6 +386,8 @@ export default function ProductDetailPage() {
                         ? "border-primary-600"
                         : "border-gray-200"
                     }`}
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.97 }}
                   >
                     <Image
                       src={image.url}
@@ -245,7 +395,7 @@ export default function ProductDetailPage() {
                       fill
                       className="object-contain p-1"
                     />
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             )}
@@ -317,6 +467,41 @@ export default function ProductDetailPage() {
               {product.description}
             </p>
 
+            <div className="rounded-2xl border border-primary-100 bg-primary-50/60 p-4">
+              <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-primary-800">
+                <MapPin className="h-4 w-4" />
+                Delivery Estimator
+              </div>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <select
+                  className="input"
+                  value={deliveryDistrict}
+                  onChange={(e) => setDeliveryDistrict(e.target.value)}
+                >
+                  {[
+                    "Kathmandu",
+                    "Lalitpur",
+                    "Bhaktapur",
+                    "Pokhara",
+                    "Chitwan",
+                    "Butwal",
+                    "Dharan",
+                    "Biratnagar",
+                    "Nepalgunj",
+                  ].map((district) => (
+                    <option key={district} value={district}>{district}</option>
+                  ))}
+                </select>
+                <div className="rounded-xl border border-white/70 bg-white px-3 py-2 text-sm text-gray-700">
+                  <div className="flex items-center gap-1.5">
+                    <Clock3 className="h-4 w-4 text-primary-600" />
+                    ETA: <span className="font-semibold">{deliveryEstimate.eta}</span>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">Shipping cost: NPR {deliveryEstimate.cost}</p>
+                </div>
+              </div>
+            </div>
+
             {/* Stock Status */}
             <div>
               {product.stockQuantity > 0 ? (
@@ -381,14 +566,24 @@ export default function ProductDetailPage() {
 
                 {/* Action Buttons */}
                 <div className="flex gap-3">
-                  <button
+                  <motion.button
                     onClick={handleAddToCart}
                     disabled={isAddingToCart}
                     className="btn-primary flex-1 flex items-center justify-center gap-2"
+                    whileTap={{ scale: 0.98 }}
                   >
                     <ShoppingCart className="w-5 h-5" />
                     {isAddingToCart ? "Adding..." : "Add to Cart"}
-                  </button>
+                  </motion.button>
+                  <motion.button
+                    onClick={handleBuyNow}
+                    disabled={isAddingToCart}
+                    className="btn-outline flex-1 flex items-center justify-center gap-2"
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Zap className="w-5 h-5" />
+                    Buy Now
+                  </motion.button>
                   <button
                     onClick={handleAddToWishlist}
                     disabled={isAddingToWishlist}
@@ -421,6 +616,9 @@ export default function ProductDetailPage() {
               <div className="flex items-center gap-3 text-gray-700">
                 <Package className="w-5 h-5 text-primary-600" />
                 <span>Easy Returns & Exchanges</span>
+              </div>
+              <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 px-3 py-2 text-sm text-emerald-800">
+                High-conversion trust signals: verified payments, authentic inventory, and fast local fulfillment.
               </div>
             </div>
           </div>
@@ -500,6 +698,31 @@ export default function ProductDetailPage() {
         {/* AI Recommendations Section */}
         <Recommendations userId={user?.id} productId={product?._id} />
       </div>
+
+      {product.stockQuantity > 0 && (
+        <div className="fixed bottom-20 left-0 right-0 z-50 border-t border-gray-200 bg-white/95 px-4 py-3 shadow-2xl backdrop-blur md:hidden">
+          <div className="container flex items-center gap-3 px-0">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs text-gray-500">{product.name}</p>
+              <p className="text-base font-bold text-primary-700">NPR {discountedPrice?.toLocaleString()}</p>
+            </div>
+            <button
+              onClick={handleAddToCart}
+              disabled={isAddingToCart}
+              className="rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-700"
+            >
+              Cart
+            </button>
+            <button
+              onClick={handleBuyNow}
+              disabled={isAddingToCart}
+              className="rounded-xl border border-primary-600 px-4 py-2.5 text-sm font-semibold text-primary-700 transition hover:bg-primary-50"
+            >
+              Buy Now
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

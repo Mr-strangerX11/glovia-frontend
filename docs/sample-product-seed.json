@@ -1,0 +1,51 @@
+[
+  {
+    "id": "prod-001",
+    "name": "Golvia Glow Vitamin C Serum",
+    "slug": "golvia-glow-vitamin-c-serum",
+    "sku": "GOL-SKIN-001",
+    "category": "Health & Beauty",
+    "brand": "Golvia Essentials",
+    "price": 1499,
+    "compareAtPrice": 1899,
+    "stockQuantity": 120,
+    "isFeatured": true,
+    "isBestSeller": true,
+    "images": [
+      { "url": "/products/vitamin-c-serum-1.webp", "altText": "Vitamin C Serum Front" },
+      { "url": "/products/vitamin-c-serum-2.webp", "altText": "Vitamin C Serum Detail" }
+    ]
+  },
+  {
+    "id": "prod-002",
+    "name": "Himalayan Herbal Repair Shampoo",
+    "slug": "himalayan-herbal-repair-shampoo",
+    "sku": "GOL-HAIR-004",
+    "category": "Health & Beauty",
+    "brand": "Himalayan Care",
+    "price": 899,
+    "compareAtPrice": 1099,
+    "stockQuantity": 200,
+    "isFeatured": true,
+    "isBestSeller": false,
+    "images": [
+      { "url": "/products/herbal-shampoo-1.webp", "altText": "Herbal Shampoo" }
+    ]
+  },
+  {
+    "id": "prod-003",
+    "name": "Smart Noise-Cancel Earbuds",
+    "slug": "smart-noise-cancel-earbuds",
+    "sku": "GOL-ELEC-018",
+    "category": "Electronics",
+    "brand": "NepalTech",
+    "price": 4499,
+    "compareAtPrice": 5299,
+    "stockQuantity": 85,
+    "isFeatured": true,
+    "isBestSeller": true,
+    "images": [
+      { "url": "/products/earbuds-1.webp", "altText": "Wireless Earbuds" }
+    ]
+  }
+]

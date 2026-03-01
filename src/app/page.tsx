@@ -1,8 +1,6 @@
-import dynamic from "next/dynamic";
 import { fetchFeaturedProducts, fetchBanners } from "@/lib/serverApi";
 import { getServerErrorSummary } from "@/lib/serverError";
-
-const HomeContent = dynamic(() => import("./HomeContent.client"), { ssr: false });
+import HomeContent from "./HomeContent.client";
 
 export default async function HomePage() {
   const [featuredProductsResult, bannersResult] = await Promise.allSettled([

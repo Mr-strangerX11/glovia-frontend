@@ -112,7 +112,7 @@ export default function RootLayout({
           <AnnouncementBar />
           <Header />
           <ClientLayout>
-            <main className="min-h-screen" id="main-content">
+            <main className="min-h-screen pb-16 md:pb-0" id="main-content">
               {children}
             </main>
           </ClientLayout>
