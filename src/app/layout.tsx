@@ -7,7 +7,7 @@ import Footer from '@/components/layout/Footer';
 import AnnouncementBar from '@/components/common/AnnouncementBar';
 import ClientLayout from './ClientLayout';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
-import { getOrganizationStructuredData, getWebsiteStructuredData } from '@/components/common/SeoHead';
+import { getOrganizationStructuredData, getWebsiteStructuredData } from '@/lib/seoStructuredData';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' });
