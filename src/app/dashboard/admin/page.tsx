@@ -9,6 +9,7 @@ import {
   DollarSign, 
   TrendingUp, 
   Package, 
+  Layers,
   AlertCircle,
   CheckCircle,
   Clock,
@@ -350,7 +351,7 @@ export default function AdminDashboardPage() {
         {/* Quick Actions */}
         <div className="card p-6">
           <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
             <Link href="/admin/products/new" className="group p-5 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all text-center">
               <Package className="w-10 h-10 text-gray-400 group-hover:text-primary-600 mx-auto mb-3" />
               <p className="text-sm font-semibold text-gray-700 group-hover:text-primary-700">Add Product</p>
@@ -370,6 +371,11 @@ export default function AdminDashboardPage() {
               <Users className="w-10 h-10 text-gray-400 group-hover:text-primary-600 mx-auto mb-3" />
               <p className="text-sm font-semibold text-gray-700 group-hover:text-primary-700">Manage Users</p>
               <p className="text-xs text-gray-500 mt-1">User and role management</p>
+            </Link>
+            <Link href="/admin/categories" className="group p-5 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all text-center">
+              <Layers className="w-10 h-10 text-gray-400 group-hover:text-primary-600 mx-auto mb-3" />
+              <p className="text-sm font-semibold text-gray-700 group-hover:text-primary-700">Manage Categories</p>
+              <p className="text-xs text-gray-500 mt-1">Edit category tree</p>
             </Link>
             <Link href="/admin/settings/delivery" className="group p-5 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all text-center">
               <DollarSign className="w-10 h-10 text-gray-400 group-hover:text-green-600 mx-auto mb-3" />

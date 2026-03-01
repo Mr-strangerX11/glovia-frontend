@@ -25,6 +25,47 @@ const Recommendations = dynamic(() => import('@/components/Recommendations'), {
   loading: () => null,
 });
 
+type CatalogProduct = {
+  id?: string;
+  _id?: string;
+  slug: string;
+  name: string;
+  description?: string;
+  price: number;
+  averageRating?: number;
+  isBestSeller?: boolean;
+  createdAt?: string;
+  images?: Array<{ url: string }>;
+  category?: { name?: string };
+  brand?: { slug?: string; name?: string };
+};
+
+type BrandOption = { slug: string; name: string };
+type CategoryOption = { slug: string; name: string };
+
+type WishlistEntry = {
+  id?: string;
+  _id?: string;
+  product?: { id?: string; _id?: string };
+  productId?: string;
+};
+
+type ProductsContentProps = {
+  products: CatalogProduct[];
+  brands: BrandOption[];
+  categories: CategoryOption[];
+  featuredProducts: CatalogProduct[];
+  wishlist: WishlistEntry[];
+  initialCategory?: string;
+  initialBrand?: string;
+  initialSearch?: string;
+};
+
+function getErrorMessage(error: unknown, fallback: string) {
+  const candidate = error as { response?: { data?: { message?: string } } };
+  return candidate?.response?.data?.message || fallback;
+}
+
 export default function ProductsContent({
   products,
   brands,
@@ -34,7 +75,7 @@ export default function ProductsContent({
   initialCategory,
   initialBrand,
   initialSearch
-}: any) {
+}: ProductsContentProps) {
   const { user } = useAuthStore();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -42,16 +83,17 @@ export default function ProductsContent({
   const wishlistIds = useMemo(() => {
     if (!wishlist) return new Set<string>();
     return new Set(
-      wishlist.map((item: any) => item.product?.id || item.productId || item.product?._id).filter(Boolean)
+      wishlist.map((item: WishlistEntry) => item.product?.id || item.productId || item.product?._id).filter(Boolean)
     );
   }, [wishlist]);
 
   const wishlistItemIdByProduct = useMemo(() => {
     if (!wishlist) return new Map<string, string>();
     const map = new Map<string, string>();
-    wishlist.forEach((item: any) => {
+    wishlist.forEach((item: WishlistEntry) => {
       const productId = item.product?.id || item.productId || item.product?._id;
-      if (productId) map.set(productId, item.id || item._id);
+      const itemId = item.id || item._id;
+      if (productId && itemId) map.set(productId, itemId);
     });
     return map;
   }, [wishlist]);
@@ -73,8 +115,8 @@ export default function ProductsContent({
         await wishlistAPI.add(productId);
         toast.success("Added to wishlist");
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to update wishlist");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to update wishlist"));
     } finally {
       setUpdatingId(null);
     }
@@ -89,12 +131,12 @@ export default function ProductsContent({
   const [selectedSmartTag, setSelectedSmartTag] = useState<"all" | SmartTag>("all");
 
   const allProducts = useMemo(() => {
-    const collection = Array.isArray(products) ? products : [];
+    const collection = Array.isArray(products) ? products : ([] as CatalogProduct[]);
     return collection;
   }, [products]);
 
   const maxPrice = useMemo(() => {
-    const prices = allProducts.map((item: any) => Number(item.price || 0));
+    const prices = allProducts.map((item: CatalogProduct) => Number(item.price || 0));
     return Math.max(1000, ...(prices.length ? prices : [0]));
   }, [allProducts]);
 
@@ -116,7 +158,7 @@ export default function ProductsContent({
   const filteredProducts = useMemo(() => {
     const searchTerm = (searchValue || "").toLowerCase().trim();
 
-    const normalized = [...allProducts].filter((product: any) => {
+    const normalized = [...allProducts].filter((product: CatalogProduct) => {
       const productPrice = Number(product.price || 0);
       const productBrandSlug = product.brand?.slug || "";
       const productRating = Number(product.averageRating || 0);
@@ -138,7 +180,7 @@ export default function ProductsContent({
       return matchesBrand && matchesPriceCap && matchesPresetPrice && matchesRating && matchesSearch && matchesMainCategory && matchesSmartTag;
     });
 
-    normalized.sort((a: any, b: any) => {
+    normalized.sort((a: CatalogProduct, b: CatalogProduct) => {
       const aPrice = Number(a.price || 0);
       const bPrice = Number(b.price || 0);
       const aRating = Number(a.averageRating || 0);
@@ -180,8 +222,8 @@ export default function ProductsContent({
     setSelectedSmartTag("all");
   };
 
-  const renderProductCard = (product: any) => {
-    const productId = product.id || product._id;
+  const renderProductCard = (product: CatalogProduct) => {
+    const productId = product.id || product._id || "";
     const isWishlisted = wishlistIds.has(productId);
 
     return (
@@ -205,7 +247,7 @@ export default function ProductsContent({
               onClick={event => {
                 event.preventDefault();
                 event.stopPropagation();
-                if (!updatingId) {
+                if (!updatingId && productId) {
                   handleWishlistToggle(productId);
                 }
               }}
@@ -268,7 +310,7 @@ export default function ProductsContent({
           <Link href="/products" className={`block rounded-lg px-2 py-1.5 text-sm transition ${!category ? "bg-primary-50 text-primary-700" : "text-gray-700 hover:bg-gray-50"}`}>
             All Categories
           </Link>
-          {categories?.map((cat: any) => (
+          {categories?.map((cat: CategoryOption) => (
             <Link
               key={cat.slug}
               href={`/products?category=${cat.slug}`}
@@ -323,7 +365,7 @@ export default function ProductsContent({
           className="input"
         >
           <option value="all">All Brands</option>
-          {Array.isArray(brands) && brands.map((item: any) => (
+          {Array.isArray(brands) && brands.map((item: BrandOption) => (
             <option key={item.slug} value={item.slug}>{item.name}</option>
           ))}
         </select>
@@ -477,7 +519,7 @@ export default function ProductsContent({
               <div>
                 <p className="mb-3 text-xs text-gray-500 sm:text-sm">Featured Products</p>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
-                  {featuredProducts.map((product: any) => renderProductCard(product))}
+                  {featuredProducts.map((product: CatalogProduct) => renderProductCard(product))}
                 </div>
               </div>
             )}
@@ -492,7 +534,7 @@ export default function ProductsContent({
             {/* Product Grid */}
             {!isLoading && filteredProducts.length > 0 && (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
-                {filteredProducts.map((product: any) => renderProductCard(product))}
+                {filteredProducts.map((product: CatalogProduct) => renderProductCard(product))}
               </div>
             )}
           </div>

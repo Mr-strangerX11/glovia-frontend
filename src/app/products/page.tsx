@@ -1,5 +1,5 @@
 import ProductsContent from "./ProductsContent.client";
-import { fetchProducts, fetchBrands, fetchCategories, fetchFeaturedProducts, fetchWishlist } from "@/lib/serverApi";
+import { fetchAllProducts, fetchBrands, fetchCategories, fetchFeaturedProducts, fetchWishlist } from "@/lib/serverApi";
 import { cookies } from "next/headers";
 
 export default async function ProductsPage({ searchParams }: { searchParams: any }) {
@@ -8,7 +8,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: any
   const search = searchParams?.search || searchParams?.q || undefined;
 
   const [products, brands, categories, featuredProducts, wishlist] = await Promise.all([
-    fetchProducts({ category, brand, search }),
+    fetchAllProducts({ category, brand, search }),
     fetchBrands(),
     fetchCategories(),
     fetchFeaturedProducts(12),

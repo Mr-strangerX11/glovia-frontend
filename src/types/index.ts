@@ -166,7 +166,17 @@ export interface Blog {
 
 export type SkinType = 'DRY' | 'OILY' | 'COMBINATION' | 'SENSITIVE' | 'NORMAL';
 
-export type ProductCategory = 'SKINCARE' | 'HAIRCARE' | 'MAKEUP' | 'ORGANIC' | 'HERBAL';
+export type ProductCategory =
+  | 'SKINCARE'
+  | 'HAIRCARE'
+  | 'MAKEUP'
+  | 'BODY_CARE'
+  | 'TOOLS_ACCESSORIES'
+  | 'FRAGRANCE'
+  | 'ORGANIC_NATURAL'
+  | 'MENS_GROOMING'
+  | 'ORGANIC'
+  | 'HERBAL';
 
 export type OrderStatus = 
   | 'PENDING' 

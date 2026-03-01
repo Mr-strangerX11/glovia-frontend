@@ -27,6 +27,48 @@ export default function VendorProductsPage() {
 
   const getProductId = (product: Product) => product.id || product._id || '';
 
+  const fetchAllVendorProducts = async () => {
+    const pageSize = 100;
+    let page = 1;
+    let totalPages = 1;
+    const allRows: Product[] = [];
+
+    while (page <= totalPages) {
+      const { data } = await vendorAPI.getProducts({ page, limit: pageSize });
+      const rows = Array.isArray(data?.data)
+        ? data.data
+        : Array.isArray(data)
+          ? data
+          : [];
+
+      allRows.push(...rows);
+
+      const nextTotalPages = Number(data?.meta?.totalPages || 0);
+      if (nextTotalPages > 0) {
+        totalPages = nextTotalPages;
+      } else if (rows.length < pageSize) {
+        break;
+      } else {
+        totalPages = page + 1;
+      }
+
+      page += 1;
+      if (page > 200) {
+        break;
+      }
+    }
+
+    const seen = new Set<string>();
+    return allRows.filter((product) => {
+      const id = getProductId(product);
+      if (!id || seen.has(id)) {
+        return false;
+      }
+      seen.add(id);
+      return true;
+    });
+  };
+
   useEffect(() => {
     if (user) {
       fetchProducts();
@@ -35,8 +77,8 @@ export default function VendorProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const { data } = await vendorAPI.getProducts();
-      setProducts(data.data || []);
+      const products = await fetchAllVendorProducts();
+      setProducts(products);
     } catch (error) {
       toast.error('Failed to load products');
     } finally {
@@ -92,6 +134,15 @@ export default function VendorProductsPage() {
         </div>
 
         <div className="card p-6">
+          <div className="mb-4 flex items-center justify-between text-sm">
+            <span className="inline-flex rounded-full bg-primary-50 px-3 py-1 font-medium text-primary-700">
+              Total products loaded: {products.length}
+            </span>
+            {searchQuery && (
+              <span className="text-gray-500">Showing {filteredProducts.length} result(s)</span>
+            )}
+          </div>
+
           <div className="mb-6">
             <div className="relative">
               <input

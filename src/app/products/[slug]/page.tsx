@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -34,15 +34,75 @@ const Recommendations = dynamic(() => import('@/components/Recommendations'), {
   loading: () => null,
 });
 
+type ProductImage = {
+  id?: string;
+  url: string;
+};
+
+type ProductReview = {
+  id?: string;
+  _id?: string;
+  rating?: number;
+  comment?: string;
+  user?: {
+    firstName?: string;
+    lastName?: string;
+  };
+};
+
+type RelatedProduct = {
+  _id: string;
+  slug: string;
+  name: string;
+  price: number;
+  images?: ProductImage[];
+};
+
+type ProductDetail = {
+  id?: string;
+  _id: string;
+  name: string;
+  slug?: string;
+  description?: string;
+  ingredients?: string;
+  benefits?: string;
+  howToUse?: string;
+  sku?: string;
+  categoryId?: string;
+  category?: { name?: string; slug?: string };
+  brand?: { name?: string; slug?: string };
+  images?: ProductImage[];
+  price: number;
+  compareAtPrice?: number;
+  discountPercentage?: number;
+  isNewProduct?: boolean;
+  stockQuantity: number;
+  averageRating?: number;
+  reviewCount?: number;
+  isBestSeller?: boolean;
+  isNew?: boolean;
+  suitableFor?: string[];
+};
+
+type WishlistEntry = {
+  product?: { id?: string; _id?: string };
+  productId?: string;
+};
+
+function getErrorMessage(error: unknown, fallback: string) {
+  const candidate = error as { response?: { data?: { message?: string } } };
+  return candidate?.response?.data?.message || fallback;
+}
+
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
   const slug = (params?.slug as string) || "";
   const { user } = useAuthStore();
 
-  const [product, setProduct] = useState<any>(null);
-  const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [product, setProduct] = useState<ProductDetail | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<RelatedProduct[]>([]);
+  const [reviews, setReviews] = useState<ProductReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -57,55 +117,54 @@ export default function ProductDetailPage() {
 
   const { wishlist, mutate: mutateWishlist } = useWishlist();
 
+  const fetchProductData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { data } = await productsAPI.getBySlug(slug);
+      const item = data as ProductDetail;
+      setProduct(item);
+
+      if (item.categoryId) {
+        const relatedRes = await productsAPI.getAll({
+          categoryId: item.categoryId,
+          limit: 4,
+        });
+        setRelatedProducts(
+          ((relatedRes.data?.data || []) as RelatedProduct[]).filter((p) => p._id !== item._id)
+        );
+      }
+
+      try {
+        const reviewsRes = await reviewsAPI.getByProduct(item._id);
+        setReviews((reviewsRes.data || []) as ProductReview[]);
+      } catch {
+        setReviews([]);
+      }
+    } catch {
+      toast.error("Product not found");
+      router.push("/products");
+    } finally {
+      setLoading(false);
+    }
+  }, [router, slug]);
+
   useEffect(() => {
     fetchProductData();
-  }, [slug]);
+  }, [fetchProductData]);
 
   useEffect(() => {
     if (!product) return;
-    const wishlistItems = wishlist || [];
+    const wishlistItems = (wishlist || []) as WishlistEntry[];
     const productId = product.id || product._id;
-    const alreadyWishlisted = wishlistItems.some((item: any) => {
+    const alreadyWishlisted = wishlistItems.some((item) => {
       const itemProductId = item.product?.id || item.productId || item.product?._id;
       return itemProductId === productId;
     });
     setIsWishlisted(alreadyWishlisted);
   }, [product, wishlist]);
 
-  const fetchProductData = async () => {
-    try {
-      setLoading(true);
-      const { data } = await productsAPI.getBySlug(slug);
-      setProduct(data);
-
-      // Fetch related products
-      if (data.categoryId) {
-        const relatedRes = await productsAPI.getAll({
-          categoryId: data.categoryId,
-          limit: 4,
-        });
-        setRelatedProducts(
-          relatedRes.data.data.filter((p: any) => p._id !== data._id)
-        );
-      }
-
-      // Fetch reviews
-      try {
-        const reviewsRes = await reviewsAPI.getByProduct(data._id);
-        setReviews(reviewsRes.data);
-      } catch (err) {
-        // Reviews endpoint might not exist yet
-        setReviews([]);
-      }
-    } catch (error: any) {
-      toast.error("Product not found");
-      router.push("/products");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleAddToCart = async () => {
+    if (!product) return;
     if (!user) {
       toast.error("Please login to add items to cart");
       router.push("/auth/login");
@@ -119,14 +178,15 @@ export default function ProductDetailPage() {
         quantity,
       });
       toast.success("Added to cart!");
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to add to cart");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to add to cart"));
     } finally {
       setIsAddingToCart(false);
     }
   };
 
   const handleBuyNow = async () => {
+    if (!product) return;
     if (!user) {
       toast.error("Please login to continue checkout");
       router.push("/auth/login");
@@ -141,14 +201,15 @@ export default function ProductDetailPage() {
       });
       toast.success("Redirecting to checkout...");
       router.push("/checkout");
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to continue checkout");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to continue checkout"));
     } finally {
       setIsAddingToCart(false);
     }
   };
 
   const handleAddToWishlist = async () => {
+    if (!product) return;
     if (!user) {
       toast.error("Please login to add items to wishlist");
       router.push("/auth/login");
@@ -166,8 +227,8 @@ export default function ProductDetailPage() {
       await mutateWishlist();
       setIsWishlisted(true);
       toast.success("Added to wishlist!");
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to add to wishlist");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to add to wishlist"));
     } finally {
       setIsAddingToWishlist(false);
     }
@@ -219,6 +280,8 @@ export default function ProductDetailPage() {
   if (!product) {
     return null;
   }
+
+  const discountPercentage = product.discountPercentage ?? 0;
 
   const productImages =
     product.images && product.images.length > 0
@@ -386,9 +449,9 @@ export default function ProductDetailPage() {
                 </button>
               </div>
 
-              {product.discountPercentage > 0 && (
+              {discountPercentage > 0 && (
                 <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                  {product.discountPercentage}% OFF
+                  {discountPercentage}% OFF
                 </div>
               )}
               {product.isNewProduct && (
@@ -401,7 +464,7 @@ export default function ProductDetailPage() {
             {/* Thumbnail Gallery */}
             {productImages.length > 1 && (
               <div className="flex gap-2 overflow-x-auto pb-1">
-                {productImages.map((image: any, index: number) => (
+                {productImages.map((image: ProductImage, index: number) => (
                   <motion.button
                     key={index}
                     onClick={() => setSelectedImage(index)}
@@ -441,12 +504,12 @@ export default function ProductDetailPage() {
               <span className="text-2xl font-bold text-primary-600">
                 NPR {discountedPrice?.toLocaleString()}
               </span>
-              {product.discountPercentage > 0 && (
+              {discountPercentage > 0 && (
                 <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold">
-                  {product.discountPercentage}% OFF
+                  {discountPercentage}% OFF
                 </span>
               )}
-              {product.compareAtPrice && product.compareAtPrice > discountedPrice && (
+              {product.compareAtPrice && product.compareAtPrice > (discountedPrice ?? 0) && (
                 <span className="text-gray-400 line-through text-base">
                   NPR {product.compareAtPrice.toLocaleString()}
                 </span>
@@ -487,7 +550,7 @@ export default function ProductDetailPage() {
               <span className="text-3xl font-bold text-gray-900">
                 ₨{discountedPrice?.toFixed(2)}
               </span>
-              {product.discountPercentage > 0 && (
+              {discountPercentage > 0 && (
                 <span className="text-xl text-gray-500 line-through">
                   ₨{product.price.toFixed(2)}
                 </span>
@@ -736,7 +799,7 @@ export default function ProductDetailPage() {
                 <p className="text-sm text-gray-500">No reviews yet. Be the first to review this product.</p>
               ) : (
                 <div className="space-y-2">
-                  {reviews.slice(0, 3).map((review: any) => (
+                  {reviews.slice(0, 3).map((review: ProductReview) => (
                     <article key={review.id || review._id} className="rounded-lg border border-gray-200 p-3">
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-sm font-semibold text-gray-900">

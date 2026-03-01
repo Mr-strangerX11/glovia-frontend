@@ -6,9 +6,7 @@ export type MainCategorySlug =
   | 'tools-accessories'
   | 'fragrance'
   | 'organic-natural'
-  | 'beauty-combos'
-  | 'mens-grooming'
-  | 'k-beauty';
+  | 'mens-grooming';
 
 export type SmartTag =
   | 'Best Seller'
@@ -30,9 +28,7 @@ export const GLOVIA_MAIN_CATEGORIES: Array<{ slug: MainCategorySlug; label: stri
   { slug: 'tools-accessories', label: 'Tools & Accessories' },
   { slug: 'fragrance', label: 'Fragrance' },
   { slug: 'organic-natural', label: 'Organic & Natural' },
-  { slug: 'beauty-combos', label: 'Beauty Combos' },
   { slug: 'mens-grooming', label: 'Men’s Grooming' },
-  { slug: 'k-beauty', label: 'Korean Beauty (K-Beauty)' },
 ];
 
 export const GLOVIA_SUBCATEGORY_GROUPS: Record<MainCategorySlug, Array<{ group: string; items: string[] }>> = {
@@ -87,50 +83,38 @@ export const GLOVIA_SUBCATEGORY_GROUPS: Record<MainCategorySlug, Array<{ group: 
   ],
   haircare: [
     {
-      group: 'Haircare Types',
+      group: 'Haircare',
       items: ['Shampoo', 'Conditioner', 'Hair Oil', 'Hair Mask', 'Hair Serum', 'Hair Color', 'Anti-Hair Fall', 'Dandruff Control'],
     },
   ],
   'body-care': [
     {
-      group: 'Body Care Types',
+      group: 'Body Care',
       items: ['Body Lotion', 'Body Butter', 'Body Wash', 'Scrub', 'Hand Cream', 'Foot Care'],
     },
   ],
   'tools-accessories': [
     {
-      group: 'Beauty Tools',
+      group: 'Tools & Accessories',
       items: ['Makeup Brushes', 'Beauty Blender', 'Hair Tools', 'Facial Roller', 'Eyelash Curler'],
     },
   ],
   fragrance: [
     {
-      group: 'Fragrance Types',
+      group: 'Fragrance',
       items: ['Perfume (Women)', 'Perfume (Men)', 'Body Mist', 'Deodorant'],
     },
   ],
   'organic-natural': [
     {
-      group: 'Organic Segments',
+      group: 'Organic & Natural',
       items: ['Herbal Skincare', 'Organic Oils', 'Chemical-Free Makeup', 'Ayurvedic Products'],
-    },
-  ],
-  'beauty-combos': [
-    {
-      group: 'Combo Themes',
-      items: ['Skincare Starter Kit', 'Bridal Makeup Combo', 'Hair Repair Combo', 'Travel Beauty Essentials'],
     },
   ],
   'mens-grooming': [
     {
       group: 'Men’s Grooming Types',
       items: ['Beard Oil', 'Face Wash', 'Hair Wax', "Men's Perfume"],
-    },
-  ],
-  'k-beauty': [
-    {
-      group: 'K-Beauty Essentials',
-      items: ['Essence', 'Ampoule', 'Sheet Mask', 'Cushion Foundation', 'Glass Skin Routine'],
     },
   ],
 };
@@ -209,9 +193,7 @@ export function inferMainCategorySlug(product: any): MainCategorySlug {
   if (/tool|brush|blender|roller|curler/.test(haystack)) return 'tools-accessories';
   if (/perfume|fragrance|mist|deodorant/.test(haystack)) return 'fragrance';
   if (/organic|natural|herbal|ayurvedic/.test(haystack)) return 'organic-natural';
-  if (/combo|kit|bundle/.test(haystack)) return 'beauty-combos';
   if (/men|beard|groom/.test(haystack)) return 'mens-grooming';
-  if (/korean|k-beauty|cosrx|isntree|skin1004/.test(haystack)) return 'k-beauty';
 
   return 'skincare';
 }

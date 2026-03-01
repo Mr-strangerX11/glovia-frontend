@@ -13,6 +13,7 @@ import {
   DollarSign,
   TrendingUp,
   Package,
+  Layers,
   Plus,
   Loader2,
   Settings,
@@ -155,6 +156,10 @@ export default function SuperAdminDashboardPage() {
             <Link href="/admin/products" className="group p-4 border-2 border-dashed border-indigo-300 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all text-center">
               <Package className="w-8 h-8 text-indigo-400 group-hover:text-indigo-600 mx-auto mb-2" />
               <p className="text-sm font-semibold text-indigo-700 group-hover:text-indigo-800">Manage Products</p>
+            </Link>
+            <Link href="/admin/categories" className="group p-4 border-2 border-dashed border-cyan-300 rounded-lg hover:border-cyan-500 hover:bg-cyan-50 transition-all text-center">
+              <Layers className="w-8 h-8 text-cyan-400 group-hover:text-cyan-600 mx-auto mb-2" />
+              <p className="text-sm font-semibold text-cyan-700 group-hover:text-cyan-800">Manage Categories</p>
             </Link>
             <button
               onClick={handleFixSuperAdmin}

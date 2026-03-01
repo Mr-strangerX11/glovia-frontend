@@ -29,6 +29,51 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const fetchAllPages = async (
+    request: (params: { page: number; limit: number }) => Promise<{ data: any }>
+  ) => {
+    const pageSize = 100;
+    let page = 1;
+    let totalPages = 1;
+    const allRows: Product[] = [];
+
+    while (page <= totalPages) {
+      const response = await request({ page, limit: pageSize });
+      const payload = response?.data;
+      const rows = Array.isArray(payload?.data)
+        ? payload.data
+        : Array.isArray(payload)
+          ? payload
+          : [];
+
+      allRows.push(...rows);
+
+      const nextTotalPages = Number(payload?.meta?.totalPages || 0);
+      if (nextTotalPages > 0) {
+        totalPages = nextTotalPages;
+      } else if (rows.length < pageSize) {
+        break;
+      } else {
+        totalPages = page + 1;
+      }
+
+      page += 1;
+      if (page > 200) {
+        break;
+      }
+    }
+
+    const seen = new Set<string>();
+    return allRows.filter((product) => {
+      const id = getProductId(product);
+      if (!id || seen.has(id)) {
+        return false;
+      }
+      seen.add(id);
+      return true;
+    });
+  };
+
   useEffect(() => {
     if (user) {
       fetchData();
@@ -38,16 +83,14 @@ export default function AdminProductsPage() {
   const fetchData = async () => {
     try {
       // Try to fetch from admin endpoint first, fall back to public products API
-      let products = [];
+      let products: Product[] = [];
       let categories = [];
       
       try {
-        const adminProductsRes = await adminAPI.getAllProducts();
-        products = adminProductsRes.data?.data || adminProductsRes.data || [];
+        products = await fetchAllPages((params) => adminAPI.getAllProducts(params));
       } catch (adminError) {
         console.warn('Admin products endpoint failed, trying public API:', adminError);
-        const publicProductsRes = await productsAPI.getAll();
-        products = publicProductsRes.data?.data || publicProductsRes.data || [];
+        products = await fetchAllPages((params) => productsAPI.getAll(params));
       }
       
       try {
@@ -117,6 +160,15 @@ export default function AdminProductsPage() {
         </div>
 
         <div className="card p-6">
+          <div className="mb-4 flex items-center justify-between text-sm">
+            <span className="inline-flex rounded-full bg-primary-50 px-3 py-1 font-medium text-primary-700">
+              Total products loaded: {products.length}
+            </span>
+            {searchQuery && (
+              <span className="text-gray-500">Showing {filteredProducts.length} result(s)</span>
+            )}
+          </div>
+
           <div className="mb-6">
             <div className="relative">
               <input
