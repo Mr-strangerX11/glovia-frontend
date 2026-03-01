@@ -151,7 +151,8 @@ export function useBrand(slug: string) {
 }
 
 export function useCart() {
-  const { data, error, mutate } = useSWR('/cart', () => fetcher(cartAPI.get));
+  const isClient = typeof window !== 'undefined';
+  const { data, error, mutate } = useSWR(isClient ? '/cart' : null, () => fetcher(cartAPI.get));
 
   return {
     cart: normalizeCart(data),

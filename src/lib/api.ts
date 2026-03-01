@@ -11,7 +11,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = Cookies.get('access_token');
+    const token = typeof window !== 'undefined' ? Cookies.get('access_token') : undefined;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -31,8 +31,8 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = Cookies.get('refresh_token');
-        const userId = Cookies.get('user_id');
+        const refreshToken = typeof window !== 'undefined' ? Cookies.get('refresh_token') : undefined;
+        const userId = typeof window !== 'undefined' ? Cookies.get('user_id') : undefined;
 
         if (refreshToken && userId) {
           const { data } = await axios.post(
@@ -47,10 +47,12 @@ api.interceptors.response.use(
           return api(originalRequest);
         }
       } catch (err) {
-        Cookies.remove('access_token');
-        Cookies.remove('refresh_token');
-        Cookies.remove('user_id');
-        window.location.href = '/auth/login';
+        if (typeof window !== 'undefined') {
+          Cookies.remove('access_token');
+          Cookies.remove('refresh_token');
+          Cookies.remove('user_id');
+          window.location.href = '/auth/login';
+        }
       }
     }
 
