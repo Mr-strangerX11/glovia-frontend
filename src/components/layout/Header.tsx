@@ -2,11 +2,16 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { Search, ShoppingCart, Heart, User, Menu, X, Moon, Sun, Store, Globe, Home } from 'lucide-react';
+import { Search, ShoppingCart, Heart, User, Menu, X, Moon, Sun, Store, Globe, Home, ChevronDown } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useCart } from '@/hooks/useData';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+  GLOVIA_MAIN_CATEGORIES,
+  GLOVIA_SUBCATEGORY_GROUPS,
+  type MainCategorySlug,
+} from '@/data/beautyCatalog';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -14,6 +19,9 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [language, setLanguage] = useState<'EN' | 'NP'>('EN');
   const [dark, setDark] = useState(false);
+  const [desktopCatalogOpen, setDesktopCatalogOpen] = useState(false);
+  const [activeDesktopCategory, setActiveDesktopCategory] = useState<MainCategorySlug>('skincare');
+  const [activeMobileCategory, setActiveMobileCategory] = useState<MainCategorySlug | null>(null);
 
   const toggleDark = () => {
     if (typeof window === 'undefined') return;
@@ -58,12 +66,24 @@ export function Header() {
       { name: 'Skincare', href: '/products?category=skincare' },
       { name: 'Haircare', href: '/products?category=haircare' },
       { name: 'Makeup', href: '/products?category=makeup' },
-      { name: 'Organic', href: '/products?category=organic' },
-      { name: 'Electronics', href: '/products?category=electronics' },
-      { name: 'Groceries', href: '/products?category=groceries' },
+      { name: 'Organic', href: '/products?category=organic-natural' },
     ],
     []
   );
+
+  const desktopNavCategories: Array<{ label: string; slug: MainCategorySlug }> = useMemo(
+    () => [
+      { label: 'Skincare', slug: 'skincare' },
+      { label: 'Haircare', slug: 'haircare' },
+      { label: 'Makeup', slug: 'makeup' },
+      { label: 'Organic', slug: 'organic-natural' },
+    ],
+    []
+  );
+
+  const getMainCategoryHref = (slug: MainCategorySlug) => `/products?category=${slug}`;
+  const getSubcategoryHref = (slug: MainCategorySlug, item: string) =>
+    `/products?category=${slug}&search=${encodeURIComponent(item)}`;
 
   const isRouteActive = (href: string) => {
     if (href.startsWith('/products?category=')) {
@@ -122,18 +142,29 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-8">
-            {categories.slice(0, 4).map((category) => (
-              <Link
-                key={category.name}
-                href={category.href}
+            {desktopNavCategories.map((category) => (
+              <button
+                key={category.slug}
+                type="button"
+                onClick={() => {
+                  if (activeDesktopCategory === category.slug) {
+                    setDesktopCatalogOpen((prev) => !prev);
+                  } else {
+                    setActiveDesktopCategory(category.slug);
+                    setDesktopCatalogOpen(true);
+                  }
+                }}
                 className={`font-medium transition-colors dark:text-gray-100 ${
-                  isRouteActive(category.href)
+                  isRouteActive(getMainCategoryHref(category.slug))
                     ? 'text-primary-600'
                     : 'text-gray-700 hover:text-primary-600'
                 }`}
               >
-                {category.name}
-              </Link>
+                <span className="inline-flex items-center gap-1">
+                  {category.label}
+                  <ChevronDown className={`h-4 w-4 transition-transform ${desktopCatalogOpen && activeDesktopCategory === category.slug ? 'rotate-180' : ''}`} />
+                </span>
+              </button>
             ))}
             <Link
               href="/about"
@@ -286,6 +317,56 @@ export function Header() {
       </div>
 
       <AnimatePresence>
+        {desktopCatalogOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="hidden border-t border-gray-200/70 bg-white/95 backdrop-blur-xl lg:block dark:border-gray-800 dark:bg-gray-950/95"
+          >
+            <div className="container py-5">
+              <div className="mb-4 flex flex-wrap gap-2">
+                {GLOVIA_MAIN_CATEGORIES.map((category) => (
+                  <button
+                    key={category.slug}
+                    type="button"
+                    onClick={() => setActiveDesktopCategory(category.slug)}
+                    className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
+                      activeDesktopCategory === category.slug
+                        ? 'border-primary-600 bg-primary-50 text-primary-700'
+                        : 'border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    {category.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {GLOVIA_SUBCATEGORY_GROUPS[activeDesktopCategory].map((group) => (
+                  <div key={group.group} className="rounded-2xl border border-gray-200/80 bg-white/80 p-4 dark:border-gray-700 dark:bg-gray-900/60">
+                    <h4 className="mb-2 text-sm font-semibold text-secondary-900 dark:text-gray-100">{group.group}</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {group.items.map((item) => (
+                        <Link
+                          key={item}
+                          href={getSubcategoryHref(activeDesktopCategory, item)}
+                          onClick={() => setDesktopCatalogOpen(false)}
+                          className="rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 transition hover:border-primary-200 hover:bg-primary-50 hover:text-primary-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-800"
+                        >
+                          {item}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
         {mobileMenuOpen && (
           <>
             <motion.button
@@ -314,20 +395,56 @@ export function Header() {
                 </button>
               </div>
               <nav className="flex flex-col gap-2">
-                {categories.map((category) => (
-                  <Link
-                    key={category.name}
-                    href={category.href}
-                    className={`rounded-xl px-4 py-2.5 text-sm font-medium transition ${
-                      isRouteActive(category.href)
-                        ? 'bg-primary-50 text-primary-700'
-                        : 'text-secondary-800 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-800'
-                    }`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {category.name}
-                  </Link>
-                ))}
+                {desktopNavCategories.map((category) => {
+                  const isOpen = activeMobileCategory === category.slug;
+                  return (
+                    <div key={category.slug} className="rounded-xl border border-gray-200 dark:border-gray-700">
+                      <button
+                        type="button"
+                        onClick={() => setActiveMobileCategory((prev) => (prev === category.slug ? null : category.slug))}
+                        className="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm font-medium text-secondary-800 transition hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-800"
+                      >
+                        <span>{category.label}</span>
+                        <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                      <AnimatePresence>
+                        {isOpen && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="space-y-2 overflow-hidden border-t border-gray-200 px-3 py-3 dark:border-gray-700"
+                          >
+                            <Link
+                              href={getMainCategoryHref(category.slug)}
+                              className="block rounded-lg bg-primary-50 px-3 py-2 text-xs font-semibold text-primary-700"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              View all {category.label}
+                            </Link>
+                            {GLOVIA_SUBCATEGORY_GROUPS[category.slug].map((group) => (
+                              <div key={group.group}>
+                                <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500">{group.group}</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {group.items.map((item) => (
+                                    <Link
+                                      key={item}
+                                      href={getSubcategoryHref(category.slug, item)}
+                                      className="rounded-full border border-gray-200 px-2.5 py-1 text-[11px] font-medium text-gray-700 dark:border-gray-700 dark:text-gray-100"
+                                      onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                      {item}
+                                    </Link>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
                 <Link
                   href="/about"
                   className={`rounded-xl px-4 py-2.5 text-sm font-medium transition ${

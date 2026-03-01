@@ -51,17 +51,6 @@ export default function HomeContent({ featuredProducts, banners }: HomeContentPr
   const newArrivals = products.slice(2, 6);
   const bestSellers = products.slice(4, 8);
 
-  const categoryHighlights = [
-    { name: 'Electronics', href: '/products?category=electronics', emoji: '📱' },
-    { name: 'Fashion', href: '/products?category=fashion', emoji: '🧥' },
-    { name: 'Health & Beauty', href: '/products?category=beauty', emoji: '💄' },
-    { name: 'Groceries', href: '/products?category=groceries', emoji: '🛒' },
-    { name: 'Home & Kitchen', href: '/products?category=home', emoji: '🏡' },
-    { name: 'Kids & Toys', href: '/products?category=kids', emoji: '🧸' },
-    { name: 'Sports', href: '/products?category=sports', emoji: '🏀' },
-    { name: 'Digital Services', href: '/products?category=digital', emoji: '💻' },
-  ];
-
   const trustItems = [
     {
       title: 'Fast Delivery Nepal',
@@ -103,33 +92,35 @@ export default function HomeContent({ featuredProducts, banners }: HomeContentPr
       transition={{ type: 'spring', stiffness: 180, damping: 16 }}
       style={{ transformStyle: 'preserve-3d' }}
     >
-      <div className="relative h-56 overflow-hidden">
-        <Image
-          src={product.images?.[0]?.url || '/og-image.jpg'}
-          alt={product.images?.[0]?.altText || product.name}
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
-        <div className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-primary-700">
-          {product.isBestSeller ? 'Best Seller' : product.isNew ? 'New' : 'Trending'}
-        </div>
-      </div>
-      <div className="p-4 sm:p-5">
-        <h3 className="line-clamp-1 text-base font-semibold text-secondary-900">{product.name}</h3>
-        <p className="mt-1 line-clamp-2 text-sm text-secondary-600">{product.description || 'Premium quality product from Golvia Nepal.'}</p>
-        <div className="mt-3 flex items-center justify-between">
-          <div>
-            <p className="text-lg font-bold text-primary-700">NPR {Number(product.price || 0).toLocaleString()}</p>
-            {product.compareAtPrice ? (
-              <p className="text-xs text-gray-500 line-through">NPR {Number(product.compareAtPrice).toLocaleString()}</p>
-            ) : null}
+      <Link href={`/products/${product.slug}`} className="block">
+        <div className="relative h-56 overflow-hidden">
+          <Image
+            src={product.images?.[0]?.url || '/og-image.jpg'}
+            alt={product.images?.[0]?.altText || product.name}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+          <div className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-primary-700">
+            {product.isBestSeller ? 'Best Seller' : product.isNew ? 'New' : 'Trending'}
           </div>
-          <button className="rounded-xl bg-secondary-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-secondary-800">
-            Add to Cart
-          </button>
         </div>
-      </div>
+        <div className="p-4 sm:p-5">
+          <h3 className="line-clamp-1 text-base font-semibold text-secondary-900">{product.name}</h3>
+          <p className="mt-1 line-clamp-2 text-sm text-secondary-600">{product.description || 'Premium quality product from Golvia Nepal.'}</p>
+          <div className="mt-3 flex items-center justify-between">
+            <div>
+              <p className="text-lg font-bold text-primary-700">NPR {Number(product.price || 0).toLocaleString()}</p>
+              {product.compareAtPrice ? (
+                <p className="text-xs text-gray-500 line-through">NPR {Number(product.compareAtPrice).toLocaleString()}</p>
+              ) : null}
+            </div>
+            <span className="rounded-xl bg-secondary-900 px-3 py-2 text-xs font-semibold text-white transition group-hover:bg-secondary-800">
+              View Product
+            </span>
+          </div>
+        </div>
+      </Link>
     </motion.div>
   );
 
@@ -178,56 +169,6 @@ export default function HomeContent({ featuredProducts, banners }: HomeContentPr
           >
             <HeroThreeScene />
           </motion.div>
-        </div>
-      </section>
-
-      <section className="container py-3 sm:py-5">
-        <div className="grid gap-3 rounded-3xl border border-white/40 bg-white/80 p-4 shadow-soft backdrop-blur-xl md:grid-cols-3">
-          {[
-            {
-              title: 'Faster storefront performance',
-              description: 'Optimized media loading, premium visuals, and conversion-first interactions.',
-            },
-            {
-              title: 'AI + trusted checkout',
-              description: 'Recommendations with secure eSewa, Khalti, IME Pay, and COD verification.',
-            },
-            {
-              title: 'Premium Nepal marketplace UX',
-              description: '3D storytelling, mobile-first flow, and seller-grade analytics in one platform.',
-            },
-          ].map((item) => (
-            <motion.article
-              key={item.title}
-              whileHover={{ y: -4 }}
-              className="rounded-2xl border border-white/50 bg-white/90 p-4"
-            >
-              <h3 className="text-sm font-semibold text-secondary-950">{item.title}</h3>
-              <p className="mt-1 text-xs text-secondary-700 sm:text-sm">{item.description}</p>
-            </motion.article>
-          ))}
-        </div>
-      </section>
-
-      <section className="container py-6 sm:py-8">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {categoryHighlights.map((category, index) => (
-            <motion.div
-              key={category.name}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.04 }}
-            >
-              <Link
-                href={category.href}
-                className="group block rounded-2xl border border-white/40 bg-white/75 p-4 text-center shadow-soft transition hover:-translate-y-1 hover:shadow-lg"
-              >
-                <p className="text-2xl">{category.emoji}</p>
-                <p className="mt-2 text-sm font-semibold text-secondary-900">{category.name}</p>
-              </Link>
-            </motion.div>
-          ))}
         </div>
       </section>
 
