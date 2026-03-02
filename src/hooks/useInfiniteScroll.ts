@@ -67,11 +67,11 @@ export function useInfiniteScroll(
 
 // Hook for checking online status
 export function useOnlineStatus() {
-  const [isOnline, setIsOnline] = useState(
-    typeof navigator !== 'undefined' ? navigator.onLine : true
-  );
+  const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
+    setIsOnline(navigator.onLine);
+
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
@@ -106,18 +106,18 @@ export function useDebouncedValue<T>(value: T, delay: number): T {
 
 // Hook for local storage
 export function useLocalStorage<T>(key: string, initialValue: T) {
-  const [storedValue, setStoredValue] = useState<T>(() => {
-    if (typeof window === 'undefined') {
-      return initialValue;
-    }
+  const [storedValue, setStoredValue] = useState<T>(initialValue);
+
+  useEffect(() => {
     try {
       const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue;
+      if (item !== null) {
+        setStoredValue(JSON.parse(item));
+      }
     } catch (error) {
       console.error(error);
-      return initialValue;
     }
-  });
+  }, [key]);
 
   const setValue = useCallback(
     (value: T | ((val: T) => T)) => {
@@ -184,8 +184,8 @@ export function useInterval(callback: () => void, delay: number | null) {
 // Hook for window size
 export function useWindowSize() {
   const [windowSize, setWindowSize] = useState({
-    width: typeof window !== 'undefined' ? window.innerWidth : 0,
-    height: typeof window !== 'undefined' ? window.innerHeight : 0,
+    width: 0,
+    height: 0,
   });
 
   useEffect(() => {

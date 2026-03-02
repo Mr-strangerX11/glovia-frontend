@@ -27,6 +27,16 @@ const nextConfig = {
     optimizeCss: true,
     optimizePackageImports: ['lucide-react', 'recharts'],
   },
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.glovia.com.np' }],
+        destination: 'https://glovia.com.np/:path*',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
