@@ -233,14 +233,14 @@ export default function ProductsContent({
         transition={{ type: "spring", stiffness: 200, damping: 16 }}
         style={{ transformStyle: "preserve-3d" }}
       >
-        <Link href={`/products/${product.slug}`} className="card group rounded-2xl border border-white/50 bg-white/80 backdrop-blur-xl">
-          <div className="relative aspect-square overflow-hidden">
+        <Link href={`/products/${product.slug}`} className="card group overflow-hidden rounded-2xl border border-white/60 bg-white/90 shadow-sm transition-all duration-300 hover:shadow-lg backdrop-blur-xl">
+          <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-gray-50 to-white">
             <Image
               src={product.images?.[0]?.url || "/placeholder.jpg"}
               alt={product.name}
               fill
               sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-110"
+              className="object-contain p-4 transition-transform duration-500 group-hover:scale-105"
             />
             <button
               type="button"
@@ -251,10 +251,10 @@ export default function ProductsContent({
                   handleWishlistToggle(productId);
                 }
               }}
-              className={`absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full border transition-colors ${
+              className={`absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/80 bg-white/95 shadow-sm transition-colors ${
                 isWishlisted
-                  ? "border-red-200 bg-red-50"
-                  : "border-gray-200 bg-white/90 hover:bg-white"
+                  ? "text-red-500"
+                  : "text-gray-600 hover:bg-white"
               } ${updatingId === productId ? "opacity-60" : ""}`}
               aria-label={isWishlisted ? "Wishlisted" : "Add to wishlist"}
             >
@@ -269,12 +269,12 @@ export default function ProductsContent({
               )}
             </button>
             {inferSmartTags(product).slice(0, 1).map((tag) => (
-              <span key={tag} className="absolute left-3 top-3 rounded-full bg-primary-600 px-2.5 py-1 text-[10px] font-semibold uppercase text-white">
+              <span key={tag} className="absolute left-3 top-3 rounded-full bg-primary-600/95 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white shadow-sm">
                 {tag}
               </span>
             ))}
           </div>
-          <div className="space-y-1.5 p-3 sm:p-4">
+          <div className="space-y-1.5 border-t border-gray-100 p-3 sm:p-4">
             <p className="text-[10px] text-gray-500 sm:text-xs">{product.category?.name}</p>
             <h3 className="line-clamp-2 text-xs font-semibold sm:text-sm md:text-base">{product.name}</h3>
             <div className="flex items-center gap-1 text-xs text-yellow-500">
