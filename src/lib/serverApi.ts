@@ -1,7 +1,11 @@
 import { cookies as nextCookies } from "next/headers";
 import axios from "axios";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://backend-glovia.vercel.app";
+const rawApiBase = process.env.NEXT_PUBLIC_API_URL || "https://backend-glovia.vercel.app";
+const normalizedApiBase = rawApiBase.startsWith("http") ? rawApiBase : `https://${rawApiBase}`;
+const API_BASE = normalizedApiBase.includes("/api/")
+  ? normalizedApiBase.replace(/\/+$/, "")
+  : `${normalizedApiBase.replace(/\/+$/, "")}/api/v1`;
 
 type ProductQuery = {
   category?: string;

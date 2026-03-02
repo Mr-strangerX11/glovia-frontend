@@ -334,9 +334,28 @@ export default function ProductDetailPage() {
     }
   };
 
-  const discountedPrice = product?.discountPercentage
-    ? product.price - (product.price * product.discountPercentage) / 100
-    : product?.price;
+  const resolvedDiscountPercentage = (() => {
+    if (!product) return 0;
+    if (typeof product.discountPercentage === "number" && product.discountPercentage > 0) {
+      return product.discountPercentage;
+    }
+    if (
+      typeof product.compareAtPrice === "number" &&
+      product.compareAtPrice > product.price &&
+      product.compareAtPrice > 0
+    ) {
+      return Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100);
+    }
+    return 0;
+  })();
+
+  const discountedPrice = (() => {
+    if (!product) return 0;
+    if (typeof product.discountPercentage === "number" && product.discountPercentage > 0) {
+      return product.price - (product.price * product.discountPercentage) / 100;
+    }
+    return product.price;
+  })();
 
   const deliveryEstimate = (() => {
     const normalized = deliveryDistrict.toLowerCase();
@@ -381,7 +400,7 @@ export default function ProductDetailPage() {
     return null;
   }
 
-  const discountPercentage = product.discountPercentage ?? 0;
+  const discountPercentage = resolvedDiscountPercentage;
 
   const productImages =
     product.images && product.images.length > 0
