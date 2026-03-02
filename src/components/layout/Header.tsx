@@ -370,7 +370,7 @@ export function Header() {
         {mobileMenuOpen && (
           <>
             <motion.button
-              className="fixed inset-0 z-50 bg-black/40 lg:hidden"
+              className="fixed inset-0 z-50 bg-black/55 lg:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -382,9 +382,9 @@ export function Header() {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 26, stiffness: 220 }}
-              className="fixed left-0 top-0 z-[60] h-full w-[86%] max-w-sm border-r border-white/20 bg-white/95 p-4 shadow-2xl backdrop-blur-xl lg:hidden dark:bg-gray-950/95"
+              className="fixed left-0 top-0 z-[60] h-[100dvh] w-[90%] max-w-sm overflow-y-auto border-r border-gray-200 bg-white p-4 pb-24 shadow-2xl lg:hidden dark:border-gray-800 dark:bg-gray-950"
             >
-              <div className="mb-4 flex items-center justify-between">
+              <div className="sticky top-0 z-10 -mx-4 mb-4 flex items-center justify-between border-b border-gray-200 bg-white px-4 pb-3 pt-1 dark:border-gray-800 dark:bg-gray-950">
                 <h3 className="text-base font-semibold text-secondary-900 dark:text-gray-100">Browse Categories</h3>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
@@ -398,7 +398,7 @@ export function Header() {
                 {desktopNavCategories.map((category) => {
                   const isOpen = activeMobileCategory === category.slug;
                   return (
-                    <div key={category.slug} className="rounded-xl border border-gray-200 dark:border-gray-700">
+                    <div key={category.slug} className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
                       <button
                         type="button"
                         onClick={() => setActiveMobileCategory((prev) => (prev === category.slug ? null : category.slug))}
@@ -413,7 +413,7 @@ export function Header() {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="space-y-2 overflow-hidden border-t border-gray-200 px-3 py-3 dark:border-gray-700"
+                            className="space-y-2 overflow-hidden border-t border-gray-200 bg-gray-50 px-3 py-3 dark:border-gray-700 dark:bg-gray-900"
                           >
                             <Link
                               href={getMainCategoryHref(category.slug)}
@@ -430,7 +430,7 @@ export function Header() {
                                     <Link
                                       key={item}
                                       href={getSubcategoryHref(category.slug, item)}
-                                      className="rounded-full border border-gray-200 px-2.5 py-1 text-[11px] font-medium text-gray-700 dark:border-gray-700 dark:text-gray-100"
+                                      className="rounded-full border border-gray-300 bg-white px-2.5 py-1 text-[11px] font-medium text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
                                       onClick={() => setMobileMenuOpen(false)}
                                     >
                                       {item}
