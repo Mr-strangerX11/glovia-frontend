@@ -35,11 +35,24 @@ export default function EditProductPage() {
         categoriesAPI.getAll(),
         brandsAPI.getAll(),
       ]);
-      setFormData({ ...productRes.data });
+      // Clean up product data to extract IDs and image URLs
+      const product = productRes.data;
+      const cleanedData = {
+        ...product,
+        categoryId: product.categoryId || product.category?._id || product.category?.id || '',
+        brandId: product.brandId || product.brand?._id || product.brand?.id || '',
+        // Extract image URLs from image objects
+        images: Array.isArray(product.images) 
+          ? product.images.map((img: any) => typeof img === 'string' ? img : img.url)
+          : [],
+      };
+      setFormData(cleanedData);
       setCategories(categoriesRes.data || []);
       setBrands(brandsRes.data?.data || brandsRes.data || []);
     } catch (error) {
-      toast.error("Failed to load product data");
+      const errorMessage = (error as any)?.response?.data?.message || "Failed to load product data";
+      toast.error(errorMessage);
+      console.error('Fetch product error:', error);
     } finally {
       setLoading(false);
     }
@@ -67,11 +80,45 @@ export default function EditProductPage() {
         setSaving(false);
         return;
       }
-      await adminAPI.updateProduct(id, formData);
+      // Clean the data - remove nested objects and format properly
+      const cleanData: any = {
+        name: formData.name,
+        slug: formData.slug,
+        description: formData.description || '',
+        price: Number(formData.price),
+        stockQuantity: Number(formData.stockQuantity),
+        categoryId: formData.categoryId,
+        brandId: formData.brandId || null,
+        isActive: formData.isActive,
+        isFeatured: formData.isFeatured,
+        isBestSeller: formData.isBestSeller,
+        isNew: formData.isNew || formData.isNewProduct,
+      };
+
+      // Handle images - extract just the URLs
+      if (formData.images && Array.isArray(formData.images)) {
+        cleanData.images = formData.images.map((img: any) => 
+          typeof img === 'string' ? img : img.url
+        );
+      }
+
+      // Include optional fields if they exist
+      if (formData.sku) cleanData.sku = formData.sku;
+      if (formData.compareAtPrice) cleanData.compareAtPrice = Number(formData.compareAtPrice);
+      if (formData.discountPercentage) cleanData.discountPercentage = Number(formData.discountPercentage);
+      if (formData.ingredients) cleanData.ingredients = formData.ingredients;
+      if (formData.benefits) cleanData.benefits = formData.benefits;
+      if (formData.howToUse) cleanData.howToUse = formData.howToUse;
+      if (formData.tags) cleanData.tags = formData.tags;
+      if (formData.suitableFor) cleanData.suitableFor = formData.suitableFor;
+
+      await adminAPI.updateProduct(id, cleanData);
       toast.success("Product updated successfully");
       router.push("/admin/products");
     } catch (error) {
-      toast.error("Failed to update product");
+      const errorMessage = (error as any)?.response?.data?.message || "Failed to update product";
+      toast.error(errorMessage);
+      console.error('Update product error:', error);
     } finally {
       setSaving(false);
     }
