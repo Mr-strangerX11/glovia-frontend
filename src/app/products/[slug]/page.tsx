@@ -44,6 +44,9 @@ type ProductReview = {
   _id?: string;
   rating?: number;
   comment?: string;
+  title?: string;
+  approved?: boolean;
+  createdAt?: string;
   user?: {
     firstName?: string;
     lastName?: string;
@@ -94,6 +97,21 @@ function getErrorMessage(error: unknown, fallback: string) {
   return candidate?.response?.data?.message || fallback;
 }
 
+function normalizeReviewsResponse(raw: unknown): ProductReview[] {
+  if (Array.isArray(raw)) return raw as ProductReview[];
+  if (!raw || typeof raw !== "object") return [];
+
+  const candidate = raw as { data?: unknown; reviews?: unknown };
+  if (Array.isArray(candidate.data)) return candidate.data as ProductReview[];
+  if (candidate.data && typeof candidate.data === "object") {
+    const nested = candidate.data as { data?: unknown; reviews?: unknown };
+    if (Array.isArray(nested.data)) return nested.data as ProductReview[];
+    if (Array.isArray(nested.reviews)) return nested.reviews as ProductReview[];
+  }
+  if (Array.isArray(candidate.reviews)) return candidate.reviews as ProductReview[];
+  return [];
+}
+
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -109,6 +127,9 @@ export default function ProductDetailPage() {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [viewerRotation, setViewerRotation] = useState({ x: -7, y: 0 });
   const [isZooming, setIsZooming] = useState(false);
   const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
@@ -136,7 +157,7 @@ export default function ProductDetailPage() {
 
       try {
         const reviewsRes = await reviewsAPI.getByProduct(item._id);
-        setReviews((reviewsRes.data || []) as ProductReview[]);
+        setReviews(normalizeReviewsResponse(reviewsRes.data));
       } catch {
         setReviews([]);
       }
@@ -231,6 +252,55 @@ export default function ProductDetailPage() {
       toast.error(getErrorMessage(error, "Failed to add to wishlist"));
     } finally {
       setIsAddingToWishlist(false);
+    }
+  };
+
+  const handleSubmitReview = async () => {
+    if (!product) return;
+    if (!user) {
+      toast.error("Please login to submit a review");
+      router.push("/auth/login");
+      return;
+    }
+
+    const trimmedComment = reviewComment.trim();
+    if (!trimmedComment) {
+      toast.error("Please write your review comment");
+      return;
+    }
+
+    try {
+      setIsSubmittingReview(true);
+      const payload = {
+        productId: product._id,
+        rating: Math.max(1, Math.min(5, Math.round(reviewRating))),
+        comment: trimmedComment,
+      };
+
+      const response = await reviewsAPI.create(payload);
+      const createdReview = (response.data || {}) as ProductReview;
+
+      setReviews((prev) => [
+        {
+          ...createdReview,
+          rating: createdReview.rating ?? payload.rating,
+          comment: createdReview.comment ?? payload.comment,
+          approved: createdReview.approved ?? false,
+          user: createdReview.user || {
+            firstName: user.firstName,
+            lastName: user.lastName,
+          },
+        },
+        ...prev,
+      ]);
+
+      setReviewComment("");
+      setReviewRating(5);
+      toast.success("Review submitted. It will appear publicly after approval.");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to submit review"));
+    } finally {
+      setIsSubmittingReview(false);
     }
   };
 
@@ -805,13 +875,76 @@ export default function ProductDetailPage() {
                         <p className="text-sm font-semibold text-gray-900">
                           {review.user?.firstName || "Customer"} {review.user?.lastName || ""}
                         </p>
-                        <p className="text-xs font-medium text-amber-600">★ {Number(review.rating || 0).toFixed(1)}</p>
+                        <div className="flex items-center gap-2">
+                          {!review.approved && (
+                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                              Pending
+                            </span>
+                          )}
+                          <p className="text-xs font-medium text-amber-600">★ {Number(review.rating || 0).toFixed(1)}</p>
+                        </div>
                       </div>
+                      {review.title && <p className="mt-1 text-sm font-medium text-gray-800">{review.title}</p>}
                       <p className="mt-1 text-sm text-gray-600">{review.comment || "Great product quality."}</p>
                     </article>
                   ))}
                 </div>
               )}
+
+              <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                <p className="text-sm font-semibold text-gray-900">Write a review</p>
+                {!user ? (
+                  <p className="mt-1 text-sm text-gray-600">
+                    Please <Link href="/auth/login" className="font-semibold text-primary-600 hover:underline">login</Link> to submit your review.
+                  </p>
+                ) : (
+                  <div className="mt-3 space-y-3">
+                    <div>
+                      <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">Rating</label>
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: 5 }).map((_, index) => {
+                          const value = index + 1;
+                          return (
+                            <button
+                              key={value}
+                              type="button"
+                              onClick={() => setReviewRating(value)}
+                              className="rounded p-1"
+                              aria-label={`Rate ${value} stars`}
+                            >
+                              <Star
+                                className={`h-5 w-5 ${
+                                  value <= reviewRating ? "fill-amber-400 text-amber-400" : "text-gray-300"
+                                }`}
+                              />
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">Comment</label>
+                      <textarea
+                        value={reviewComment}
+                        onChange={(e) => setReviewComment(e.target.value)}
+                        rows={3}
+                        className="input min-h-[90px]"
+                        placeholder="Share your experience with this product"
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleSubmitReview}
+                      disabled={isSubmittingReview}
+                      className="btn-primary"
+                    >
+                      {isSubmittingReview ? "Submitting..." : "Submit Review"}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
