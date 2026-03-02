@@ -55,9 +55,12 @@ type ProductReview = {
 
 type RelatedProduct = {
   _id: string;
+  id?: string;
   slug: string;
   name: string;
   price: number;
+  compareAtPrice?: number;
+  discountPercentage?: number;
   images?: ProductImage[];
 };
 
@@ -110,6 +113,22 @@ function normalizeReviewsResponse(raw: unknown): ProductReview[] {
   }
   if (Array.isArray(candidate.reviews)) return candidate.reviews as ProductReview[];
   return [];
+}
+
+function normalizeImageUrl(url?: string) {
+  if (!url) return "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800";
+
+  if (url.startsWith("//")) {
+    return `https:${url}`;
+  }
+
+  if (url.startsWith("/")) {
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://backend-glovia.vercel.app/api/v1";
+    const origin = apiBase.replace(/\/api\/v1\/?$/, "").replace(/\/+$/, "");
+    return `${origin}${url}`;
+  }
+
+  return url.replace("http://backend-glovia.vercel.app", "https://backend-glovia.vercel.app");
 }
 
 export default function ProductDetailPage() {
@@ -186,7 +205,8 @@ export default function ProductDetailPage() {
       }
 
       try {
-        const reviewsRes = await reviewsAPI.getByProduct(item._id);
+        const reviewProductId = item._id || item.id;
+        const reviewsRes = reviewProductId ? await reviewsAPI.getByProduct(reviewProductId) : { data: [] };
         setReviews(normalizeReviewsResponse(reviewsRes.data));
       } catch {
         setReviews([]);
@@ -301,8 +321,12 @@ export default function ProductDetailPage() {
 
     try {
       setIsSubmittingReview(true);
+      const productId = product._id || product.id;
+      if (!productId) {
+        throw new Error("Product ID not found for review submission");
+      }
       const payload = {
-        productId: product._id,
+        productId,
         rating: Math.max(1, Math.min(5, Math.round(reviewRating))),
         comment: trimmedComment,
       };
@@ -531,7 +555,7 @@ export default function ProductDetailPage() {
                 onClick={() => setIsZooming((prev) => !prev)}
               >
                 <Image
-                  src={productImages[selectedImage].url}
+                  src={normalizeImageUrl(productImages[selectedImage].url)}
                   alt={product.name}
                   fill
                   className={`object-contain p-4 transition-transform duration-300 ${isZooming ? "scale-[1.55] cursor-zoom-out" : "cursor-zoom-in"}`}
@@ -596,7 +620,7 @@ export default function ProductDetailPage() {
                     whileTap={{ scale: 0.97 }}
                   >
                     <Image
-                      src={image.url}
+                      src={normalizeImageUrl(image.url)}
                       alt={`${product.name} ${index + 1}`}
                       fill
                       className="object-contain p-1"
@@ -1004,6 +1028,15 @@ export default function ProductDetailPage() {
             <h2 className="text-2xl font-bold mb-6">You May Also Like</h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {relatedProducts.map((relatedProduct) => (
+                (() => {
+                  const relatedDiscountPercent =
+                    typeof relatedProduct.discountPercentage === "number" && relatedProduct.discountPercentage > 0
+                      ? relatedProduct.discountPercentage
+                      : relatedProduct.compareAtPrice && relatedProduct.compareAtPrice > relatedProduct.price
+                      ? Math.round(((relatedProduct.compareAtPrice - relatedProduct.price) / relatedProduct.compareAtPrice) * 100)
+                      : 0;
+
+                  return (
                 <Link
                   key={relatedProduct._id}
                   href={`/products/${relatedProduct.slug}`}
@@ -1011,24 +1044,31 @@ export default function ProductDetailPage() {
                 >
                   <div className="aspect-square relative">
                     <Image
-                      src={
-                        relatedProduct.images?.[0]?.url ||
-                        "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400"
-                      }
+                      src={normalizeImageUrl(relatedProduct.images?.[0]?.url)}
                       alt={relatedProduct.name}
                       fill
                       className="object-contain p-4"
                     />
+                    {relatedDiscountPercent > 0 && (
+                      <span className="absolute left-2 top-2 rounded-full bg-red-500 px-2 py-1 text-[10px] font-semibold text-white">
+                        {relatedDiscountPercent}% OFF
+                      </span>
+                    )}
                   </div>
                   <div className="p-4">
                     <h3 className="font-medium text-sm mb-2 line-clamp-2">
                       {relatedProduct.name}
                     </h3>
-                    <p className="text-primary-600 font-bold">
-                      ₨{relatedProduct.price}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-primary-600 font-bold">₨{relatedProduct.price}</p>
+                      {relatedDiscountPercent > 0 && relatedProduct.compareAtPrice && (
+                        <p className="text-xs text-gray-400 line-through">₨{relatedProduct.compareAtPrice}</p>
+                      )}
+                    </div>
                   </div>
                 </Link>
+                  );
+                })()
               ))}
             </div>
           </div>

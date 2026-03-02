@@ -11,6 +11,18 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'backend-glovia.vercel.app',
+      },
+      {
+        protocol: 'http',
+        hostname: 'backend-glovia.vercel.app',
+      },
+      {
+        protocol: 'https',
+        hostname: 'glovia.com.np',
+      },
+      {
+        protocol: 'https',
         hostname: 'images.unsplash.com',
       },
       {
