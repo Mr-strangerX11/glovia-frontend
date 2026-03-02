@@ -50,6 +50,7 @@ export default function HomeContent({ featuredProducts, banners }: HomeContentPr
   const trendingProducts = products.slice(0, 4);
   const newArrivals = products.slice(2, 6);
   const bestSellers = products.slice(4, 8);
+  const hasAnyProducts = products.length > 0;
 
   const trustItems = [
     {
@@ -107,7 +108,7 @@ export default function HomeContent({ featuredProducts, banners }: HomeContentPr
         </div>
         <div className="p-4 sm:p-5">
           <h3 className="line-clamp-1 text-base font-semibold text-secondary-900">{product.name}</h3>
-          <p className="mt-1 line-clamp-2 text-sm text-secondary-600">{product.description || 'Premium quality product from Golvia Nepal.'}</p>
+          <p className="mt-1 line-clamp-2 text-sm text-secondary-600">{product.description || 'Premium quality product from Glovia Nepal.'}</p>
           <div className="mt-3 flex items-center justify-between">
             <div>
               <p className="text-lg font-bold text-primary-700">NPR {Number(product.price || 0).toLocaleString()}</p>
@@ -177,9 +178,15 @@ export default function HomeContent({ featuredProducts, banners }: HomeContentPr
           <h2 className="text-2xl font-bold text-secondary-950">Trending Products</h2>
           <Link href="/products" className="text-sm font-semibold text-primary-700 hover:underline">View all</Link>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {trendingProducts.map(renderProductCard)}
-        </div>
+        {trendingProducts.length > 0 ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {trendingProducts.map(renderProductCard)}
+          </div>
+        ) : (
+          <p className="rounded-2xl border border-white/40 bg-white/70 p-4 text-sm text-secondary-700">
+            Trending products will appear here soon.
+          </p>
+        )}
       </section>
 
       <section className="container py-4 sm:py-6">
@@ -233,19 +240,23 @@ export default function HomeContent({ featuredProducts, banners }: HomeContentPr
         </div>
       </section>
 
-      <section className="container py-8 sm:py-10">
-        <h2 className="mb-4 text-2xl font-bold text-secondary-950">New Arrivals</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {newArrivals.map(renderProductCard)}
-        </div>
-      </section>
+      {hasAnyProducts && (
+        <section className="container py-8 sm:py-10">
+          <h2 className="mb-4 text-2xl font-bold text-secondary-950">New Arrivals</h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {newArrivals.map(renderProductCard)}
+          </div>
+        </section>
+      )}
 
-      <section className="container py-8 sm:py-10">
-        <h2 className="mb-4 text-2xl font-bold text-secondary-950">Best Sellers</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {bestSellers.map(renderProductCard)}
-        </div>
-      </section>
+      {hasAnyProducts && (
+        <section className="container py-8 sm:py-10">
+          <h2 className="mb-4 text-2xl font-bold text-secondary-950">Best Sellers</h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {bestSellers.map(renderProductCard)}
+          </div>
+        </section>
+      )}
 
       <section className="container py-8 sm:py-10">
         <h2 className="mb-4 text-2xl font-bold text-secondary-950">What customers say</h2>
