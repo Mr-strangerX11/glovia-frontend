@@ -30,8 +30,8 @@ export default function AnnouncementSettingsPage() {
     try {
       setFetching(true);
       const { data } = await adminAPI.getAnnouncement();
-      if (data && data.value) {
-        const parsed = JSON.parse(data.value);
+      const parsed = data?.value ? JSON.parse(data.value) : data;
+      if (parsed) {
         setFormData({
           message: parsed.message || '🚚 Express Delivery: We deliver within 60 minutes!',
           backgroundColor: parsed.backgroundColor || '#FFD700',

@@ -11,7 +11,7 @@ interface Order {
   id?: string;
   _id?: string;
   orderNumber: string;
-  user: {
+  user?: {
     firstName: string;
     lastName: string;
     email: string;
@@ -71,7 +71,7 @@ export default function AdminOrdersPage() {
 
   const filteredOrders = orders.filter((o) =>
     o.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    `${o.user.firstName} ${o.user.lastName}`.toLowerCase().includes(searchQuery.toLowerCase())
+    `${o.user?.firstName || ''} ${o.user?.lastName || ''}`.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -155,9 +155,9 @@ export default function AdminOrdersPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
-                          {order.user.firstName} {order.user.lastName}
+                          {order.user?.firstName || 'Unknown'} {order.user?.lastName || 'Customer'}
                         </div>
-                        <div className="text-sm text-gray-500">{order.user.email}</div>
+                        <div className="text-sm text-gray-500">{order.user?.email || 'N/A'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
