@@ -7,6 +7,7 @@ import ImageUploadField from '@/components/ImageUploadField';
 import toast from 'react-hot-toast';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 
 type Banner = {
   _id: string;
@@ -20,6 +21,7 @@ type Banner = {
 };
 
 const EditBannerPage = () => {
+  const { user, isChecking } = useAuthGuard({ roles: ['SUPER_ADMIN'] });
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
@@ -37,10 +39,10 @@ const EditBannerPage = () => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (id) {
+    if (user && id) {
       fetchBanner();
     }
-  }, [id]);
+  }, [user, id]);
 
   const fetchBanner = async () => {
     try {
@@ -95,7 +97,7 @@ const EditBannerPage = () => {
     }
   };
 
-  if (loading) {
+  if (isChecking || !user || loading) {
     return (
       <div className="p-8">
         <div className="max-w-3xl mx-auto">

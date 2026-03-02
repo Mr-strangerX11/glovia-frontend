@@ -7,8 +7,10 @@ import ImageUploadField from '@/components/ImageUploadField';
 import toast from 'react-hot-toast';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 
 const NewBannerPage = () => {
+  const { user, isChecking } = useAuthGuard({ roles: ['SUPER_ADMIN'] });
   const router = useRouter();
   const [form, setForm] = useState({
     title: '',
@@ -51,6 +53,23 @@ const NewBannerPage = () => {
       setSaving(false);
     }
   };
+
+  if (isChecking || !user) {
+    return (
+      <div className="p-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-16 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">

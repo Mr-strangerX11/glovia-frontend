@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import { Pencil, Trash2, Plus } from "lucide-react";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 type Banner = {
   _id: string;
@@ -20,6 +21,7 @@ type Banner = {
 };
 
 export default function AdminBannersPage() {
+  const { user, isChecking } = useAuthGuard({ roles: ["SUPER_ADMIN"] });
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,8 +39,10 @@ export default function AdminBannersPage() {
   };
 
   useEffect(() => {
-    fetchBanners();
-  }, []);
+    if (user) {
+      fetchBanners();
+    }
+  }, [user]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this banner?")) return;
@@ -62,7 +66,7 @@ export default function AdminBannersPage() {
     }
   };
 
-  if (loading) {
+  if (isChecking || !user || loading) {
     return (
       <div className="p-8">
         <div className="animate-pulse">
