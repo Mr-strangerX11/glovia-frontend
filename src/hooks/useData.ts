@@ -151,8 +151,8 @@ export function useBrand(slug: string) {
 }
 
 export function useCart() {
-  const isClient = typeof window !== 'undefined';
-  const { data, error, mutate } = useSWR(isClient ? '/cart' : null, () => fetcher(cartAPI.get));
+  const hasToken = typeof window !== 'undefined' && !!Cookies.get('access_token');
+  const { data, error, mutate } = useSWR(hasToken ? '/cart' : null, () => fetcher(cartAPI.get));
 
   return {
     cart: normalizeCart(data),
@@ -163,7 +163,8 @@ export function useCart() {
 }
 
 export function useWishlist() {
-  const { data, error, mutate } = useSWR('/wishlist', () => fetcher(wishlistAPI.get));
+  const hasToken = typeof window !== 'undefined' && !!Cookies.get('access_token');
+  const { data, error, mutate } = useSWR(hasToken ? '/wishlist' : null, () => fetcher(wishlistAPI.get));
 
   return {
     wishlist: normalizeWishlist(data),
@@ -204,7 +205,11 @@ export function useOrder(id: string) {
 }
 
 export function useProfile() {
-  const { data, error, mutate } = useSWR('/users/profile', () => fetcher(userAPI.getProfile));
+  const hasToken = typeof window !== 'undefined' && !!Cookies.get('access_token');
+  const { data, error, mutate } = useSWR(
+    hasToken ? '/users/profile' : null,
+    () => fetcher(userAPI.getProfile)
+  );
 
   return {
     user: normalizeEntity(data) as User,
@@ -215,7 +220,11 @@ export function useProfile() {
 }
 
 export function useAddresses() {
-  const { data, error, mutate } = useSWR('/users/addresses', () => fetcher(userAPI.getAddresses));
+  const hasToken = typeof window !== 'undefined' && !!Cookies.get('access_token');
+  const { data, error, mutate } = useSWR(
+    hasToken ? '/users/addresses' : null,
+    () => fetcher(userAPI.getAddresses)
+  );
 
   return {
     addresses: normalizeArray(data) as Address[],

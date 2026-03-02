@@ -25,7 +25,11 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
+    const originalRequest = error?.config;
+
+    if (!originalRequest) {
+      return Promise.reject(error);
+    }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
@@ -35,8 +39,9 @@ api.interceptors.response.use(
         const userId = typeof window !== 'undefined' ? Cookies.get('user_id') : undefined;
 
         if (refreshToken && userId) {
+          const baseURL = api.defaults.baseURL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
           const { data } = await axios.post(
-            `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
+            `${baseURL}/auth/refresh`,
             { refreshToken, userId }
           );
 
