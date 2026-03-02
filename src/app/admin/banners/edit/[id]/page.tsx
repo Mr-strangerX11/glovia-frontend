@@ -1,15 +1,29 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { adminAPI } from '@/lib/api';
 import ImageUploadField from '@/components/ImageUploadField';
 import toast from 'react-hot-toast';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
-const NewBannerPage = () => {
+type Banner = {
+  _id: string;
+  title: string;
+  subtitle?: string;
+  image: string;
+  mobileImage?: string;
+  link?: string;
+  displayOrder: number;
+  isActive: boolean;
+};
+
+const EditBannerPage = () => {
   const router = useRouter();
+  const params = useParams();
+  const id = params?.id as string;
+
   const [form, setForm] = useState({
     title: '',
     subtitle: '',
@@ -19,7 +33,36 @@ const NewBannerPage = () => {
     displayOrder: 0,
     isActive: true,
   });
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (id) {
+      fetchBanner();
+    }
+  }, [id]);
+
+  const fetchBanner = async () => {
+    try {
+      setLoading(true);
+      const { data } = await adminAPI.getBanner(id);
+      const banner = data as Banner;
+      setForm({
+        title: banner.title,
+        subtitle: banner.subtitle || '',
+        image: banner.image,
+        mobileImage: banner.mobileImage || '',
+        link: banner.link || '',
+        displayOrder: banner.displayOrder,
+        isActive: banner.isActive,
+      });
+    } catch (error) {
+      toast.error('Failed to load banner');
+      router.push('/admin/banners');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -39,18 +82,35 @@ const NewBannerPage = () => {
 
     try {
       setSaving(true);
-      await adminAPI.createBanner({
+      await adminAPI.updateBanner(id, {
         ...form,
         displayOrder: Number(form.displayOrder),
       });
-      toast.success('Banner created successfully');
+      toast.success('Banner updated successfully');
       router.push('/admin/banners');
     } catch (error) {
-      toast.error('Failed to create banner');
+      toast.error('Failed to update banner');
     } finally {
       setSaving(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="p-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="space-y-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-16 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">
@@ -63,8 +123,8 @@ const NewBannerPage = () => {
             <ArrowLeft className="w-5 h-5" />
             Back to Banners
           </Link>
-          <h1 className="text-3xl font-bold">Add New Banner</h1>
-          <p className="text-gray-600 mt-2">Create a new promotional banner for the homepage</p>
+          <h1 className="text-3xl font-bold">Edit Banner</h1>
+          <p className="text-gray-600 mt-2">Update banner details</p>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
@@ -167,7 +227,7 @@ const NewBannerPage = () => {
                 type="submit"
                 disabled={saving}
               >
-                {saving ? 'Creating...' : 'Create Banner'}
+                {saving ? 'Saving...' : 'Save Changes'}
               </button>
               <Link
                 href="/admin/banners"
@@ -183,5 +243,4 @@ const NewBannerPage = () => {
   );
 };
 
-export default NewBannerPage;
-
+export default EditBannerPage;

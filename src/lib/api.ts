@@ -157,6 +157,12 @@ export const adminAPI = {
   // Settings - Announcement
   getAnnouncement: () => api.get('/admin/settings/announcement'),
   updateAnnouncement: (data: any) => api.put('/admin/settings/announcement', data),
+  // Banners
+  getBanners: () => api.get('/admin/banners'),
+  getBanner: (id: string) => api.get(`/admin/banners/${id}`),
+  createBanner: (data: any) => api.post('/admin/banners', data),
+  updateBanner: (id: string, data: any) => api.put(`/admin/banners/${id}`, data),
+  deleteBanner: (id: string) => api.delete(`/admin/banners/${id}`),
 };
 
 // Vendor API

@@ -145,14 +145,44 @@ export default function ProductDetailPage() {
       const item = data as ProductDetail;
       setProduct(item);
 
+      // Fetch related products from the same category
       if (item.categoryId) {
-        const relatedRes = await productsAPI.getAll({
-          categoryId: item.categoryId,
-          limit: 4,
-        });
-        setRelatedProducts(
-          ((relatedRes.data?.data || []) as RelatedProduct[]).filter((p) => p._id !== item._id)
-        );
+        try {
+          const relatedRes = await productsAPI.getAll({
+            categoryId: item.categoryId,
+            limit: 8, // Fetch more to ensure we have enough after filtering
+          });
+          const allProducts = (relatedRes.data?.data || []) as RelatedProduct[];
+          // Filter out current product and limit to 4
+          const filtered = allProducts
+            .filter((p) => p._id !== item._id && p.slug !== item.slug)
+            .slice(0, 4);
+          setRelatedProducts(filtered);
+        } catch (error) {
+          // If category-based fetch fails, try to get random products
+          try {
+            const fallbackRes = await productsAPI.getAll({ limit: 5 });
+            const allProducts = (fallbackRes.data?.data || []) as RelatedProduct[];
+            const filtered = allProducts
+              .filter((p) => p._id !== item._id && p.slug !== item.slug)
+              .slice(0, 4);
+            setRelatedProducts(filtered);
+          } catch {
+            setRelatedProducts([]);
+          }
+        }
+      } else {
+        // No category, fetch random products
+        try {
+          const fallbackRes = await productsAPI.getAll({ limit: 5 });
+          const allProducts = (fallbackRes.data?.data || []) as RelatedProduct[];
+          const filtered = allProducts
+            .filter((p) => p._id !== item._id && p.slug !== item.slug)
+            .slice(0, 4);
+          setRelatedProducts(filtered);
+        } catch {
+          setRelatedProducts([]);
+        }
       }
 
       try {

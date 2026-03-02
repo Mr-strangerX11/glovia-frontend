@@ -189,15 +189,46 @@ export default function HomeContent({ featuredProducts, banners }: HomeContentPr
             <p className="mt-2 text-sm text-white/85">Rotate targeted campaigns with conversion-first visuals and first-buyer discount popups.</p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            {(heroBanners.length ? heroBanners.slice(0, 2) : [{ id: 'sale', title: 'Mega Sale', image: '/icon-512.svg' }, { id: 'new', title: 'New Collection', image: '/icon-512.svg' }]).map((banner, i) => (
-              <div key={banner.id || i} className="relative h-32 overflow-hidden rounded-2xl border border-white/20">
-                <Image src={banner.image || '/icon-512.svg'} alt={banner.title || 'Banner'} fill className="object-cover" />
-                <div className="absolute inset-0 bg-black/35 p-3">
-                  <p className="text-xs font-semibold uppercase">Campaign</p>
-                  <p className="mt-1 text-sm font-bold">{banner.title || 'Special Offer'}</p>
+            {heroBanners.length > 0 ? (
+              heroBanners.slice(0, 2).map((banner, i) => (
+                <Link
+                  key={banner.id || i}
+                  href={banner.link || '#'}
+                  className="relative h-32 overflow-hidden rounded-2xl border border-white/20 group hover:border-white/40 transition-all"
+                >
+                  <Image 
+                    src={banner.image || '/icon-512.svg'} 
+                    alt={banner.title || 'Banner'} 
+                    fill 
+                    className="object-cover group-hover:scale-105 transition-transform duration-300" 
+                  />
+                  <div className="absolute inset-0 bg-black/35 p-3">
+                    <p className="text-xs font-semibold uppercase">Campaign</p>
+                    <p className="mt-1 text-sm font-bold">{banner.title || 'Special Offer'}</p>
+                    {banner.subtitle && (
+                      <p className="text-xs text-white/80 mt-1">{banner.subtitle}</p>
+                    )}
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <>
+                <div className="relative h-32 overflow-hidden rounded-2xl border border-white/20">
+                  <Image src="/icon-512.svg" alt="Mega Sale" fill className="object-cover" />
+                  <div className="absolute inset-0 bg-black/35 p-3">
+                    <p className="text-xs font-semibold uppercase">Campaign</p>
+                    <p className="mt-1 text-sm font-bold">Mega Sale</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+                <div className="relative h-32 overflow-hidden rounded-2xl border border-white/20">
+                  <Image src="/icon-512.svg" alt="New Collection" fill className="object-cover" />
+                  <div className="absolute inset-0 bg-black/35 p-3">
+                    <p className="text-xs font-semibold uppercase">Campaign</p>
+                    <p className="mt-1 text-sm font-bold">New Collection</p>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </section>
