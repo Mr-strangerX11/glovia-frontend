@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
+import { Eye, EyeOff } from "lucide-react";
 
 type Step = "email" | "otp" | "password";
 
@@ -14,6 +15,8 @@ export default function ForgotPasswordPage() {
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -187,15 +190,25 @@ export default function ForgotPasswordPage() {
               <label className="text-sm font-medium text-gray-700" htmlFor="newPassword">
                 New Password
               </label>
-              <input
-                id="newPassword"
-                type="password"
-                required
-                className="input"
-                placeholder="Min 8 chars, include A-Z, a-z, 0-9, symbol"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-              />
+              <div className="relative">
+                <input
+                  id="newPassword"
+                  type={showNewPassword ? "text" : "password"}
+                  required
+                  className="input pr-10"
+                  placeholder="Min 8 chars, include A-Z, a-z, 0-9, symbol"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700"
+                  aria-label={showNewPassword ? "Hide password" : "Show password"}
+                >
+                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
               <p className="text-xs text-gray-500">Must include uppercase, lowercase, number, and special character.</p>
             </div>
 
@@ -203,15 +216,25 @@ export default function ForgotPasswordPage() {
               <label className="text-sm font-medium text-gray-700" htmlFor="confirmPassword">
                 Confirm Password
               </label>
-              <input
-                id="confirmPassword"
-                type="password"
-                required
-                className="input"
-                placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
+              <div className="relative">
+                <input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  required
+                  className="input pr-10"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700"
+                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                >
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
 
             <button type="submit" className="btn-primary w-full" disabled={loading}>
