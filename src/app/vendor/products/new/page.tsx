@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { vendorAPI, categoriesAPI, brandsAPI } from '@/lib/api';
@@ -26,6 +26,7 @@ export default function VendorNewProductPage() {
     stockQuantity: 0,
     sku: '',
     categoryId: '',
+    subCategoryId: '',
     brandId: '',
     images: [''],
     isFeatured: false,
@@ -40,7 +41,24 @@ export default function VendorNewProductPage() {
   }, [user]);
 
   const getCategoryId = (category: any) => category?.id || category?._id || '';
+  const getParentId = (category: any) => category?.parentId?.toString?.() || category?.parentId || '';
   const getBrandId = (brand: any) => brand?.id || brand?._id || '';
+
+  const parentCategories = useMemo(
+    () => (Array.isArray(categories) ? categories.filter((cat) => !getParentId(cat)) : []),
+    [categories]
+  );
+
+  const availableSubCategories = useMemo(() => {
+    if (!formData.categoryId || !Array.isArray(categories)) return [];
+
+    const selectedParent = categories.find((cat) => getCategoryId(cat) === formData.categoryId);
+    if (selectedParent?.children?.length) {
+      return selectedParent.children;
+    }
+
+    return categories.filter((cat) => getParentId(cat) === formData.categoryId);
+  }, [categories, formData.categoryId]);
 
   const fetchCategories = async () => {
     try {
@@ -124,6 +142,7 @@ export default function VendorNewProductPage() {
     try {
       await vendorAPI.createProduct({
         ...formData,
+        categoryId: formData.subCategoryId || formData.categoryId,
         images: imageUrls.length > 0 ? imageUrls : undefined,
       });
       toast.success('Product created successfully');
@@ -248,17 +267,16 @@ export default function VendorNewProductPage() {
                 <label className="label">Category *</label>
                 <select
                   value={formData.categoryId}
-                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value, subCategoryId: '' })}
                   className="input"
                   disabled={categoriesLoading}
                   required
                 >
-                {errors.categoryId && <p className="text-sm text-red-600 mt-1">{errors.categoryId}</p>}
                   <option value="">
                     {categoriesLoading ? 'Loading categories...' : 'Select Category'}
                   </option>
-                  {Array.isArray(categories) && categories.length > 0 ? (
-                    categories.map((cat) => (
+                  {parentCategories.length > 0 ? (
+                    parentCategories.map((cat) => (
                       <option key={getCategoryId(cat) || cat.name} value={getCategoryId(cat)}>
                         {cat.name}
                       </option>
@@ -272,6 +290,30 @@ export default function VendorNewProductPage() {
                 {!categoriesLoading && (!Array.isArray(categories) || categories.length === 0) && (
                   <p className="text-sm text-red-600 mt-1">⚠️ Failed to load categories. Please refresh the page.</p>
                 )}
+                {errors.categoryId && <p className="text-sm text-red-600 mt-1">{errors.categoryId}</p>}
+              </div>
+
+              <div>
+                <label className="label">Sub-Category</label>
+                <select
+                  value={formData.subCategoryId}
+                  onChange={(e) => setFormData({ ...formData, subCategoryId: e.target.value })}
+                  className="input"
+                  disabled={!formData.categoryId || availableSubCategories.length === 0}
+                >
+                  <option value="">
+                    {!formData.categoryId
+                      ? 'Select Category First'
+                      : availableSubCategories.length === 0
+                        ? 'No Sub-Category Available'
+                        : 'Select Sub-Category (Optional)'}
+                  </option>
+                  {availableSubCategories.map((subCat: any) => (
+                    <option key={getCategoryId(subCat) || subCat.name} value={getCategoryId(subCat)}>
+                      {subCat.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>

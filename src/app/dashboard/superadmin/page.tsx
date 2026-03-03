@@ -16,7 +16,6 @@ import {
   Layers,
   Plus,
   Loader2,
-  Settings,
   ShieldCheck,
   RefreshCcw,
   Image as ImageIcon,
@@ -113,11 +112,6 @@ export default function SuperAdminDashboardPage() {
             <h1 className="text-3xl font-bold mb-1">SuperAdmin Dashboard</h1>
             <p className="text-gray-600">Welcome, {user.firstName} {user.lastName}! You have full system access.</p>
           </div>
-          <div className="flex gap-3">
-            <Link href="/admin/settings" className="btn-outline flex items-center gap-2">
-              <Settings className="w-4 h-4" /> Platform Settings
-            </Link>
-          </div>
         </div>
 
         {/* Metrics */}
@@ -141,14 +135,6 @@ export default function SuperAdminDashboardPage() {
             <Link href="/admin/users" className="group p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all text-center">
               <Users className="w-8 h-8 text-gray-400 group-hover:text-primary-600 mx-auto mb-2" />
               <p className="text-sm font-semibold text-gray-700 group-hover:text-primary-700">Manage Users</p>
-            </Link>
-            <Link href="/admin/users?role=ADMIN" className="group p-4 border-2 border-dashed border-orange-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-center">
-              <ShieldCheck className="w-8 h-8 text-orange-400 group-hover:text-orange-600 mx-auto mb-2" />
-              <p className="text-sm font-semibold text-orange-700 group-hover:text-orange-800">Manage Admins</p>
-            </Link>
-            <Link href="/admin/users?role=VENDOR" className="group p-4 border-2 border-dashed border-purple-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-center">
-              <UserCheck className="w-8 h-8 text-purple-400 group-hover:text-purple-600 mx-auto mb-2" />
-              <p className="text-sm font-semibold text-purple-700 group-hover:text-purple-800">Manage Vendors</p>
             </Link>
             <Link href="/admin/orders" className="group p-4 border-2 border-dashed border-green-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all text-center">
               <ShoppingBag className="w-8 h-8 text-green-400 group-hover:text-green-600 mx-auto mb-2" />

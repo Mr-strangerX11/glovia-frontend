@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { adminAPI, categoriesAPI, brandsAPI } from "@/lib/api";
@@ -18,6 +18,25 @@ export default function EditProductPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [brands, setBrands] = useState<any[]>([]);
   const [formData, setFormData] = useState<any>(null);
+
+  const getCategoryId = (category: any) => category?.id || category?._id || "";
+  const getParentId = (category: any) => category?.parentId?.toString?.() || category?.parentId || "";
+
+  const parentCategories = useMemo(
+    () => (Array.isArray(categories) ? categories.filter((cat) => !getParentId(cat)) : []),
+    [categories]
+  );
+
+  const availableSubCategories = useMemo(() => {
+    if (!formData?.categoryId || !Array.isArray(categories)) return [];
+
+    const selectedParent = categories.find((cat) => getCategoryId(cat) === formData.categoryId);
+    if (selectedParent?.children?.length) {
+      return selectedParent.children;
+    }
+
+    return categories.filter((cat) => getParentId(cat) === formData.categoryId);
+  }, [categories, formData?.categoryId]);
 
   useEffect(() => {
     if (user && params && (params as any).id) {
@@ -37,9 +56,18 @@ export default function EditProductPage() {
       ]);
       // Clean up product data to extract IDs and image URLs
       const product = productRes.data;
+      const categoriesList = Array.isArray(categoriesRes.data)
+        ? categoriesRes.data
+        : categoriesRes.data?.data || [];
+
+      const rawCategoryId = (product.categoryId || product.category?._id || product.category?.id || '').toString();
+      const selectedCategory = categoriesList.find((cat: any) => getCategoryId(cat) === rawCategoryId);
+      const selectedCategoryParentId = selectedCategory ? getParentId(selectedCategory) : '';
+
       const cleanedData = {
         ...product,
-        categoryId: product.categoryId || product.category?._id || product.category?.id || '',
+        categoryId: selectedCategoryParentId || rawCategoryId,
+        subCategoryId: selectedCategoryParentId ? rawCategoryId : '',
         brandId: product.brandId || product.brand?._id || product.brand?.id || '',
         // Extract image URLs from image objects
         images: Array.isArray(product.images) 
@@ -47,7 +75,7 @@ export default function EditProductPage() {
           : [],
       };
       setFormData(cleanedData);
-      setCategories(categoriesRes.data || []);
+      setCategories(categoriesList);
       setBrands(brandsRes.data?.data || brandsRes.data || []);
     } catch (error) {
       const errorMessage = (error as any)?.response?.data?.message || "Failed to load product data";
@@ -87,7 +115,7 @@ export default function EditProductPage() {
         description: formData.description || '',
         price: Number(formData.price),
         stockQuantity: Number(formData.stockQuantity),
-        categoryId: formData.categoryId,
+        categoryId: formData.subCategoryId || formData.categoryId,
         brandId: formData.brandId || null,
         isActive: formData.isActive,
         isFeatured: formData.isFeatured,
@@ -211,14 +239,44 @@ export default function EditProductPage() {
               <select
                 name="categoryId"
                 value={formData.categoryId || ""}
-                onChange={handleChange}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFormData((prev: any) => ({
+                    ...prev,
+                    categoryId: value,
+                    subCategoryId: "",
+                  }));
+                }}
                 className="input"
                 required
               >
                 <option value="">Select category</option>
-                {categories.map((cat) => (
+                {parentCategories.map((cat) => (
                   <option key={cat.id || cat._id} value={cat.id || cat._id}>
                     {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="label">Sub-Category</label>
+              <select
+                name="subCategoryId"
+                value={formData.subCategoryId || ""}
+                onChange={handleChange}
+                className="input"
+                disabled={!formData.categoryId || availableSubCategories.length === 0}
+              >
+                <option value="">
+                  {!formData.categoryId
+                    ? "Select Category First"
+                    : availableSubCategories.length === 0
+                      ? "No Sub-Category Available"
+                      : "Select Sub-Category (Optional)"}
+                </option>
+                {availableSubCategories.map((subCat: any) => (
+                  <option key={getCategoryId(subCat)} value={getCategoryId(subCat)}>
+                    {subCat.name}
                   </option>
                 ))}
               </select>

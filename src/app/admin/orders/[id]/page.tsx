@@ -7,6 +7,7 @@ import { adminAPI } from '@/lib/api';
 import { Loader2, Save, ArrowLeft, Tag, Truck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import { mutate } from 'swr';
 
 interface OrderItem {
   id?: string;
@@ -124,6 +125,7 @@ export default function OrderDetailPage() {
       }
       await adminAPI.updateOrder(orderId, updateData);
       toast.success('Order updated successfully');
+      await mutate('/admin/dashboard');
       await fetchOrder();
       setShowDiscountForm(false);
       setShowDeliveryForm(false);
@@ -189,6 +191,7 @@ export default function OrderDetailPage() {
       const orderId = getOrderId(order);
       await adminAPI.updateOrder(orderId, { status: "CANCELLED" });
       toast.success("Order cancelled");
+      await mutate('/admin/dashboard');
       await fetchOrder();
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Failed to cancel order");
@@ -457,6 +460,7 @@ export default function OrderDetailPage() {
                         try {
                           await adminAPI.updateOrder(getOrderId(order), { status: "SHIPPED" });
                           toast.success("Order marked as On the Way");
+                          await mutate('/admin/dashboard');
                           await fetchOrder();
                         } catch (e) {
                           toast.error("Failed to update status");
@@ -478,6 +482,7 @@ export default function OrderDetailPage() {
                         try {
                           await adminAPI.updateOrder(getOrderId(order), { status: "DELIVERED" });
                           toast.success("Order marked as Complete");
+                          await mutate('/admin/dashboard');
                           await fetchOrder();
                         } catch (e) {
                           toast.error("Failed to update status");
