@@ -23,6 +23,52 @@ export function Header() {
   const [activeDesktopCategory, setActiveDesktopCategory] = useState<MainCategorySlug>('skincare');
   const [activeMobileCategory, setActiveMobileCategory] = useState<MainCategorySlug | null>(null);
 
+  const labels = useMemo(
+    () =>
+      language === 'EN'
+        ? {
+            topBarPromo: '✨ Free delivery over NPR 2,999 • Premium Marketplace for Nepal',
+            sellerDashboard: 'Seller Dashboard',
+            trackOrder: 'Track Order',
+            beautyTips: 'Beauty Tips',
+            about: 'About',
+            signIn: 'Sign In',
+            dashboard: 'Dashboard',
+            myAccount: 'My Account',
+            orders: 'Orders',
+            addresses: 'Addresses',
+            logout: 'Logout',
+            browseCategories: 'Browse Categories',
+            viewAll: 'View all',
+            home: 'Home',
+            categories: 'Categories',
+            cart: 'Cart',
+            account: 'Account',
+            searchPlaceholder: 'Search for products...',
+          }
+        : {
+            topBarPromo: '✨ NPR 2,999 भन्दा माथि निःशुल्क डेलिभरी • नेपालका लागि प्रिमियम मार्केटप्लेस',
+            sellerDashboard: 'बिक्रेता ड्यासबोर्ड',
+            trackOrder: 'अर्डर ट्र्याक गर्नुहोस्',
+            beautyTips: 'सौन्दर्य सुझाव',
+            about: 'हाम्रो बारेमा',
+            signIn: 'साइन इन',
+            dashboard: 'ड्यासबोर्ड',
+            myAccount: 'मेरो खाता',
+            orders: 'अर्डरहरू',
+            addresses: 'ठेगानाहरू',
+            logout: 'लगआउट',
+            browseCategories: 'कोटीहरू ब्राउज गर्नुहोस्',
+            viewAll: 'सबै हेर्नुहोस्',
+            home: 'होम',
+            categories: 'कोटीहरू',
+            cart: 'कार्ट',
+            account: 'खाता',
+            searchPlaceholder: 'उत्पादन खोज्नुहोस्...',
+          },
+    [language]
+  );
+
   const toggleDark = () => {
     if (typeof window === 'undefined') return;
     const html = document.documentElement;
@@ -39,6 +85,10 @@ export function Header() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      const savedLanguage = localStorage.getItem('language');
+      if (savedLanguage === 'EN' || savedLanguage === 'NP') {
+        setLanguage(savedLanguage);
+      }
       const theme = localStorage.getItem('theme');
       if (theme === 'dark') {
         document.documentElement.classList.add('dark');
@@ -107,23 +157,31 @@ export function Header() {
       <div className="bg-secondary-900 text-white py-2">
         <div className="container">
           <div className="flex justify-between items-center text-xs sm:text-sm gap-2">
-            <p className="truncate">✨ Free delivery over NPR 2,999 • Premium Marketplace for Nepal</p>
+            <p className="truncate">{labels.topBarPromo}</p>
             <div className="hidden md:flex items-center gap-4 text-white/95">
               <button
                 className="inline-flex items-center gap-1 rounded-full border border-white/20 px-2.5 py-1 text-xs"
-                onClick={() => setLanguage((prev) => (prev === 'EN' ? 'NP' : 'EN'))}
+                onClick={() =>
+                  setLanguage((prev) => {
+                    const next = prev === 'EN' ? 'NP' : 'EN';
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem('language', next);
+                    }
+                    return next;
+                  })
+                }
                 type="button"
               >
                 <Globe className="h-3.5 w-3.5" /> {language === 'EN' ? 'English 🇺🇸' : 'नेपाली 🇳🇵'}
               </button>
               <Link href="/vendor" className="inline-flex items-center gap-1 hover:underline whitespace-nowrap">
-                <Store className="h-3.5 w-3.5" /> Seller Dashboard
+                <Store className="h-3.5 w-3.5" /> {labels.sellerDashboard}
               </Link>
               <Link href="/track-order" className="hover:underline whitespace-nowrap">
-                Track Order
+                {labels.trackOrder}
               </Link>
               <Link href="/blog" className="hover:underline whitespace-nowrap">
-                Beauty Tips
+                {labels.beautyTips}
               </Link>
             </div>
           </div>
@@ -174,7 +232,7 @@ export function Header() {
                   : 'text-gray-700 hover:text-primary-600'
               }`}
             >
-              About
+              {labels.about}
             </Link>
           </nav>
 
@@ -228,28 +286,28 @@ export function Header() {
                 </button>
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
                   <Link href="/dashboard" className="block px-4 py-2 hover:bg-gray-100 text-sm">
-                    Dashboard
+                    {labels.dashboard}
                   </Link>
                   <Link href="/account" className="block px-4 py-2 hover:bg-gray-100 text-sm">
-                    My Account
+                    {labels.myAccount}
                   </Link>
                   <Link href="/account/orders" className="block px-4 py-2 hover:bg-gray-100 text-sm">
-                    Orders
+                    {labels.orders}
                   </Link>
                   <Link href="/account/addresses" className="block px-4 py-2 hover:bg-gray-100 text-sm">
-                    Addresses
+                    {labels.addresses}
                   </Link>
                   <button
                     onClick={handleLogout}
                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600 text-sm"
                   >
-                    Logout
+                    {labels.logout}
                   </button>
                 </div>
               </div>
             ) : (
               <Link href="/auth/login" className="btn-primary text-xs sm:text-sm px-3 sm:px-6 py-2 sm:py-3 rounded-xl">
-                Sign In
+                {labels.signIn}
               </Link>
             )}
 
@@ -284,7 +342,7 @@ export function Header() {
               <input
                 type="text"
                 name="search"
-                placeholder="Search for products..."
+                placeholder={labels.searchPlaceholder}
                 className="input pr-10"
                 autoFocus
                 value={searchQuery}
@@ -385,7 +443,7 @@ export function Header() {
               className="fixed left-0 top-0 z-[60] h-[100dvh] w-[90%] max-w-sm overflow-y-auto border-r border-gray-200 bg-white p-4 pb-24 shadow-2xl lg:hidden dark:border-gray-800 dark:bg-gray-950"
             >
               <div className="sticky top-0 z-10 -mx-4 mb-4 flex items-center justify-between border-b border-gray-200 bg-white px-4 pb-3 pt-1 dark:border-gray-800 dark:bg-gray-950">
-                <h3 className="text-base font-semibold text-secondary-900 dark:text-gray-100">Browse Categories</h3>
+                <h3 className="text-base font-semibold text-secondary-900 dark:text-gray-100">{labels.browseCategories}</h3>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
                   className="rounded-lg border border-gray-200 p-2 dark:border-gray-700"
@@ -420,7 +478,7 @@ export function Header() {
                               className="block rounded-lg bg-primary-50 px-3 py-2 text-xs font-semibold text-primary-700"
                               onClick={() => setMobileMenuOpen(false)}
                             >
-                              View all {category.label}
+                              {labels.viewAll} {category.label}
                             </Link>
                             {GLOVIA_SUBCATEGORY_GROUPS[category.slug].map((group) => (
                               <div key={group.group}>
@@ -454,14 +512,14 @@ export function Header() {
                   }`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  About
+                  {labels.about}
                 </Link>
                 <Link
                   href="/vendor"
                   className="rounded-xl px-4 py-2.5 text-sm font-medium text-secondary-800 transition hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-800"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Seller Dashboard
+                  {labels.sellerDashboard}
                 </Link>
               </nav>
             </motion.div>
@@ -479,14 +537,14 @@ export function Header() {
                 : 'text-secondary-900 dark:text-gray-100'
             }`}
           >
-            <Home className="h-4 w-4" /> Home
+            <Home className="h-4 w-4" /> {labels.home}
           </Link>
           <button
             type="button"
             onClick={() => setMobileMenuOpen((prev) => !prev)}
             className="flex flex-col items-center gap-1 rounded-xl py-1 text-xs font-medium text-secondary-900 transition dark:text-gray-100"
           >
-            <Menu className="h-4 w-4" /> Categories
+            <Menu className="h-4 w-4" /> {labels.categories}
           </button>
           <Link
             href="/cart"
@@ -496,7 +554,7 @@ export function Header() {
                 : 'text-secondary-900 dark:text-gray-100'
             }`}
           >
-            <ShoppingCart className="h-4 w-4" /> Cart
+            <ShoppingCart className="h-4 w-4" /> {labels.cart}
             {cart && cart.itemCount > 0 ? (
               <span className="absolute right-5 top-0 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary-600 px-1 text-[10px] text-white">
                 {cart.itemCount}
@@ -511,7 +569,7 @@ export function Header() {
                 : 'text-secondary-900 dark:text-gray-100'
             }`}
           >
-            <User className="h-4 w-4" /> Account
+            <User className="h-4 w-4" /> {labels.account}
           </Link>
         </div>
       </div>
