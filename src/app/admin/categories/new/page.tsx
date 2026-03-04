@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { categoriesAPI } from '@/lib/api';
 
@@ -23,7 +23,7 @@ const CATEGORY_TYPES = [
   'HERBAL',
 ] as const;
 
-const NewCategoryPage = () => {
+const NewCategoryContent = () => {
   const searchParams = useSearchParams();
   const [parentCategories, setParentCategories] = useState<Category[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -201,6 +201,14 @@ const NewCategoryPage = () => {
         {feedback && <p className="mt-3 text-sm text-gray-700">{feedback}</p>}
       </form>
     </div>
+  );
+};
+
+const NewCategoryPage = () => {
+  return (
+    <Suspense fallback={<div className="max-w-xl mx-auto mt-8 p-6 bg-white rounded shadow">Loading...</div>}>
+      <NewCategoryContent />
+    </Suspense>
   );
 };
 
