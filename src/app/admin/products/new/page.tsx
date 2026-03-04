@@ -55,8 +55,20 @@ function NewProductContent() {
     }
   }, [user]);
 
-  const getCategoryId = (category: any) => category?.id || category?._id || '';
-  const getParentId = (category: any) => category?.parentId?.toString?.() || category?.parentId || '';
+  const normalizeId = (value: any): string => {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'object') {
+      if (value._id) return String(value._id);
+      if (value.id) return String(value.id);
+      if (value.$oid) return String(value.$oid);
+    }
+    const parsed = String(value);
+    return parsed === '[object Object]' ? '' : parsed;
+  };
+
+  const getCategoryId = (category: any) => normalizeId(category?.id || category?._id);
+  const getParentId = (category: any) => normalizeId(category?.parentId);
   const getBrandId = (brand: any) => brand?.id || brand?._id || '';
   const ALL_SUB_CATEGORIES = '__ALL_SUB_CATEGORIES__';
 
