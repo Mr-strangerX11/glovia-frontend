@@ -34,6 +34,7 @@ export default function EditProductPage() {
 
   const getCategoryId = (category: any) => normalizeId(category?.id || category?._id);
   const getParentId = (category: any) => normalizeId(category?.parentId);
+  const getBrandId = (brand: any) => normalizeId(brand?.id || brand?._id);
   const ALL_SUB_CATEGORIES = '__ALL_SUB_CATEGORIES__';
 
   const parentCategories = useMemo(
@@ -104,7 +105,7 @@ export default function EditProductPage() {
         ? categoriesRes.data
         : categoriesRes.data?.data || [];
 
-      const rawCategoryId = (product.categoryId || product.category?._id || product.category?.id || '').toString();
+      const rawCategoryId = normalizeId(product.categoryId || product.category?._id || product.category?.id || '');
       const selectedCategory = categoriesList.find((cat: any) => getCategoryId(cat) === rawCategoryId);
       const selectedCategoryParentId = selectedCategory ? getParentId(selectedCategory) : '';
 
@@ -112,7 +113,7 @@ export default function EditProductPage() {
         ...product,
         categoryId: selectedCategoryParentId || rawCategoryId,
         subCategoryId: selectedCategoryParentId ? rawCategoryId : '',
-        brandId: product.brandId || product.brand?._id || product.brand?.id || '',
+        brandId: normalizeId(product.brandId || product.brand?._id || product.brand?.id || ''),
         // Extract image URLs from image objects
         images: Array.isArray(product.images) 
           ? product.images.map((img: any) => typeof img === 'string' ? img : img.url)
@@ -299,7 +300,7 @@ export default function EditProductPage() {
               >
                 <option value="">Select category</option>
                 {parentCategories.map((cat) => (
-                  <option key={cat.id || cat._id} value={cat.id || cat._id}>
+                  <option key={getCategoryId(cat) || cat.name} value={getCategoryId(cat)}>
                     {cat.name}
                   </option>
                 ))}
@@ -341,7 +342,7 @@ export default function EditProductPage() {
               >
                 <option value="">Select brand</option>
                 {brands.map((brand) => (
-                  <option key={brand.id || brand._id} value={brand.id || brand._id}>
+                  <option key={getBrandId(brand) || brand.name} value={getBrandId(brand)}>
                     {brand.name}
                   </option>
                 ))}
