@@ -99,24 +99,44 @@ export const categoriesAPI = {
       return parsed === '[object Object]' ? '' : parsed;
     };
 
+    // Ensure parentId is a valid string
+    if (!parentId || typeof parentId !== 'string' || parentId.trim() === '') {
+      return { data: [] };
+    }
+
     try {
-      return await api.get(`/categories/parent/${encodeURIComponent(parentId)}`);
+      const response = await api.get(`/categories/parent/${encodeURIComponent(parentId)}`);
+      // If API returns data directly, return it
+      if (response.data && (Array.isArray(response.data) || response.data.data)) {
+        return response;
+      }
+      return { data: [] };
     } catch (error: any) {
+      // If error is not 404, throw the error
       if (error?.response?.status !== 404) {
-        throw error;
+        console.error('Error fetching subcategories:', error);
       }
 
-      const allCategoriesResponse = await api.get('/categories');
-      const allCategories = Array.isArray(allCategoriesResponse.data)
-        ? allCategoriesResponse.data
-        : allCategoriesResponse.data?.data || [];
+      // Fallback: Get all categories and filter by parentId
+      try {
+        const allCategoriesResponse = await api.get('/categories');
+        const allCategories = Array.isArray(allCategoriesResponse.data)
+          ? allCategoriesResponse.data
+          : allCategoriesResponse.data?.data || [];
 
-      const filtered = allCategories.filter((cat: any) => normalizeId(cat?.parentId) === parentId);
+        // Filter categories where parentId matches the given parentId
+        const filtered = allCategories.filter((cat: any) => {
+          const catParentId = normalizeId(cat?.parentId);
+          return catParentId === parentId;
+        });
 
-      return {
-        ...allCategoriesResponse,
-        data: filtered,
-      };
+        return {
+          data: filtered,
+        };
+      } catch (fallbackError) {
+        console.error('Error in fallback subcategories:', fallbackError);
+        return { data: [] };
+      }
     }
   },
   getBySlug: (slug: string) => api.get(`/categories/${slug}`),

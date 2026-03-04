@@ -62,39 +62,74 @@ export default function VendorEditProductPage() {
 
   const getSubCategoriesFromParent = (parentId: string) => {
     const selectedParent = parentCategories.find((cat) => getCategoryId(cat) === parentId);
-    return Array.isArray(selectedParent?.children) ? selectedParent.children : [];
+    const embeddedChildren = Array.isArray(selectedParent?.children) ? selectedParent.children : [];
+    const allMatchedChildren = categories.filter((cat) => getParentId(cat) === parentId);
+
+    const merged = [...embeddedChildren, ...allMatchedChildren];
+    const seen = new Set<string>();
+
+    return merged.filter((cat: any) => {
+      const id = getCategoryId(cat);
+      if (!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
   };
 
   useEffect(() => {
     let active = true;
 
     const loadSubCategories = async () => {
+      // Clear subcategories if no category is selected
       if (!formData.categoryId) {
-        if (active) setSubCategories([]);
+        if (active) {
+          setSubCategories([]);
+        }
         return;
       }
 
       try {
         const { data } = await categoriesAPI.getByParent(formData.categoryId);
-        const apiList = Array.isArray(data) ? data : data?.data || [];
+        
+        // Handle various response formats
+        let apiList: any[] = [];
+        if (Array.isArray(data)) {
+          apiList = data;
+        } else if (data?.data && Array.isArray(data.data)) {
+          apiList = data.data;
+        }
+
+        // Get fallback list from embedded children in the categories data
         const fallbackList = getSubCategoriesFromParent(formData.categoryId);
+        
+        // Use API list if available, otherwise fallback
         const list = apiList.length > 0 ? apiList : fallbackList;
+        
         if (!active) return;
+        
         setSubCategories(list);
 
+        // Update formData to preserve valid subCategoryId or reset if changed
         setFormData((prev) => {
+          if (!prev) return prev;
+          
+          // If the current subCategoryId is still valid in the new list, keep it
           const hasCurrent = list.some((subCat: any) => getCategoryId(subCat) === prev.subCategoryId);
-          const nextSubCategoryId = list.length === 0
-            ? ''
-            : hasCurrent || prev.subCategoryId === ALL_SUB_CATEGORIES
-              ? prev.subCategoryId
-              : ALL_SUB_CATEGORIES;
-
-          if (prev.subCategoryId === nextSubCategoryId) return prev;
-          return { ...prev, subCategoryId: nextSubCategoryId };
+          
+          // If current subCategoryId is not in new list and it's not empty, reset it
+          if (!hasCurrent && prev.subCategoryId && prev.subCategoryId !== ALL_SUB_CATEGORIES) {
+            return { ...prev, subCategoryId: '' };
+          }
+          
+          return prev;
         });
-      } catch {
-        if (active) setSubCategories([]);
+      } catch (error) {
+        console.error('Error loading subcategories:', error);
+        // Try fallback on error
+        const fallbackList = getSubCategoriesFromParent(formData.categoryId);
+        if (active) {
+          setSubCategories(fallbackList);
+        }
       }
     };
 

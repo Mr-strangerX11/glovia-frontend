@@ -67,7 +67,18 @@ export default function VendorNewProductPage() {
 
   const getSubCategoriesFromParent = (parentId: string) => {
     const selectedParent = parentCategories.find((cat) => getCategoryId(cat) === parentId);
-    return Array.isArray(selectedParent?.children) ? selectedParent.children : [];
+    const embeddedChildren = Array.isArray(selectedParent?.children) ? selectedParent.children : [];
+    const allMatchedChildren = categories.filter((cat) => getParentId(cat) === parentId);
+
+    const merged = [...embeddedChildren, ...allMatchedChildren];
+    const seen = new Set<string>();
+
+    return merged.filter((cat: any) => {
+      const id = getCategoryId(cat);
+      if (!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
   };
 
   useEffect(() => {
