@@ -216,3 +216,11 @@ export const blogsAPI = {
   getAll: (params?: any) => api.get('/blogs', { params }),
   getBySlug: (slug: string) => api.get(`/blogs/${slug}`),
 };
+
+// Loyalty API
+export const loyaltyAPI = {
+  getMine: () => api.get('/loyalty/me'),
+  getByUserId: (userId: string) => api.get(`/loyalty/${userId}`),
+  getAllPoints: () => api.get('/loyalty/admin/points'),
+  addPoints: (data: { userId: string; points: number }) => api.post('/loyalty/add', data),
+};

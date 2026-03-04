@@ -88,6 +88,7 @@ export function Header() {
       const savedLanguage = localStorage.getItem('language');
       if (savedLanguage === 'EN' || savedLanguage === 'NP') {
         setLanguage(savedLanguage);
+        document.documentElement.lang = savedLanguage === 'NP' ? 'ne' : 'en';
       }
       const theme = localStorage.getItem('theme');
       if (theme === 'dark') {
@@ -166,6 +167,8 @@ export function Header() {
                     const next = prev === 'EN' ? 'NP' : 'EN';
                     if (typeof window !== 'undefined') {
                       localStorage.setItem('language', next);
+                      document.documentElement.lang = next === 'NP' ? 'ne' : 'en';
+                      window.dispatchEvent(new Event('app-language-change'));
                     }
                     return next;
                   })
