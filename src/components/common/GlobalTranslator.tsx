@@ -14,6 +14,7 @@ declare global {
 
 const STORAGE_KEY = "language";
 const EVENT_NAME = "app-language-change";
+const SCRIPT_SELECTOR = 'script[src*="translate_a/element.js"]';
 
 const languageToGoogle = (value: AppLanguage) => (value === "NP" ? "ne" : "en");
 
@@ -31,6 +32,26 @@ function applyLanguage(value: AppLanguage) {
   if (combo && combo.value !== targetLang) {
     combo.value = targetLang;
     combo.dispatchEvent(new Event("change"));
+  }
+}
+
+function ensureGoogleTranslateLoaded() {
+  if (typeof window === "undefined") return;
+
+  const existingScript = document.querySelector(SCRIPT_SELECTOR);
+  if (!existingScript) {
+    const script = document.createElement("script");
+    script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+    script.async = true;
+    script.onerror = () => {
+      document.documentElement.setAttribute("data-translator-blocked", "true");
+    };
+    document.body.appendChild(script);
+    return;
+  }
+
+  if (window.google?.translate?.TranslateElement) {
+    window.googleTranslateElementInit?.();
   }
 }
 
@@ -59,21 +80,20 @@ export default function GlobalTranslator() {
 
     window.googleTranslateElementInit = initializeGoogle;
 
-    const existingScript = document.querySelector('script[src*="translate_a/element.js"]');
-    if (!existingScript) {
-      const script = document.createElement("script");
-      script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
-      script.async = true;
-      script.onerror = () => {
-        document.documentElement.setAttribute("data-translator-blocked", "true");
-      };
-      document.body.appendChild(script);
+    const saved = (localStorage.getItem(STORAGE_KEY) as AppLanguage | null) || "EN";
+    if (saved === "NP") {
+      ensureGoogleTranslateLoaded();
     } else {
-      initializeGoogle();
+      applyLanguage(saved);
     }
 
     const onLanguageChange = () => {
       const saved = (localStorage.getItem(STORAGE_KEY) as AppLanguage | null) || "EN";
+
+      if (saved === "NP") {
+        ensureGoogleTranslateLoaded();
+      }
+
       applyLanguage(saved);
     };
 
@@ -90,6 +110,9 @@ export default function GlobalTranslator() {
     const saved = (localStorage.getItem(STORAGE_KEY) as AppLanguage | null) || "EN";
 
     const id = window.setTimeout(() => {
+      if (saved === "NP") {
+        ensureGoogleTranslateLoaded();
+      }
       applyLanguage(saved);
     }, 80);
 

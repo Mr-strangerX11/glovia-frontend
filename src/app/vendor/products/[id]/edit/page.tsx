@@ -60,6 +60,11 @@ export default function VendorEditProductPage() {
 
   const availableSubCategories = subCategories;
 
+  const getSubCategoriesFromParent = (parentId: string) => {
+    const selectedParent = parentCategories.find((cat) => getCategoryId(cat) === parentId);
+    return Array.isArray(selectedParent?.children) ? selectedParent.children : [];
+  };
+
   useEffect(() => {
     let active = true;
 
@@ -71,7 +76,9 @@ export default function VendorEditProductPage() {
 
       try {
         const { data } = await categoriesAPI.getByParent(formData.categoryId);
-        const list = Array.isArray(data) ? data : data?.data || [];
+        const apiList = Array.isArray(data) ? data : data?.data || [];
+        const fallbackList = getSubCategoriesFromParent(formData.categoryId);
+        const list = apiList.length > 0 ? apiList : fallbackList;
         if (!active) return;
         setSubCategories(list);
 
@@ -96,7 +103,7 @@ export default function VendorEditProductPage() {
     return () => {
       active = false;
     };
-  }, [formData.categoryId]);
+  }, [formData.categoryId, categories]);
 
   const fetchInitialData = async () => {
     try {
