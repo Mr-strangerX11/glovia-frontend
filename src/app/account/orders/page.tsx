@@ -41,7 +41,7 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="container py-12">
+    <div id="orders-section" className="container py-12">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>

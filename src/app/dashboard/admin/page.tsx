@@ -10,6 +10,7 @@ import {
   TrendingUp, 
   Package, 
   Layers,
+  Award,
   AlertCircle,
   CheckCircle,
   Clock,
@@ -381,6 +382,11 @@ export default function AdminDashboardPage() {
               <DollarSign className="w-10 h-10 text-gray-400 group-hover:text-green-600 mx-auto mb-3" />
               <p className="text-sm font-semibold text-gray-700 group-hover:text-green-700">Delivery Settings</p>
               <p className="text-xs text-gray-500 mt-1">Configure discounts & delivery</p>
+            </Link>
+            <Link href="/loyalty" className="group p-5 border-2 border-dashed border-gray-300 rounded-lg hover:border-amber-500 hover:bg-amber-50 transition-all text-center">
+              <Award className="w-10 h-10 text-gray-400 group-hover:text-amber-600 mx-auto mb-3" />
+              <p className="text-sm font-semibold text-gray-700 group-hover:text-amber-700">Loyalty Points</p>
+              <p className="text-xs text-gray-500 mt-1">Check points and rewards</p>
             </Link>
           </div>
         </div>

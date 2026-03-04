@@ -31,7 +31,7 @@ export default function CustomerDashboardPage() {
         <div className="card p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">Recent orders</h3>
-            <Link href="/account/orders" className="text-primary-600 text-sm font-semibold">
+            <Link href="/account/orders#orders-section" className="text-primary-600 text-sm font-semibold">
               View all
             </Link>
           </div>
