@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { categoriesAPI } from '@/lib/api';
 
 interface Category {
@@ -23,6 +24,7 @@ const CATEGORY_TYPES = [
 ] as const;
 
 const NewCategoryPage = () => {
+  const searchParams = useSearchParams();
   const [parentCategories, setParentCategories] = useState<Category[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<string>('');
@@ -49,6 +51,19 @@ const NewCategoryPage = () => {
 
     fetchParentCategories();
   }, []);
+
+  useEffect(() => {
+    const level = searchParams?.get('level');
+    const parentId = searchParams?.get('parentId');
+
+    if (level === 'sub') {
+      setCategoryLevel('sub');
+    }
+
+    if (parentId) {
+      setForm((prev) => ({ ...prev, parentId }));
+    }
+  }, [searchParams]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });

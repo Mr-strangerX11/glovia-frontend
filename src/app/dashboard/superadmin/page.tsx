@@ -149,6 +149,10 @@ export default function SuperAdminDashboardPage() {
               <Layers className="w-8 h-8 text-cyan-400 group-hover:text-cyan-600 mx-auto mb-2" />
               <p className="text-sm font-semibold text-cyan-700 group-hover:text-cyan-800">Manage Categories</p>
             </Link>
+            <Link href="/admin/categories/new?level=sub" className="group p-4 border-2 border-dashed border-sky-300 rounded-lg hover:border-sky-500 hover:bg-sky-50 transition-all text-center">
+              <Plus className="w-8 h-8 text-sky-400 group-hover:text-sky-600 mx-auto mb-2" />
+              <p className="text-sm font-semibold text-sky-700 group-hover:text-sky-800">Add Sub-Category</p>
+            </Link>
             <Link href="/admin/banners" className="group p-4 border-2 border-dashed border-pink-300 rounded-lg hover:border-pink-500 hover:bg-pink-50 transition-all text-center">
               <ImageIcon className="w-8 h-8 text-pink-400 group-hover:text-pink-600 mx-auto mb-2" />
               <p className="text-sm font-semibold text-pink-700 group-hover:text-pink-800">Seasonal Banners</p>
