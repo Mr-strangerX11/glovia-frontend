@@ -87,7 +87,6 @@ function NewProductContent() {
     try {
       setCategoriesLoading(true);
       const response = await categoriesAPI.getAll();
-      console.log('Categories API response:', response);
       
       // Handle various response formats
       let categoriesData = [];
@@ -98,8 +97,7 @@ function NewProductContent() {
       } else if (response.data?.categories && Array.isArray(response.data.categories)) {
         categoriesData = response.data.categories;
       }
-      
-      console.log('Extracted categories:', categoriesData);
+
       setCategories(categoriesData);
       
       if (categoriesData.length === 0) {
@@ -155,21 +153,6 @@ function NewProductContent() {
       name,
       slug: generateSlug(name),
     });
-  };
-
-  const handleImageChange = (index: number, value: string) => {
-    const newImages = [...formData.images];
-    newImages[index] = value;
-    setFormData({ ...formData, images: newImages });
-  };
-
-  const addImageField = () => {
-    setFormData({ ...formData, images: [...formData.images, ''] });
-  };
-
-  const removeImageField = (index: number) => {
-    const newImages = formData.images.filter((_, i) => i !== index);
-    setFormData({ ...formData, images: newImages });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

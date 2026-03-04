@@ -111,21 +111,6 @@ export default function VendorNewProductPage() {
     });
   };
 
-  const handleImageChange = (index: number, value: string) => {
-    const newImages = [...formData.images];
-    newImages[index] = value;
-    setFormData({ ...formData, images: newImages });
-  };
-
-  const addImageField = () => {
-    setFormData({ ...formData, images: [...formData.images, ''] });
-  };
-
-  const removeImageField = (index: number) => {
-    const newImages = formData.images.filter((_, i) => i !== index);
-    setFormData({ ...formData, images: newImages });
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
