@@ -224,6 +224,16 @@ function NewProductContent() {
       .replace(/(^-|-$)/g, '');
   };
 
+  const isObjectId = (value: string) => /^[a-fA-F0-9]{24}$/.test((value || '').trim());
+
+  const extractErrorMessage = (error: any): string => {
+    const message = error?.response?.data?.message;
+    if (Array.isArray(message)) return message.join(', ');
+    if (typeof message === 'string') return message;
+    if (message && typeof message === 'object') return JSON.stringify(message);
+    return 'Failed to create product';
+  };
+
   const handleNameChange = (name: string) => {
     setFormData({
       ...formData,
@@ -253,25 +263,54 @@ function NewProductContent() {
       toast.error('Please fix the errors in the form.');
       return;
     }
+
+    const selectedCategoryId =
+      formData.subCategoryId && formData.subCategoryId !== ALL_SUB_CATEGORIES
+        ? formData.subCategoryId
+        : formData.categoryId;
+
+    if (!isObjectId(selectedCategoryId)) {
+      setErrors((prev: any) => ({ ...prev, categoryId: 'Please select a valid category.' }));
+      toast.error('Please select a valid category.');
+      return;
+    }
+
     setLoading(true);
     try {
-      await adminAPI.createProduct({
-        ...formData,
-        categoryId:
-          formData.subCategoryId && formData.subCategoryId !== ALL_SUB_CATEGORIES
-            ? formData.subCategoryId
-            : formData.categoryId,
+      const payload: any = {
+        name: formData.name.trim(),
+        slug: formData.slug.trim(),
+        description: formData.description.trim(),
+        price: Number(formData.price),
+        stockQuantity: Number(formData.stockQuantity),
+        sku: formData.sku.trim(),
+        categoryId: selectedCategoryId,
         images: imageUrls.length > 0 ? imageUrls : undefined,
-      });
+        isFeatured: !!formData.isFeatured,
+        isNew: !!formData.isNew,
+      };
+
+      if (isObjectId(formData.brandId)) {
+        payload.brandId = formData.brandId;
+      }
+
+      if (Number.isFinite(formData.discountPercentage) && Number(formData.discountPercentage) >= 0) {
+        payload.discountPercentage = Number(formData.discountPercentage);
+      }
+
+      if (Number.isFinite(formData.quantityMl) && Number(formData.quantityMl) >= 0) {
+        payload.quantityMl = Number(formData.quantityMl);
+      }
+
+      await adminAPI.createProduct(payload);
       toast.success('Product created successfully');
       router.push('/admin/products');
     } catch (error: any) {
-      // Show backend error
-      const msg = error.response?.data?.message || 'Failed to create product';
+      const msg = extractErrorMessage(error);
       toast.error(msg);
-      // Try to map backend errors to fields
       if (typeof msg === 'string' && msg.toLowerCase().includes('sku')) setErrors((e:any)=>({...e,sku:msg}));
       if (typeof msg === 'string' && msg.toLowerCase().includes('slug')) setErrors((e:any)=>({...e,slug:msg}));
+      if (typeof msg === 'string' && msg.toLowerCase().includes('category')) setErrors((e:any)=>({...e,categoryId:msg}));
     } finally {
       setLoading(false);
     }
