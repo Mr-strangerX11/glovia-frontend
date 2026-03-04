@@ -38,6 +38,7 @@ export default function VendorEditProductPage() {
 
   const getCategoryId = (category: any) => category?.id || category?._id || '';
   const getParentId = (category: any) => category?.parentId?.toString?.() || category?.parentId || '';
+  const ALL_SUB_CATEGORIES = '__ALL_SUB_CATEGORIES__';
 
   const parentCategories = useMemo(
     () => (Array.isArray(categories) ? categories.filter((cat) => !getParentId(cat)) : []),
@@ -54,6 +55,13 @@ export default function VendorEditProductPage() {
 
     return categories.filter((cat) => getParentId(cat) === formData.categoryId);
   }, [categories, formData.categoryId]);
+
+  const getSubCategoriesForCategory = (categoryId: string) => {
+    if (!categoryId || !Array.isArray(categories)) return [];
+    const selectedParent = categories.find((cat) => getCategoryId(cat) === categoryId);
+    if (selectedParent?.children?.length) return selectedParent.children;
+    return categories.filter((cat) => getParentId(cat) === categoryId);
+  };
 
   const fetchInitialData = async () => {
     try {
@@ -134,7 +142,10 @@ export default function VendorEditProductPage() {
       const imageUrls = formData.images.filter((img) => img.trim() !== '');
       await vendorAPI.updateProduct(productId, {
         ...formData,
-        categoryId: formData.subCategoryId || formData.categoryId,
+        categoryId:
+          formData.subCategoryId && formData.subCategoryId !== ALL_SUB_CATEGORIES
+            ? formData.subCategoryId
+            : formData.categoryId,
         images: imageUrls.length > 0 ? imageUrls : undefined,
       });
       toast.success('Product updated successfully');
@@ -249,7 +260,15 @@ export default function VendorEditProductPage() {
                 <label className="label">Category *</label>
                 <select
                   value={formData.categoryId}
-                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value, subCategoryId: '' })}
+                  onChange={(e) => {
+                    const nextCategoryId = e.target.value;
+                    const nextSubCategories = getSubCategoriesForCategory(nextCategoryId);
+                    setFormData({
+                      ...formData,
+                      categoryId: nextCategoryId,
+                      subCategoryId: nextSubCategories.length > 0 ? ALL_SUB_CATEGORIES : '',
+                    });
+                  }}
                   className="input"
                   required
                 >
@@ -277,6 +296,9 @@ export default function VendorEditProductPage() {
                         ? 'No Sub-Category Available'
                         : 'Select Sub-Category (Optional)'}
                   </option>
+                  {availableSubCategories.length > 0 && (
+                    <option value={ALL_SUB_CATEGORIES}>All Sub-Categories</option>
+                  )}
                   {availableSubCategories.map((subCat: any) => (
                     <option key={getCategoryId(subCat)} value={getCategoryId(subCat)}>
                       {subCat.name}

@@ -21,6 +21,7 @@ export default function EditProductPage() {
 
   const getCategoryId = (category: any) => category?.id || category?._id || "";
   const getParentId = (category: any) => category?.parentId?.toString?.() || category?.parentId || "";
+  const ALL_SUB_CATEGORIES = '__ALL_SUB_CATEGORIES__';
 
   const parentCategories = useMemo(
     () => (Array.isArray(categories) ? categories.filter((cat) => !getParentId(cat)) : []),
@@ -37,6 +38,13 @@ export default function EditProductPage() {
 
     return categories.filter((cat) => getParentId(cat) === formData.categoryId);
   }, [categories, formData?.categoryId]);
+
+  const getSubCategoriesForCategory = (categoryId: string) => {
+    if (!categoryId || !Array.isArray(categories)) return [];
+    const selectedParent = categories.find((cat) => getCategoryId(cat) === categoryId);
+    if (selectedParent?.children?.length) return selectedParent.children;
+    return categories.filter((cat) => getParentId(cat) === categoryId);
+  };
 
   useEffect(() => {
     if (user && params && (params as any).id) {
@@ -115,7 +123,10 @@ export default function EditProductPage() {
         description: formData.description || '',
         price: Number(formData.price),
         stockQuantity: Number(formData.stockQuantity),
-        categoryId: formData.subCategoryId || formData.categoryId,
+        categoryId:
+          formData.subCategoryId && formData.subCategoryId !== ALL_SUB_CATEGORIES
+            ? formData.subCategoryId
+            : formData.categoryId,
         brandId: formData.brandId || null,
         isActive: formData.isActive,
         isFeatured: formData.isFeatured,
@@ -241,10 +252,11 @@ export default function EditProductPage() {
                 value={formData.categoryId || ""}
                 onChange={(e) => {
                   const value = e.target.value;
+                  const nextSubCategories = getSubCategoriesForCategory(value);
                   setFormData((prev: any) => ({
                     ...prev,
                     categoryId: value,
-                    subCategoryId: "",
+                    subCategoryId: nextSubCategories.length > 0 ? ALL_SUB_CATEGORIES : "",
                   }));
                 }}
                 className="input"
@@ -274,6 +286,9 @@ export default function EditProductPage() {
                       ? "No Sub-Category Available"
                       : "Select Sub-Category (Optional)"}
                 </option>
+                {availableSubCategories.length > 0 && (
+                  <option value={ALL_SUB_CATEGORIES}>All Sub-Categories</option>
+                )}
                 {availableSubCategories.map((subCat: any) => (
                   <option key={getCategoryId(subCat)} value={getCategoryId(subCat)}>
                     {subCat.name}
