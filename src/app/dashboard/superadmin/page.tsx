@@ -133,6 +133,10 @@ export default function SuperAdminDashboardPage() {
         <div className="card p-6">
           <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <Link href="/account" className="group p-4 border-2 border-dashed border-primary-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 dark:border-primary-700 dark:hover:border-primary-400 dark:hover:bg-primary-900/20 transition-all text-center">
+              <UserCheck className="w-8 h-8 text-primary-400 group-hover:text-primary-600 dark:text-primary-300 dark:group-hover:text-primary-200 mx-auto mb-2" />
+              <p className="text-sm font-semibold text-primary-700 group-hover:text-primary-800 dark:text-primary-200 dark:group-hover:text-primary-100">My Account</p>
+            </Link>
             <Link href="/admin/users" className="group p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 dark:border-gray-700 dark:hover:border-primary-400 dark:hover:bg-primary-900/20 transition-all text-center">
               <Users className="w-8 h-8 text-gray-400 group-hover:text-primary-600 dark:text-gray-500 dark:group-hover:text-primary-300 mx-auto mb-2" />
               <p className="text-sm font-semibold text-gray-700 group-hover:text-primary-700 dark:text-gray-200 dark:group-hover:text-primary-200">Manage Users</p>
