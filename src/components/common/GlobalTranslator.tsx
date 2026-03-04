@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 type AppLanguage = "EN" | "NP";
 
@@ -34,6 +35,8 @@ function applyLanguage(value: AppLanguage) {
 }
 
 export default function GlobalTranslator() {
+  const pathname = usePathname();
+
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -77,6 +80,19 @@ export default function GlobalTranslator() {
       window.removeEventListener(EVENT_NAME, onLanguageChange);
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const saved = (localStorage.getItem(STORAGE_KEY) as AppLanguage | null) || "EN";
+
+    const id = window.setTimeout(() => {
+      applyLanguage(saved);
+    }, 80);
+
+    return () => {
+      window.clearTimeout(id);
+    };
+  }, [pathname]);
 
   return <div id="google_translate_element" className="hidden" aria-hidden="true" />;
 }

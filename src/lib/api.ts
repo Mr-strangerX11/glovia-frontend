@@ -86,6 +86,7 @@ export const productsAPI = {
 // Categories API
 export const categoriesAPI = {
   getAll: () => api.get('/categories'),
+  getByParent: (parentId: string) => api.get(`/categories/parent/${parentId}`),
   getBySlug: (slug: string) => api.get(`/categories/${slug}`),
   create: (data: unknown) => api.post('/categories', data),
   update: (id: string, data: unknown) => api.put(`/categories/${id}`, data),

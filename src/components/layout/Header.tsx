@@ -23,6 +23,18 @@ export function Header() {
   const [activeDesktopCategory, setActiveDesktopCategory] = useState<MainCategorySlug>('skincare');
   const [activeMobileCategory, setActiveMobileCategory] = useState<MainCategorySlug | null>(null);
 
+  const toggleLanguage = () => {
+    setLanguage((prev) => {
+      const next = prev === 'EN' ? 'NP' : 'EN';
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('language', next);
+        document.documentElement.lang = next === 'NP' ? 'ne' : 'en';
+        window.dispatchEvent(new Event('app-language-change'));
+      }
+      return next;
+    });
+  };
+
   const labels = useMemo(
     () =>
       language === 'EN'
@@ -89,6 +101,7 @@ export function Header() {
       if (savedLanguage === 'EN' || savedLanguage === 'NP') {
         setLanguage(savedLanguage);
         document.documentElement.lang = savedLanguage === 'NP' ? 'ne' : 'en';
+        window.dispatchEvent(new Event('app-language-change'));
       }
       const theme = localStorage.getItem('theme');
       if (theme === 'dark') {
@@ -162,17 +175,7 @@ export function Header() {
             <div className="hidden md:flex items-center gap-4 text-white/95">
               <button
                 className="inline-flex items-center gap-1 rounded-full border border-white/20 px-2.5 py-1 text-xs"
-                onClick={() =>
-                  setLanguage((prev) => {
-                    const next = prev === 'EN' ? 'NP' : 'EN';
-                    if (typeof window !== 'undefined') {
-                      localStorage.setItem('language', next);
-                      document.documentElement.lang = next === 'NP' ? 'ne' : 'en';
-                      window.dispatchEvent(new Event('app-language-change'));
-                    }
-                    return next;
-                  })
-                }
+                onClick={toggleLanguage}
                 type="button"
               >
                 <Globe className="h-3.5 w-3.5" /> {language === 'EN' ? 'English 🇺🇸' : 'नेपाली 🇳🇵'}
@@ -524,6 +527,15 @@ export function Header() {
                 >
                   {labels.sellerDashboard}
                 </Link>
+                <button
+                  type="button"
+                  onClick={toggleLanguage}
+                  className="rounded-xl px-4 py-2.5 text-left text-sm font-medium text-secondary-800 transition hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-800"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <Globe className="h-4 w-4" /> {language === 'EN' ? 'Switch to नेपाली' : 'Switch to English'}
+                  </span>
+                </button>
               </nav>
             </motion.div>
           </>

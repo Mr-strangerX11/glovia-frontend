@@ -56,9 +56,9 @@ export default function SuperAdminDashboardPage() {
 
   if (isChecking || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
         <div className="text-center space-y-2">
-          <p className="text-sm text-gray-600">Loading superadmin dashboard...</p>
+          <p className="text-sm text-gray-600 dark:text-gray-300">Loading superadmin dashboard...</p>
           <div className="w-10 h-10 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto" />
         </div>
       </div>
@@ -105,13 +105,13 @@ export default function SuperAdminDashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10">
+    <div className="min-h-screen bg-gray-50 py-10 dark:bg-gray-950">
       <div className="container space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-1">SuperAdmin Dashboard</h1>
-            <p className="text-gray-600">Welcome, {user.firstName} {user.lastName}! You have full system access.</p>
+            <p className="text-gray-600 dark:text-gray-300">Welcome, {user.firstName} {user.lastName}! You have full system access.</p>
           </div>
         </div>
 
@@ -122,7 +122,7 @@ export default function SuperAdminDashboardPage() {
             return (
               <div key={item.label} className="card p-6 flex flex-col items-center justify-center">
                 <div className={`p-3 rounded-lg mb-2 ${item.bg}`}><Icon className={`w-6 h-6 ${item.color}`} /></div>
-                <p className="text-sm text-gray-600 mb-1">{item.label}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">{item.label}</p>
                 <p className="text-2xl font-bold">{item.value}</p>
               </div>
             );
@@ -133,9 +133,9 @@ export default function SuperAdminDashboardPage() {
         <div className="card p-6">
           <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            <Link href="/admin/users" className="group p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all text-center">
-              <Users className="w-8 h-8 text-gray-400 group-hover:text-primary-600 mx-auto mb-2" />
-              <p className="text-sm font-semibold text-gray-700 group-hover:text-primary-700">Manage Users</p>
+            <Link href="/admin/users" className="group p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 dark:border-gray-700 dark:hover:border-primary-400 dark:hover:bg-primary-900/20 transition-all text-center">
+              <Users className="w-8 h-8 text-gray-400 group-hover:text-primary-600 dark:text-gray-500 dark:group-hover:text-primary-300 mx-auto mb-2" />
+              <p className="text-sm font-semibold text-gray-700 group-hover:text-primary-700 dark:text-gray-200 dark:group-hover:text-primary-200">Manage Users</p>
             </Link>
             <Link href="/admin/orders" className="group p-4 border-2 border-dashed border-green-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all text-center">
               <ShoppingBag className="w-8 h-8 text-green-400 group-hover:text-green-600 mx-auto mb-2" />
@@ -173,13 +173,13 @@ export default function SuperAdminDashboardPage() {
             </button>
             <button
               onClick={handleInitializeUsers}
-              className="group p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all text-center flex flex-col items-center"
+              className="group p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 dark:border-gray-700 dark:hover:border-primary-400 dark:hover:bg-primary-900/20 transition-all text-center flex flex-col items-center"
               disabled={initializing}
               title="Initialize default users"
             >
-              <Plus className="w-8 h-8 text-gray-400 group-hover:text-primary-600 mx-auto mb-2 animate-spin" style={{ display: initializing ? 'block' : 'none' }} />
-              <Users className="w-8 h-8 text-gray-400 group-hover:text-primary-600 mx-auto mb-2" style={{ display: initializing ? 'none' : 'block' }} />
-              <p className="text-sm font-semibold text-gray-700 group-hover:text-primary-700">Init Users</p>
+              <Plus className="w-8 h-8 text-gray-400 group-hover:text-primary-600 dark:text-gray-500 dark:group-hover:text-primary-300 mx-auto mb-2 animate-spin" style={{ display: initializing ? 'block' : 'none' }} />
+              <Users className="w-8 h-8 text-gray-400 group-hover:text-primary-600 dark:text-gray-500 dark:group-hover:text-primary-300 mx-auto mb-2" style={{ display: initializing ? 'none' : 'block' }} />
+              <p className="text-sm font-semibold text-gray-700 group-hover:text-primary-700 dark:text-gray-200 dark:group-hover:text-primary-200">Init Users</p>
             </button>
           </div>
         </div>
@@ -194,10 +194,10 @@ export default function SuperAdminDashboardPage() {
             ) : dashboard?.recentUsers?.length > 0 ? (
               <div className="divide-y">
                 {dashboard.recentUsers.slice(0, 5).map((u: any) => (
-                  <div key={u.id || u._id} className="py-3 flex items-center justify-between hover:bg-gray-50 px-2 rounded transition-colors">
+                  <div key={u.id || u._id} className="py-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 px-2 rounded transition-colors">
                     <div>
-                      <p className="font-semibold">{u.firstName} {u.lastName}</p>
-                      <p className="text-sm text-gray-500">{u.email}</p>
+                      <p className="font-semibold dark:text-gray-100">{u.firstName} {u.lastName}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{u.email}</p>
                     </div>
                     <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">{u.role}</span>
                   </div>
@@ -206,7 +206,7 @@ export default function SuperAdminDashboardPage() {
             ) : (
               <div className="text-center py-8">
                 <Users className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-600">No recent users.</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">No recent users.</p>
               </div>
             )}
           </div>
@@ -218,13 +218,13 @@ export default function SuperAdminDashboardPage() {
             ) : dashboard?.recentOrders?.length > 0 ? (
               <div className="divide-y">
                 {dashboard.recentOrders.slice(0, 5).map((order: any) => (
-                  <div key={order.id} className="py-3 flex items-center justify-between hover:bg-gray-50 px-2 rounded transition-colors">
+                  <div key={order.id} className="py-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 px-2 rounded transition-colors">
                     <div>
-                      <p className="font-semibold">#{order.orderNumber || order.id?.slice(0, 8).toUpperCase()}</p>
-                      <p className="text-sm text-gray-500">{order.user?.firstName} {order.user?.lastName}</p>
+                      <p className="font-semibold dark:text-gray-100">#{order.orderNumber || order.id?.slice(0, 8).toUpperCase()}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{order.user?.firstName} {order.user?.lastName}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-semibold">NPR {order.total?.toLocaleString()}</p>
+                      <p className="text-sm font-semibold dark:text-gray-100">NPR {order.total?.toLocaleString()}</p>
                       <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">{order.status}</span>
                     </div>
                   </div>
@@ -233,7 +233,7 @@ export default function SuperAdminDashboardPage() {
             ) : (
               <div className="text-center py-8">
                 <ShoppingBag className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-600">No recent orders.</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">No recent orders.</p>
               </div>
             )}
           </div>
@@ -245,14 +245,14 @@ export default function SuperAdminDashboardPage() {
             <Package className="w-8 h-8 text-primary-600" />
             <div>
               <h3 className="text-lg font-semibold mb-1">Announcements</h3>
-              <p className="text-gray-600 text-sm">Manage platform-wide announcements</p>
+              <p className="text-gray-600 dark:text-gray-300 text-sm">Manage platform-wide announcements</p>
             </div>
           </Link>
           <Link href="/admin/settings/delivery" className="card p-6 flex items-center gap-4 hover:shadow-lg transition-shadow">
             <DollarSign className="w-8 h-8 text-green-600" />
             <div>
               <h3 className="text-lg font-semibold mb-1">Delivery Settings</h3>
-              <p className="text-gray-600 text-sm">Configure delivery & discount settings</p>
+              <p className="text-gray-600 dark:text-gray-300 text-sm">Configure delivery & discount settings</p>
             </div>
           </Link>
         </div>

@@ -14,6 +14,7 @@ export default function VendorNewProductPage() {
   const router = useRouter();
   const { user, isChecking } = useAuthGuard({ roles: ['VENDOR'] });
   const [categories, setCategories] = useState<any[]>([]);
+  const [subCategories, setSubCategories] = useState<any[]>([]);
   const [brands, setBrands] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
@@ -62,23 +63,45 @@ export default function VendorNewProductPage() {
     [categories]
   );
 
-  const availableSubCategories = useMemo(() => {
-    if (!formData.categoryId || !Array.isArray(categories)) return [];
+  const availableSubCategories = subCategories;
 
-    const selectedParent = categories.find((cat) => getCategoryId(cat) === formData.categoryId);
-    if (selectedParent?.children?.length) {
-      return selectedParent.children;
-    }
+  useEffect(() => {
+    let active = true;
 
-    return categories.filter((cat) => getParentId(cat) === formData.categoryId);
-  }, [categories, formData.categoryId]);
+    const loadSubCategories = async () => {
+      if (!formData.categoryId) {
+        if (active) setSubCategories([]);
+        return;
+      }
 
-  const getSubCategoriesForCategory = (categoryId: string) => {
-    if (!categoryId || !Array.isArray(categories)) return [];
-    const selectedParent = categories.find((cat) => getCategoryId(cat) === categoryId);
-    if (selectedParent?.children?.length) return selectedParent.children;
-    return categories.filter((cat) => getParentId(cat) === categoryId);
-  };
+      try {
+        const { data } = await categoriesAPI.getByParent(formData.categoryId);
+        const list = Array.isArray(data) ? data : data?.data || [];
+        if (!active) return;
+        setSubCategories(list);
+
+        setFormData((prev) => {
+          const hasCurrent = list.some((subCat: any) => getCategoryId(subCat) === prev.subCategoryId);
+          const nextSubCategoryId = list.length === 0
+            ? ''
+            : hasCurrent || prev.subCategoryId === ALL_SUB_CATEGORIES
+              ? prev.subCategoryId
+              : ALL_SUB_CATEGORIES;
+
+          if (prev.subCategoryId === nextSubCategoryId) return prev;
+          return { ...prev, subCategoryId: nextSubCategoryId };
+        });
+      } catch {
+        if (active) setSubCategories([]);
+      }
+    };
+
+    loadSubCategories();
+
+    return () => {
+      active = false;
+    };
+  }, [formData.categoryId]);
 
   const fetchCategories = async () => {
     try {
@@ -275,15 +298,7 @@ export default function VendorNewProductPage() {
                 <label className="label">Category *</label>
                 <select
                   value={formData.categoryId}
-                  onChange={(e) => {
-                    const nextCategoryId = e.target.value;
-                    const nextSubCategories = getSubCategoriesForCategory(nextCategoryId);
-                    setFormData({
-                      ...formData,
-                      categoryId: nextCategoryId,
-                      subCategoryId: nextSubCategories.length > 0 ? ALL_SUB_CATEGORIES : '',
-                    });
-                  }}
+                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value, subCategoryId: '' })}
                   className="input"
                   disabled={categoriesLoading}
                   required
