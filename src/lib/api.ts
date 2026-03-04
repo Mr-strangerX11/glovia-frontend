@@ -86,7 +86,39 @@ export const productsAPI = {
 // Categories API
 export const categoriesAPI = {
   getAll: () => api.get('/categories'),
-  getByParent: (parentId: string) => api.get(`/categories/parent/${parentId}`),
+  getByParent: async (parentId: string) => {
+    const normalizeId = (value: any): string => {
+      if (!value) return '';
+      if (typeof value === 'string') return value;
+      if (typeof value === 'object') {
+        if (value._id) return String(value._id);
+        if (value.id) return String(value.id);
+        if (value.$oid) return String(value.$oid);
+      }
+      const parsed = String(value);
+      return parsed === '[object Object]' ? '' : parsed;
+    };
+
+    try {
+      return await api.get(`/categories/parent/${encodeURIComponent(parentId)}`);
+    } catch (error: any) {
+      if (error?.response?.status !== 404) {
+        throw error;
+      }
+
+      const allCategoriesResponse = await api.get('/categories');
+      const allCategories = Array.isArray(allCategoriesResponse.data)
+        ? allCategoriesResponse.data
+        : allCategoriesResponse.data?.data || [];
+
+      const filtered = allCategories.filter((cat: any) => normalizeId(cat?.parentId) === parentId);
+
+      return {
+        ...allCategoriesResponse,
+        data: filtered,
+      };
+    }
+  },
   getBySlug: (slug: string) => api.get(`/categories/${slug}`),
   create: (data: unknown) => api.post('/categories', data),
   update: (id: string, data: unknown) => api.put(`/categories/${id}`, data),
@@ -125,6 +157,8 @@ export const ordersAPI = {
   getAll: (status?: string) => api.get('/orders', { params: { status } }),
   getById: (id: string) => api.get(`/orders/${id}`),
   cancel: (id: string) => api.patch(`/orders/${id}/cancel`),
+  track: (orderNumber: string, identifier: string) =>
+    api.get('/orders/track', { params: { orderNumber, identifier } }),
 };
 
 // Admin API

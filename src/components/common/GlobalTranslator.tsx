@@ -28,7 +28,7 @@ function applyLanguage(value: AppLanguage) {
   document.documentElement.lang = targetLang;
 
   const combo = document.querySelector(".goog-te-combo") as HTMLSelectElement | null;
-  if (combo) {
+  if (combo && combo.value !== targetLang) {
     combo.value = targetLang;
     combo.dispatchEvent(new Event("change"));
   }
@@ -64,6 +64,9 @@ export default function GlobalTranslator() {
       const script = document.createElement("script");
       script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
       script.async = true;
+      script.onerror = () => {
+        document.documentElement.setAttribute("data-translator-blocked", "true");
+      };
       document.body.appendChild(script);
     } else {
       initializeGoogle();
@@ -83,6 +86,7 @@ export default function GlobalTranslator() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (document.documentElement.getAttribute("data-translator-blocked") === "true") return;
     const saved = (localStorage.getItem(STORAGE_KEY) as AppLanguage | null) || "EN";
 
     const id = window.setTimeout(() => {
