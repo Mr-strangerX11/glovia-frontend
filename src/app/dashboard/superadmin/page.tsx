@@ -20,7 +20,7 @@ import {
   RefreshCcw,
   Image as ImageIcon,
   Award,
-  TicketPercent,
+  Tag,
 } from "lucide-react";
 
 export default function SuperAdminDashboardPage() {
@@ -163,11 +163,11 @@ export default function SuperAdminDashboardPage() {
               <p className="text-sm font-semibold text-pink-700 group-hover:text-pink-800">Seasonal Banners</p>
             </Link>
             <Link href="/admin/promocodes/new" className="group p-4 border-2 border-dashed border-violet-300 rounded-lg hover:border-violet-500 hover:bg-violet-50 transition-all text-center">
-              <TicketPercent className="w-8 h-8 text-violet-400 group-hover:text-violet-600 mx-auto mb-2" />
+              <Tag className="w-8 h-8 text-violet-400 group-hover:text-violet-600 mx-auto mb-2" />
               <p className="text-sm font-semibold text-violet-700 group-hover:text-violet-800">Create Promo Code</p>
             </Link>
             <Link href="/admin/promocodes" className="group p-4 border-2 border-dashed border-fuchsia-300 rounded-lg hover:border-fuchsia-500 hover:bg-fuchsia-50 transition-all text-center">
-              <TicketPercent className="w-8 h-8 text-fuchsia-400 group-hover:text-fuchsia-600 mx-auto mb-2" />
+              <Tag className="w-8 h-8 text-fuchsia-400 group-hover:text-fuchsia-600 mx-auto mb-2" />
               <p className="text-sm font-semibold text-fuchsia-700 group-hover:text-fuchsia-800">Manage Promo Codes</p>
             </Link>
             <Link href="/loyalty" className="group p-4 border-2 border-dashed border-amber-300 rounded-lg hover:border-amber-500 hover:bg-amber-50 transition-all text-center">
