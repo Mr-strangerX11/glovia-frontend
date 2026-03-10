@@ -183,6 +183,7 @@ export const ordersAPI = {
 
 export const promoCodesAPI = {
   getAll: () => api.get('/promocodes'),
+  getAllAdmin: () => api.get('/promocodes/admin/all'),
   getByCode: (code: string) => api.get(`/promocodes/${encodeURIComponent(code)}`),
   create: (data: any) => api.post('/promocodes', data),
   update: (id: string, data: any) => api.put(`/promocodes/${id}`, data),

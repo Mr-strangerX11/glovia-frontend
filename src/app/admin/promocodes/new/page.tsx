@@ -57,7 +57,7 @@ const NewPromoCodePage = () => {
         isActive: form.isActive,
       });
       toast.success('Promo code created successfully');
-      router.push('/dashboard/superadmin');
+      router.push('/admin/promocodes');
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to create promo code');
     } finally {
@@ -184,9 +184,11 @@ const NewPromoCodePage = () => {
                 type="datetime-local"
                 value={form.validUntil}
                 onChange={handleChange}
+                placeholder="Expiry Date"
                 required
               />
             </div>
+            <p className="text-xs text-gray-500">Set the expiry date/time in the second field (Valid Until).</p>
 
             <label className="flex items-center gap-3">
               <input
