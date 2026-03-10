@@ -1,72 +1,209 @@
 "use client";
 
 import React, { useState } from 'react';
-import axios from 'axios';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { promoCodesAPI } from '@/lib/api';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
 
 const NewPromoCodePage = () => {
+  const { user, isChecking } = useAuthGuard({ roles: ['SUPER_ADMIN'] });
+  const router = useRouter();
   const [form, setForm] = useState({
     code: '',
-    discountPercentage: 0,
+    description: '',
+    discountType: 'PERCENTAGE',
+    discountValue: 0,
+    minOrderAmount: 0,
+    maxDiscount: 0,
     usageLimit: 0,
-    expiresAt: '',
+    validFrom: '',
+    validUntil: '',
+    isActive: true,
   });
+  const [saving, setSaving] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await axios.post('/api/promocodes', {
-      ...form,
-      discountPercentage: Number(form.discountPercentage),
-      usageLimit: Number(form.usageLimit),
-      expiresAt: form.expiresAt ? new Date(form.expiresAt) : undefined,
-    });
-    // Optionally redirect or show success
+
+    if (!form.code.trim()) {
+      toast.error('Promo code is required');
+      return;
+    }
+
+    if (!form.validUntil) {
+      toast.error('Valid until date is required');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      await promoCodesAPI.create({
+        code: form.code.trim().toUpperCase(),
+        description: form.description.trim() || undefined,
+        discountType: form.discountType,
+        discountValue: Number(form.discountValue),
+        minOrderAmount: Number(form.minOrderAmount) || undefined,
+        maxDiscount: form.discountType === 'PERCENTAGE' ? Number(form.maxDiscount) || undefined : undefined,
+        usageLimit: Number(form.usageLimit) || undefined,
+        validFrom: form.validFrom || new Date().toISOString(),
+        validUntil: new Date(form.validUntil).toISOString(),
+        isActive: form.isActive,
+      });
+      toast.success('Promo code created successfully');
+      router.push('/dashboard/superadmin');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to create promo code');
+    } finally {
+      setSaving(false);
+    }
   };
 
+  if (isChecking || !user) {
+    return (
+      <div className="p-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-16 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-xl mx-auto mt-8 p-6 bg-white rounded shadow">
-      <h2 className="text-2xl font-bold mb-4">Add New Promo Code</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          className="w-full mb-2 p-2 border rounded"
-          name="code"
-          placeholder="Promo Code"
-          value={form.code}
-          onChange={handleChange}
-          required
-        />
-        <input
-          className="w-full mb-2 p-2 border rounded"
-          name="discountPercentage"
-          type="number"
-          placeholder="Discount Percentage"
-          value={form.discountPercentage}
-          onChange={handleChange}
-          required
-        />
-        <input
-          className="w-full mb-2 p-2 border rounded"
-          name="usageLimit"
-          type="number"
-          placeholder="Usage Limit"
-          value={form.usageLimit}
-          onChange={handleChange}
-        />
-        <input
-          className="w-full mb-2 p-2 border rounded"
-          name="expiresAt"
-          type="date"
-          placeholder="Expiry Date"
-          value={form.expiresAt}
-          onChange={handleChange}
-        />
-        <button className="w-full bg-blue-600 text-white p-2 rounded mt-2" type="submit">
-          Add Promo Code
-        </button>
-      </form>
+    <div className="p-8">
+      <div className="max-w-3xl mx-auto">
+        <div className="mb-6">
+          <Link
+            href="/dashboard/superadmin"
+            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back to SuperAdmin Dashboard
+          </Link>
+          <h1 className="text-3xl font-bold">Add New Promo Code</h1>
+          <p className="text-gray-600 mt-2">Create promo codes that customers can apply at checkout</p>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <input
+              className="w-full p-3 border border-gray-300 rounded-lg"
+              name="code"
+              placeholder="Promo Code (e.g. NEWYEAR10)"
+              value={form.code}
+              onChange={handleChange}
+              required
+            />
+
+            <textarea
+              className="w-full p-3 border border-gray-300 rounded-lg"
+              name="description"
+              placeholder="Description (optional)"
+              value={form.description}
+              onChange={handleChange}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <select
+                className="w-full p-3 border border-gray-300 rounded-lg"
+                name="discountType"
+                value={form.discountType}
+                onChange={handleChange}
+              >
+                <option value="PERCENTAGE">Percentage</option>
+                <option value="FIXED">Fixed Amount</option>
+              </select>
+
+              <input
+                className="w-full p-3 border border-gray-300 rounded-lg"
+                name="discountValue"
+                type="number"
+                min="0"
+                placeholder="Discount Value"
+                value={form.discountValue}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <input
+                className="w-full p-3 border border-gray-300 rounded-lg"
+                name="minOrderAmount"
+                type="number"
+                min="0"
+                placeholder="Min Order Amount"
+                value={form.minOrderAmount}
+                onChange={handleChange}
+              />
+              <input
+                className="w-full p-3 border border-gray-300 rounded-lg"
+                name="maxDiscount"
+                type="number"
+                min="0"
+                placeholder="Max Discount"
+                value={form.maxDiscount}
+                onChange={handleChange}
+                disabled={form.discountType !== 'PERCENTAGE'}
+              />
+              <input
+                className="w-full p-3 border border-gray-300 rounded-lg"
+                name="usageLimit"
+                type="number"
+                min="0"
+                placeholder="Usage Limit"
+                value={form.usageLimit}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input
+                className="w-full p-3 border border-gray-300 rounded-lg"
+                name="validFrom"
+                type="datetime-local"
+                value={form.validFrom}
+                onChange={handleChange}
+              />
+              <input
+                className="w-full p-3 border border-gray-300 rounded-lg"
+                name="validUntil"
+                type="datetime-local"
+                value={form.validUntil}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <label className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={form.isActive}
+                onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
+                className="w-5 h-5"
+              />
+              <span className="text-sm font-medium text-gray-700">Active</span>
+            </label>
+
+            <button className="w-full bg-blue-600 text-white p-3 rounded-lg disabled:opacity-50" type="submit" disabled={saving}>
+              {saving ? 'Creating...' : 'Add Promo Code'}
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 };

@@ -181,6 +181,14 @@ export const ordersAPI = {
     api.get('/orders/track', { params: { orderNumber, identifier } }),
 };
 
+export const promoCodesAPI = {
+  getAll: () => api.get('/promocodes'),
+  getByCode: (code: string) => api.get(`/promocodes/${encodeURIComponent(code)}`),
+  create: (data: any) => api.post('/promocodes', data),
+  update: (id: string, data: any) => api.put(`/promocodes/${id}`, data),
+  remove: (id: string) => api.delete(`/promocodes/${id}`),
+};
+
 // Admin API
 export const adminAPI = {
   getDashboard: () => api.get('/admin/dashboard'),

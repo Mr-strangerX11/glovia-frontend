@@ -20,6 +20,7 @@ import {
   RefreshCcw,
   Image as ImageIcon,
   Award,
+  TicketPercent,
 } from "lucide-react";
 
 export default function SuperAdminDashboardPage() {
@@ -160,6 +161,10 @@ export default function SuperAdminDashboardPage() {
             <Link href="/admin/banners" className="group p-4 border-2 border-dashed border-pink-300 rounded-lg hover:border-pink-500 hover:bg-pink-50 transition-all text-center">
               <ImageIcon className="w-8 h-8 text-pink-400 group-hover:text-pink-600 mx-auto mb-2" />
               <p className="text-sm font-semibold text-pink-700 group-hover:text-pink-800">Seasonal Banners</p>
+            </Link>
+            <Link href="/admin/promocodes/new" className="group p-4 border-2 border-dashed border-violet-300 rounded-lg hover:border-violet-500 hover:bg-violet-50 transition-all text-center">
+              <TicketPercent className="w-8 h-8 text-violet-400 group-hover:text-violet-600 mx-auto mb-2" />
+              <p className="text-sm font-semibold text-violet-700 group-hover:text-violet-800">Create Promo Code</p>
             </Link>
             <Link href="/loyalty" className="group p-4 border-2 border-dashed border-amber-300 rounded-lg hover:border-amber-500 hover:bg-amber-50 transition-all text-center">
               <Award className="w-8 h-8 text-amber-400 group-hover:text-amber-600 mx-auto mb-2" />

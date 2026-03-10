@@ -1,13 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useAddresses, useCart } from "@/hooks/useData";
-import { cartAPI, ordersAPI } from "@/lib/api";
+import { cartAPI, ordersAPI, promoCodesAPI } from "@/lib/api";
 import { PaymentMethod } from "@/types";
 import { Minus, Plus } from "lucide-react";
 
@@ -46,6 +46,12 @@ export default function CheckoutPage() {
   const { addresses, isLoading: addressesLoading } = useAddresses();
   const [selectedAddressId, setSelectedAddressId] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CASH_ON_DELIVERY");
+  const [promoCode, setPromoCode] = useState("");
+  const [promoPreviewDiscount, setPromoPreviewDiscount] = useState(0);
+  const [promoValidationMessage, setPromoValidationMessage] = useState<string | null>(null);
+  const [isPromoValid, setIsPromoValid] = useState(false);
+  const [isValidatingPromo, setIsValidatingPromo] = useState(false);
+  const [validatedSubtotal, setValidatedSubtotal] = useState<number | null>(null);
   const [note, setNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [trustMessage, setTrustMessage] = useState<string | null>(null);
@@ -53,6 +59,18 @@ export default function CheckoutPage() {
 
   const items = cart?.items ?? [];
   const total = cart?.total ?? 0;
+  const hasPromoCodeInput = !!promoCode.trim();
+  const estimatedTotalAfterDiscount = Math.max(0, total - promoPreviewDiscount);
+
+  useEffect(() => {
+    if (!isPromoValid || validatedSubtotal === null) return;
+    if (total !== validatedSubtotal) {
+      setIsPromoValid(false);
+      setPromoPreviewDiscount(0);
+      setPromoValidationMessage("Cart updated. Please validate promo code again.");
+      setValidatedSubtotal(null);
+    }
+  }, [total, isPromoValid, validatedSubtotal]);
 
   const defaultAddressId = useMemo(() => {
     if (!addresses || addresses.length === 0) return "";
@@ -73,6 +91,11 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (hasPromoCodeInput && !isPromoValid) {
+      toast.error("Please validate a valid promo code before placing order");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       setTrustMessage(null);
@@ -83,6 +106,7 @@ export default function CheckoutPage() {
           quantity: item.quantity,
         })),
         paymentMethod,
+        couponCode: promoCode.trim().toUpperCase() || undefined,
         note: note.trim() || undefined,
         clearCart: true,
       };
@@ -104,6 +128,78 @@ export default function CheckoutPage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleValidatePromoCode = async () => {
+    const code = promoCode.trim().toUpperCase();
+    if (!code) {
+      toast.error("Please enter promo code");
+      return;
+    }
+
+    try {
+      setIsValidatingPromo(true);
+      setPromoValidationMessage(null);
+
+      const { data } = await promoCodesAPI.getByCode(code);
+      const minOrderAmount = Number(data?.minOrderAmount || 0);
+      const usageLimit = Number(data?.usageLimit || 0);
+      const usageCount = Number(data?.usageCount || 0);
+
+      if (minOrderAmount > 0 && total < minOrderAmount) {
+        setIsPromoValid(false);
+        setPromoPreviewDiscount(0);
+        setPromoValidationMessage(`Minimum order NPR ${minOrderAmount.toLocaleString()} required for this code.`);
+        toast.error("Order amount does not meet minimum for this promo");
+        return;
+      }
+
+      if (usageLimit > 0 && usageCount >= usageLimit) {
+        setIsPromoValid(false);
+        setPromoPreviewDiscount(0);
+        setPromoValidationMessage("Promo code usage limit reached.");
+        toast.error("Promo code usage limit reached");
+        return;
+      }
+
+      const discountType = String(data?.discountType || "").toUpperCase();
+      const discountValue = Number(data?.discountValue || 0);
+      let calculatedDiscount = 0;
+
+      if (discountType === "PERCENTAGE") {
+        calculatedDiscount = (total * discountValue) / 100;
+        const maxDiscount = Number(data?.maxDiscount || 0);
+        if (maxDiscount > 0) {
+          calculatedDiscount = Math.min(calculatedDiscount, maxDiscount);
+        }
+      } else {
+        calculatedDiscount = discountValue;
+      }
+
+      calculatedDiscount = Math.max(0, Math.min(calculatedDiscount, total));
+
+      setIsPromoValid(true);
+      setPromoPreviewDiscount(calculatedDiscount);
+      setPromoValidationMessage(`Promo applied. Estimated discount: NPR ${calculatedDiscount.toLocaleString()}`);
+      setValidatedSubtotal(total);
+      toast.success("Promo code is valid");
+    } catch (error: any) {
+      setIsPromoValid(false);
+      setPromoPreviewDiscount(0);
+      setValidatedSubtotal(null);
+      setPromoValidationMessage(error?.response?.data?.message || "Invalid promo code");
+      toast.error(error?.response?.data?.message || "Invalid promo code");
+    } finally {
+      setIsValidatingPromo(false);
+    }
+  };
+
+  const handleClearPromoCode = () => {
+    setPromoCode("");
+    setIsPromoValid(false);
+    setPromoPreviewDiscount(0);
+    setPromoValidationMessage(null);
+    setValidatedSubtotal(null);
   };
 
   const handleUpdateQuantity = async (itemId: string, nextQuantity: number) => {
@@ -233,6 +329,49 @@ export default function CheckoutPage() {
               </div>
 
               <div className="card p-6 space-y-4">
+                <h2 className="text-lg font-semibold">Promo Code (Optional)</h2>
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={promoCode}
+                      onChange={(e) => {
+                        setPromoCode(e.target.value.toUpperCase());
+                        setIsPromoValid(false);
+                        setPromoPreviewDiscount(0);
+                        setPromoValidationMessage(null);
+                        setValidatedSubtotal(null);
+                      }}
+                      className="input"
+                      placeholder="Enter promo code"
+                    />
+                    <button
+                      type="button"
+                      className="btn-outline whitespace-nowrap"
+                      onClick={handleValidatePromoCode}
+                      disabled={isValidatingPromo || !promoCode.trim()}
+                    >
+                      {isValidatingPromo ? "Validating..." : "Validate"}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-outline whitespace-nowrap"
+                      onClick={handleClearPromoCode}
+                      disabled={!promoCode.trim() && !promoValidationMessage}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  {promoValidationMessage && (
+                    <p className={`text-xs ${isPromoValid ? "text-green-600" : "text-red-600"}`}>
+                      {promoValidationMessage}
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-500">Validated promo code will be applied when you place order.</p>
+                </div>
+              </div>
+
+              <div className="card p-6 space-y-4">
                 <h2 className="text-lg font-semibold">Order Note (Optional)</h2>
                 <textarea
                   value={note}
@@ -295,11 +434,11 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between text-sm text-green-600 font-medium">
                   <span>Discount</span>
-                  <span>-NPR 0</span>
+                  <span>-NPR {promoPreviewDiscount.toLocaleString()}</span>
                 </div>
                 <div className="border-t pt-3 mt-3 flex justify-between text-lg font-bold">
                   <span>Total Amount</span>
-                  <span className="text-primary-600">NPR {total.toLocaleString()}</span>
+                  <span className="text-primary-600">NPR {estimatedTotalAfterDiscount.toLocaleString()}</span>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">Final amount including delivery will be shown after placing order</p>
               </div>
@@ -308,10 +447,22 @@ export default function CheckoutPage() {
                 type="button"
                 className="btn-primary w-full"
                 onClick={handlePlaceOrder}
-                disabled={isSubmitting || items.length === 0}
+                disabled={isSubmitting || items.length === 0 || (hasPromoCodeInput && !isPromoValid)}
               >
                 {isSubmitting ? "Placing order..." : "Place Order"}
               </button>
+              {isPromoValid && hasPromoCodeInput && (
+                <div className="w-full text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-md py-2 px-3 flex items-center justify-between gap-3">
+                  <span>Applied: {promoCode.trim().toUpperCase()} • Saved NPR {promoPreviewDiscount.toLocaleString()}</span>
+                  <button
+                    type="button"
+                    onClick={handleClearPromoCode}
+                    className="text-green-800 hover:text-green-900 underline"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
               <Link href="/cart" className="text-sm text-gray-500 text-center">
                 Back to Cart
               </Link>
