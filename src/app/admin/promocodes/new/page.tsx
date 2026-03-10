@@ -42,6 +42,18 @@ const NewPromoCodePage = () => {
       return;
     }
 
+    const validUntilDate = new Date(form.validUntil);
+    if (Number.isNaN(validUntilDate.getTime())) {
+      toast.error('Please enter a valid expiry date/time');
+      return;
+    }
+
+    const validFromDate = form.validFrom ? new Date(form.validFrom) : null;
+    if (validFromDate && Number.isNaN(validFromDate.getTime())) {
+      toast.error('Please enter a valid start date/time');
+      return;
+    }
+
     try {
       setSaving(true);
       await promoCodesAPI.create({
@@ -52,14 +64,17 @@ const NewPromoCodePage = () => {
         minOrderAmount: Number(form.minOrderAmount) || undefined,
         maxDiscount: form.discountType === 'PERCENTAGE' ? Number(form.maxDiscount) || undefined : undefined,
         usageLimit: Number(form.usageLimit) || undefined,
-        validFrom: form.validFrom || new Date().toISOString(),
-        validUntil: new Date(form.validUntil).toISOString(),
+        validFrom: validFromDate ? validFromDate.toISOString() : new Date().toISOString(),
+        validUntil: validUntilDate.toISOString(),
         isActive: form.isActive,
       });
       toast.success('Promo code created successfully');
       router.push('/admin/promocodes');
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to create promo code');
+      const message = Array.isArray(error?.response?.data?.message)
+        ? error.response.data.message.join(', ')
+        : error?.response?.data?.message || 'Failed to create promo code';
+      toast.error(message);
     } finally {
       setSaving(false);
     }
@@ -99,6 +114,8 @@ const NewPromoCodePage = () => {
 
         <div className="bg-white rounded-lg shadow p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Promo Code</label>
             <input
               className="w-full p-3 border border-gray-300 rounded-lg"
               name="code"
@@ -107,7 +124,10 @@ const NewPromoCodePage = () => {
               onChange={handleChange}
               required
             />
+            </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
             <textarea
               className="w-full p-3 border border-gray-300 rounded-lg"
               name="description"
@@ -115,8 +135,11 @@ const NewPromoCodePage = () => {
               value={form.description}
               onChange={handleChange}
             />
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Discount Type</label>
               <select
                 className="w-full p-3 border border-gray-300 rounded-lg"
                 name="discountType"
@@ -126,7 +149,10 @@ const NewPromoCodePage = () => {
                 <option value="PERCENTAGE">Percentage</option>
                 <option value="FIXED">Fixed Amount</option>
               </select>
+              </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Discount Value</label>
               <input
                 className="w-full p-3 border border-gray-300 rounded-lg"
                 name="discountValue"
@@ -137,9 +163,12 @@ const NewPromoCodePage = () => {
                 onChange={handleChange}
                 required
               />
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Minimum Order Amount</label>
               <input
                 className="w-full p-3 border border-gray-300 rounded-lg"
                 name="minOrderAmount"
@@ -149,6 +178,9 @@ const NewPromoCodePage = () => {
                 value={form.minOrderAmount}
                 onChange={handleChange}
               />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Maximum Discount (for % type)</label>
               <input
                 className="w-full p-3 border border-gray-300 rounded-lg"
                 name="maxDiscount"
@@ -159,6 +191,9 @@ const NewPromoCodePage = () => {
                 onChange={handleChange}
                 disabled={form.discountType !== 'PERCENTAGE'}
               />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Usage Limit</label>
               <input
                 className="w-full p-3 border border-gray-300 rounded-lg"
                 name="usageLimit"
@@ -168,9 +203,12 @@ const NewPromoCodePage = () => {
                 value={form.usageLimit}
                 onChange={handleChange}
               />
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Valid From (Start Date/Time)</label>
               <input
                 className="w-full p-3 border border-gray-300 rounded-lg"
                 name="validFrom"
@@ -178,6 +216,9 @@ const NewPromoCodePage = () => {
                 value={form.validFrom}
                 onChange={handleChange}
               />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Valid Until (Expiry Date/Time)</label>
               <input
                 className="w-full p-3 border border-gray-300 rounded-lg"
                 name="validUntil"
@@ -187,6 +228,7 @@ const NewPromoCodePage = () => {
                 placeholder="Expiry Date"
                 required
               />
+              </div>
             </div>
             <p className="text-xs text-gray-500">Set the expiry date/time in the second field (Valid Until).</p>
 
