@@ -183,16 +183,7 @@ export const ordersAPI = {
 
 export const promoCodesAPI = {
   getAll: () => api.get('/promocodes'),
-  getAllAdmin: async () => {
-    try {
-      return await api.get('/promocodes/admin/all');
-    } catch (error: any) {
-      if (error?.response?.status === 404) {
-        return api.get('/promocodes');
-      }
-      throw error;
-    }
-  },
+  getAllAdmin: () => api.get('/promocodes/admin/all'),
   getByCode: (code: string) => api.get(`/promocodes/${encodeURIComponent(code)}`),
   create: (data: any) => api.post('/promocodes', data),
   update: (id: string, data: any) => api.put(`/promocodes/${id}`, data),
