@@ -115,7 +115,7 @@ const NewPromoCodePage = () => {
         <div className="bg-white rounded-lg shadow p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Promo Code</label>
+              <label className="block text-sm font-semibold text-gray-800 mb-2">Promo Code <span className="text-red-500">*</span></label>
             <input
               className="w-full p-3 border border-gray-300 rounded-lg"
               name="code"
@@ -127,7 +127,7 @@ const NewPromoCodePage = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+              <label className="block text-sm font-semibold text-gray-800 mb-2">Description</label>
             <textarea
               className="w-full p-3 border border-gray-300 rounded-lg"
               name="description"
@@ -139,7 +139,7 @@ const NewPromoCodePage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Discount Type</label>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">Discount Type <span className="text-red-500">*</span></label>
               <select
                 className="w-full p-3 border border-gray-300 rounded-lg"
                 name="discountType"
@@ -152,7 +152,7 @@ const NewPromoCodePage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Discount Value</label>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">Discount Value <span className="text-red-500">*</span></label>
               <input
                 className="w-full p-3 border border-gray-300 rounded-lg"
                 name="discountValue"
@@ -168,7 +168,7 @@ const NewPromoCodePage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Minimum Order Amount</label>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">Minimum Order Amount</label>
               <input
                 className="w-full p-3 border border-gray-300 rounded-lg"
                 name="minOrderAmount"
@@ -180,7 +180,7 @@ const NewPromoCodePage = () => {
               />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Maximum Discount (for % type)</label>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">Maximum Discount (for Percentage)</label>
               <input
                 className="w-full p-3 border border-gray-300 rounded-lg"
                 name="maxDiscount"
@@ -193,7 +193,7 @@ const NewPromoCodePage = () => {
               />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Usage Limit</label>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">Usage Limit (Number of Customers)</label>
               <input
                 className="w-full p-3 border border-gray-300 rounded-lg"
                 name="usageLimit"
@@ -208,7 +208,7 @@ const NewPromoCodePage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Valid From (Start Date/Time)</label>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">Valid From (Start Date/Time)</label>
               <input
                 className="w-full p-3 border border-gray-300 rounded-lg"
                 name="validFrom"
@@ -218,7 +218,7 @@ const NewPromoCodePage = () => {
               />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Valid Until (Expiry Date/Time)</label>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">Valid Until (Expiry Date/Time) <span className="text-red-500">*</span></label>
               <input
                 className="w-full p-3 border border-gray-300 rounded-lg"
                 name="validUntil"
@@ -239,7 +239,7 @@ const NewPromoCodePage = () => {
                 onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
                 className="w-5 h-5"
               />
-              <span className="text-sm font-medium text-gray-700">Active</span>
+              <span className="text-sm font-semibold text-gray-800">Status: Active</span>
             </label>
 
             <button className="w-full bg-blue-600 text-white p-3 rounded-lg disabled:opacity-50" type="submit" disabled={saving}>
