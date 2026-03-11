@@ -166,9 +166,9 @@ export function Header() {
   }, [categories, searchQuery]);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/20 bg-white/80 shadow-sm backdrop-blur-xl dark:bg-gray-950/75">
+    <header className="sticky top-0 z-50 border-b border-gray-200/70 bg-white/85 shadow-[0_8px_30px_rgba(2,6,23,0.06)] backdrop-blur-xl dark:border-gray-800 dark:bg-gray-950/80">
       {/* Top Bar */}
-      <div className="bg-secondary-900 text-white py-2">
+      <div className="bg-gradient-to-r from-secondary-900 via-secondary-800 to-secondary-900 text-white py-2">
         <div className="container">
           <div className="flex justify-between items-center text-xs sm:text-sm gap-2">
             <p className="truncate">{labels.topBarPromo}</p>
@@ -195,11 +195,11 @@ export function Header() {
       </div>
 
       {/* Main Header */}
-      <div className="container py-3 sm:py-4">
+      <div className="container py-3.5 sm:py-4.5">
         <div className="flex items-center justify-between gap-2 sm:gap-4">
           {/* Logo */}
           <Link href="/" className="flex items-center flex-shrink-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold gradient-text">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold tracking-tight gradient-text">
               Glovia Market place
             </h1>
           </Link>
@@ -247,7 +247,7 @@ export function Header() {
             {/* Dark mode toggle */}
             <button
               onClick={toggleDark}
-              className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+              className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
               aria-label="Toggle dark mode"
             >
               {dark ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-gray-700" />}
@@ -255,7 +255,7 @@ export function Header() {
             {/* Search */}
             <button
               onClick={() => setSearchOpen(!searchOpen)}
-              className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
               aria-label="Search"
             >
               <Search className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -264,7 +264,7 @@ export function Header() {
             {/* Wishlist */}
             <Link
               href="/wishlist"
-              className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors hidden sm:flex"
+              className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700 hidden sm:flex"
               aria-label="Wishlist"
             >
               <Heart className="w-5 h-5" />
@@ -273,12 +273,12 @@ export function Header() {
             {/* Cart */}
             <Link
               href="/cart"
-              className="relative p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="relative p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
               aria-label="Cart"
             >
               <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
               {cart && cart.itemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full text-[10px] sm:text-xs">
+                <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full text-[10px] sm:text-xs shadow-md">
                   {cart.itemCount}
                 </span>
               )}
@@ -287,10 +287,10 @@ export function Header() {
             {/* User Menu */}
             {isAuthenticated ? (
               <div className="relative group">
-                <button className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <button className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700">
                   <User className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
                   <Link href="/dashboard" className="block px-4 py-2 hover:bg-gray-100 text-sm">
                     {labels.dashboard}
                   </Link>

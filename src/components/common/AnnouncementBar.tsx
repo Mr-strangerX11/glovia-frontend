@@ -50,9 +50,9 @@ export default function AnnouncementBar() {
 
   return (
     <div className="w-full text-white" style={{ backgroundColor: announcement.backgroundColor }}>
-      <div className="container py-2 text-sm flex items-center justify-between gap-3">
+      <div className="container py-2.5 text-sm flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span aria-hidden="true">{announcement.icon}</span>
+          <span aria-hidden="true" className="text-base leading-none">{announcement.icon}</span>
           <p className="leading-none">
             <span className="font-semibold">{announcement.text}</span>
           </p>
@@ -61,7 +61,7 @@ export default function AnnouncementBar() {
           type="button"
           aria-label="Dismiss announcement"
           onClick={handleClose}
-          className="inline-flex items-center justify-center rounded-md/80 hover:bg-white/10 transition-colors p-1 flex-shrink-0"
+          className="inline-flex items-center justify-center rounded-md hover:bg-white/10 transition-colors p-1.5 flex-shrink-0"
         >
           <span aria-hidden="true" className="text-base leading-none">×</span>
         </button>

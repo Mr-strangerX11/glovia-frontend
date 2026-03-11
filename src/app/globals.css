@@ -6,6 +6,9 @@
   :root {
     --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
     --font-playfair: 'Playfair Display', Georgia, serif;
+    --surface: 255 255 255;
+    --surface-muted: 249 250 251;
+    --text: 17 24 39;
   }
 
   * {
@@ -14,7 +17,7 @@
 
 
   body {
-    @apply bg-white text-gray-900 antialiased transition-colors duration-300;
+    @apply bg-gradient-to-b from-white via-gray-50/30 to-white text-gray-900 antialiased transition-colors duration-300;
   }
 
   .dark body {
@@ -23,6 +26,22 @@
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-serif;
+  }
+
+  ::selection {
+    @apply bg-primary-200 text-primary-900;
+  }
+
+  a {
+    @apply transition-colors duration-200;
+  }
+
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  a:focus-visible {
+    @apply outline-none ring-2 ring-primary-400 ring-offset-2 ring-offset-white;
   }
 
   /* Example dark mode for card */
@@ -40,11 +59,11 @@
   }
 
   .btn {
-    @apply inline-flex items-center justify-center px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base;
+    @apply inline-flex items-center justify-center px-4 py-2.5 sm:px-6 sm:py-3 rounded-xl font-semibold tracking-wide transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base;
   }
 
   .btn-primary {
-    @apply btn bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 shadow-sm hover:shadow-md;
+    @apply btn bg-gradient-to-r from-primary-600 to-primary-700 text-white hover:from-primary-700 hover:to-primary-800 active:from-primary-800 active:to-primary-900 shadow-sm hover:shadow-md;
   }
 
   .btn-secondary {
@@ -52,21 +71,21 @@
   }
 
   .btn-outline {
-    @apply btn border-2 border-primary-600 text-primary-600 hover:bg-primary-50 active:bg-primary-100;
+    @apply btn border border-primary-300 text-primary-700 hover:bg-primary-50 active:bg-primary-100;
   }
   .dark .btn-outline {
     @apply border-primary-500 text-primary-300 hover:bg-primary-900/30 active:bg-primary-900/50;
   }
 
   .input {
-    @apply w-full px-3 py-2 sm:px-4 sm:py-2.5 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-sm sm:text-base;
+    @apply w-full px-3 py-2.5 sm:px-4 sm:py-3 border border-gray-300 rounded-xl bg-white text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all text-sm sm:text-base shadow-[0_1px_2px_rgba(16,24,40,0.04)];
   }
   .dark .input {
     @apply border-gray-700 bg-gray-900 text-gray-100 placeholder:text-gray-400;
   }
 
   .card {
-    @apply bg-white rounded-lg sm:rounded-xl shadow-soft overflow-hidden transition-shadow hover:shadow-lg;
+    @apply bg-white rounded-2xl shadow-soft border border-gray-100 overflow-hidden transition-all duration-200 hover:shadow-lg;
   }
   
   .chip {
@@ -131,6 +150,10 @@
 
   .glass {
     @apply bg-white/80 backdrop-blur-md border border-white/20;
+  }
+
+  .section-shell {
+    @apply bg-white border border-gray-100 rounded-2xl shadow-soft;
   }
 }
 
@@ -219,6 +242,11 @@
   color: rgb(156 163 175);
 }
 
+.dark .section-shell {
+  background-color: rgb(17 24 39);
+  border-color: rgb(55 65 81);
+}
+
 .dark .hover\:bg-gray-50:hover,
 .dark .hover\:bg-gray-100:hover {
   background-color: rgb(31 41 55);
@@ -238,5 +266,16 @@ body {
 @keyframes shimmer {
   100% {
     transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

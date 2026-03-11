@@ -19,13 +19,13 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-secondary-900 text-white">
+    <footer className="bg-gradient-to-b from-secondary-900 to-secondary-950 text-white border-t border-white/10">
       <div className="container py-8 sm:py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           {/* Brand */}
           <div>
             <h3 className="text-xl sm:text-2xl font-serif font-bold mb-3 sm:mb-4">Glovia Market place</h3>
-            <p className="text-sm sm:text-base text-gray-300 mb-4">
+            <p className="text-sm sm:text-base text-gray-300/95 mb-4 leading-relaxed">
               Premium beauty and cosmetic products crafted for Nepali skin. 
               Embrace your natural beauty with Glovia.
             </p>
@@ -34,7 +34,7 @@ export default function Footer() {
                 href="https://www.facebook.com/profile.php?id=61584687494150"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 bg-white/10 hover:bg-primary-600 rounded-full flex items-center justify-center transition-colors"
+                className="w-10 h-10 bg-white/10 hover:bg-primary-600 rounded-full flex items-center justify-center transition-colors shadow-sm"
               >
                 <Facebook className="w-5 h-5" />
               </a>
@@ -42,7 +42,7 @@ export default function Footer() {
                 href="https://www.instagram.com/glovia_nepal?igsh=OTZtdHpmZXMyOWlk"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 bg-white/10 hover:bg-primary-600 rounded-full flex items-center justify-center transition-colors"
+                className="w-10 h-10 bg-white/10 hover:bg-primary-600 rounded-full flex items-center justify-center transition-colors shadow-sm"
               >
                 <Instagram className="w-5 h-5" />
               </a>
@@ -50,7 +50,7 @@ export default function Footer() {
                 href="https://www.tiktok.com/@glovianepal?_r=1&_t=ZS-93dQ96nYLDR"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 bg-white/10 hover:bg-primary-600 rounded-full flex items-center justify-center transition-colors"
+                className="w-10 h-10 bg-white/10 hover:bg-primary-600 rounded-full flex items-center justify-center transition-colors shadow-sm"
               >
                 <TikTokIcon />
               </a>

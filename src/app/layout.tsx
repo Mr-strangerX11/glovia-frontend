@@ -94,8 +94,11 @@ export default function RootLayout({
             toastOptions={{
               duration: 4000,
               style: {
-                background: '#363636',
-                color: '#fff',
+                background: '#ffffff',
+                color: '#1f2937',
+                border: '1px solid #e5e7eb',
+                borderRadius: '12px',
+                boxShadow: '0 10px 25px rgba(17, 24, 39, 0.12)',
               },
               success: {
                 iconTheme: {
@@ -114,7 +117,7 @@ export default function RootLayout({
           <AnnouncementBar />
           <Header />
           <ClientLayout>
-            <main className="min-h-screen pb-16 md:pb-0" id="main-content">
+            <main className="min-h-screen pb-16 md:pb-0 animate-in" id="main-content">
               {children}
             </main>
           </ClientLayout>
