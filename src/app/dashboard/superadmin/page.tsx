@@ -158,6 +158,14 @@ export default function SuperAdminDashboardPage() {
               <Plus className="w-8 h-8 text-sky-400 group-hover:text-sky-600 mx-auto mb-2" />
               <p className="text-sm font-semibold text-sky-700 group-hover:text-sky-800">Add Sub-Category</p>
             </Link>
+            <Link href="/admin/brands" className="group p-4 border-2 border-dashed border-emerald-300 rounded-lg hover:border-emerald-500 hover:bg-emerald-50 transition-all text-center">
+              <Tag className="w-8 h-8 text-emerald-400 group-hover:text-emerald-600 mx-auto mb-2" />
+              <p className="text-sm font-semibold text-emerald-700 group-hover:text-emerald-800">Manage Brands</p>
+            </Link>
+            <Link href="/admin/brands/new" className="group p-4 border-2 border-dashed border-lime-300 rounded-lg hover:border-lime-500 hover:bg-lime-50 transition-all text-center">
+              <Plus className="w-8 h-8 text-lime-400 group-hover:text-lime-600 mx-auto mb-2" />
+              <p className="text-sm font-semibold text-lime-700 group-hover:text-lime-800">Add Brand</p>
+            </Link>
             <Link href="/admin/banners" className="group p-4 border-2 border-dashed border-pink-300 rounded-lg hover:border-pink-500 hover:bg-pink-50 transition-all text-center">
               <ImageIcon className="w-8 h-8 text-pink-400 group-hover:text-pink-600 mx-auto mb-2" />
               <p className="text-sm font-semibold text-pink-700 group-hover:text-pink-800">Seasonal Banners</p>
