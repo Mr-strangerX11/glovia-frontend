@@ -1070,7 +1070,7 @@ export default function ProductDetailPage() {
       </div>
 
       {product.stockQuantity > 0 && (
-        <div className="fixed bottom-20 left-0 right-0 z-50 border-t border-gray-200 bg-white/95 px-4 py-3 shadow-2xl backdrop-blur md:hidden">
+        <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+3.6rem)] z-50 border-t border-gray-200 bg-white/95 px-4 py-3 shadow-2xl backdrop-blur md:hidden">
           <div className="container flex items-center gap-3 px-0">
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs text-gray-500">{product.name}</p>
@@ -1079,14 +1079,14 @@ export default function ProductDetailPage() {
             <button
               onClick={handleAddToCart}
               disabled={isAddingToCart}
-              className="rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-700"
+              className="rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-700 min-w-[82px]"
             >
               Cart
             </button>
             <button
               onClick={handleBuyNow}
               disabled={isAddingToCart}
-              className="rounded-xl border border-primary-600 px-4 py-2.5 text-sm font-semibold text-primary-700 transition hover:bg-primary-50"
+              className="rounded-xl border border-primary-600 px-4 py-2.5 text-sm font-semibold text-primary-700 transition hover:bg-primary-50 min-w-[92px]"
             >
               Buy Now
             </button>

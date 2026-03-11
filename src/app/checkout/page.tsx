@@ -490,6 +490,25 @@ export default function CheckoutPage() {
           </div>
         )}
       </div>
+
+      {items.length > 0 && (
+        <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+3.6rem)] z-40 border-t border-gray-200 bg-white/95 px-4 py-3 shadow-2xl backdrop-blur md:hidden">
+          <div className="container flex items-center justify-between px-0">
+            <div>
+              <p className="text-xs text-gray-500">Payable</p>
+              <p className="text-base font-bold text-primary-700">NPR {estimatedTotalAfterDiscount.toLocaleString()}</p>
+            </div>
+            <button
+              type="button"
+              className="btn-primary rounded-xl px-4 py-2.5 text-sm"
+              onClick={handlePlaceOrder}
+              disabled={isSubmitting || items.length === 0 || (hasPromoCodeInput && !isPromoValid)}
+            >
+              {isSubmitting ? "Placing..." : "Place Order"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
