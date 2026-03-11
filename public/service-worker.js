@@ -1,4 +1,4 @@
-const CACHE_NAME = 'glovia-v2';
+const CACHE_NAME = 'glovia-v3';
 const OFFLINE_URL = '/offline';
 
 const STATIC_ASSETS = [

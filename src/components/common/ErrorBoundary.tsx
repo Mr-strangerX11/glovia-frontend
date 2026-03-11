@@ -14,6 +14,25 @@ interface State {
   error?: Error;
 }
 
+function isChunkError(error?: Error): boolean {
+  if (!error) return false;
+  const message = `${error.name || ''} ${error.message || ''}`.toLowerCase();
+  return (
+    message.includes('chunkloaderror') ||
+    message.includes('loading chunk') ||
+    message.includes('failed to fetch dynamically imported module')
+  );
+}
+
+function hardReloadOnce() {
+  if (typeof window === 'undefined') return;
+  const key = '__chunk_reload_once__';
+  if (sessionStorage.getItem(key) === '1') return;
+  sessionStorage.setItem(key, '1');
+  const separator = window.location.search ? '&' : '?';
+  window.location.replace(`${window.location.href}${separator}v=${Date.now()}`);
+}
+
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
@@ -26,6 +45,10 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
+
+    if (isChunkError(error)) {
+      hardReloadOnce();
+    }
     
     // Send to error reporting service in production
     if (process.env.NODE_ENV === 'production') {
@@ -34,6 +57,11 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   handleReset = () => {
+    if (isChunkError(this.state.error)) {
+      hardReloadOnce();
+      return;
+    }
+
     this.setState({ hasError: false, error: undefined });
     this.props.onReset?.();
   };
