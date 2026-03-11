@@ -24,7 +24,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           {/* Brand */}
           <div>
-            <h3 className="text-xl sm:text-2xl font-serif font-bold mb-3 sm:mb-4">Glovia Nepal</h3>
+            <h3 className="text-xl sm:text-2xl font-serif font-bold mb-3 sm:mb-4">glovia Market place</h3>
             <p className="text-sm sm:text-base text-gray-300 mb-4">
               Premium beauty and cosmetic products crafted for Nepali skin. 
               Embrace your natural beauty with Glovia.
@@ -140,7 +140,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-white/10 mt-6 sm:mt-8 pt-6 sm:pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-400">
-            <p className="text-center md:text-left">© {currentYear} Glovia Nepal. All rights reserved.</p>
+            <p className="text-center md:text-left">© {currentYear} glovia Market place. All rights reserved.</p>
             <div className="flex flex-wrap justify-center gap-2 sm:gap-4">
               <span className="whitespace-nowrap">Made for Nepal🇳🇵</span>
               <span className="whitespace-nowrap">Mr kashi chaudhary</span>

@@ -11,7 +11,7 @@ export default function ReturnsPolicy() {
         </p>
 
         <p className="text-lg">
-          At Glovia Nepal, we want you to be completely satisfied with your purchase. If you're not happy with 
+          At glovia Market place, we want you to be completely satisfied with your purchase. If you're not happy with 
           your order, we're here to help.
         </p>
 
@@ -99,7 +99,7 @@ export default function ReturnsPolicy() {
           <ul className="list-disc pl-6 space-y-2">
             <li>Customer bears return shipping costs (unless product is defective)</li>
             <li>We recommend using trackable shipping services</li>
-            <li>Glovia Nepal is not responsible for lost return packages</li>
+            <li>glovia Market place is not responsible for lost return packages</li>
           </ul>
         </section>
 

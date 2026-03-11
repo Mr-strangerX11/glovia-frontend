@@ -84,13 +84,13 @@ export default function AdminBannersPage() {
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Seasonal Offers & Promo Banners</h1>
+        <h1 className="text-3xl font-bold">Offers Images</h1>
         <Link
           href="/admin/banners/new"
           className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700"
         >
           <Plus className="w-5 h-5" />
-          Add New Banner
+          Add Offer Image
         </Link>
       </div>
 

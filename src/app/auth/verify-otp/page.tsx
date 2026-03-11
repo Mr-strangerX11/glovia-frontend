@@ -4,10 +4,13 @@ import { FormEvent, useState, useRef, KeyboardEvent, ClipboardEvent, Suspense, u
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/lib/api";
+import Cookies from "js-cookie";
+import { useAuthStore } from "@/store/authStore";
 
 function VerifyOtpContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { setUser } = useAuthStore();
   const email = searchParams?.get("email") || "";
   const purpose = searchParams?.get("purpose") || "verification"; // verification, password-reset, login
 
@@ -120,10 +123,24 @@ function VerifyOtpContent() {
         if (purpose === "password-reset") {
           router.push(`/auth/reset-password?email=${email}&otp=${otpCode}`);
         } else if (purpose === "login") {
-          // Store token and redirect to dashboard
-          if (response.data?.token) {
-            localStorage.setItem("token", response.data.token);
+          const accessToken = response.data?.accessToken || response.data?.token;
+          const refreshToken = response.data?.refreshToken;
+          const user = response.data?.user;
+          const userId = user?.id || user?._id;
+
+          if (accessToken) {
+            Cookies.set("access_token", accessToken, { expires: 7 });
           }
+          if (refreshToken) {
+            Cookies.set("refresh_token", refreshToken, { expires: 30 });
+          }
+          if (userId) {
+            Cookies.set("user_id", String(userId), { expires: 30 });
+          }
+          if (user) {
+            setUser(user);
+          }
+
           router.push("/dashboard");
         } else {
           router.push("/dashboard");

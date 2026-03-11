@@ -126,7 +126,6 @@ const EditBannerPage = () => {
             Back to Banners
           </Link>
           <h1 className="text-3xl font-bold">Edit Banner</h1>
-          <p className="text-gray-600 mt-2">Update banner details</p>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">

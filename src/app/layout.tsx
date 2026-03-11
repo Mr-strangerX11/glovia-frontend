@@ -15,31 +15,31 @@ const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfa
 
 export const metadata: Metadata = {
   title: {
-    default: 'Glovia Nepal - Premium Beauty & Cosmetics',
-    template: '%s | Glovia Nepal',
+    default: 'glovia Market place - Premium Beauty & Cosmetics',
+    template: '%s | glovia Market place',
   },
   description: 'Discover premium beauty and cosmetic products made for Nepal. Skincare, haircare, makeup, and organic products for radiant beauty.',
   keywords: ['cosmetics nepal', 'beauty products nepal', 'skincare nepal', 'makeup nepal', 'organic beauty', 'beauty store kathmandu'],
-  authors: [{ name: 'Glovia Nepal' }],
+  authors: [{ name: 'glovia Market place' }],
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://glovia.com.np'),
   openGraph: {
-    title: 'Glovia Nepal - Premium Beauty & Cosmetics',
+    title: 'glovia Market place - Premium Beauty & Cosmetics',
     description: 'Discover premium beauty and cosmetic products made for Nepal.',
     type: 'website',
     locale: 'en_NP',
-    siteName: 'Glovia Nepal',
+    siteName: 'glovia Market place',
     images: [
       {
         url: '/icon-512.svg',
         width: 1200,
         height: 630,
-        alt: 'Glovia Nepal',
+        alt: 'glovia Market place',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Glovia Nepal - Premium Beauty & Cosmetics',
+    title: 'glovia Market place - Premium Beauty & Cosmetics',
     description: 'Discover premium beauty and cosmetic products made for Nepal.',
     images: ['/icon-512.svg'],
   },

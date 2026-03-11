@@ -200,7 +200,7 @@ export function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center flex-shrink-0">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold gradient-text">
-              Glovia Nepal
+              glovia Market place
             </h1>
           </Link>
 

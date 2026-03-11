@@ -5,7 +5,7 @@ import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useOrders, useProfile } from "@/hooks/useData";
 import { vendorAPI } from "@/lib/api";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, ShoppingBag, DollarSign, Package, Clock, UserCircle } from "lucide-react";
+import { Loader2, ShoppingBag, DollarSign, Package, Clock, UserCircle, BarChart3, Settings } from "lucide-react";
 
 export default function VendorDashboardPage() {
   const { user, isChecking } = useAuthGuard({ roles: ["VENDOR"] });
@@ -77,6 +77,9 @@ export default function VendorDashboardPage() {
     [totalOrders, totalRevenue, loadingProducts, productCount, inProgress]
   );
 
+  const quickActionCardBase = "group rounded-2xl border border-gray-200 bg-white p-5 min-h-[138px] hover:shadow-md hover:-translate-y-0.5 transition-all";
+  const quickActionIconBase = "w-8 h-8 mb-2";
+
   if (isChecking || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -90,8 +93,9 @@ export default function VendorDashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-10">
-      <div className="container space-y-6">
+      <div className="container space-y-8">
         <div>
+          <p className="text-sm text-gray-500">Dashboard</p>
           <h1 className="text-3xl font-bold">Vendor Dashboard</h1>
           <p className="text-gray-600">Manage your account, products, and order performance.</p>
         </div>
@@ -115,10 +119,26 @@ export default function VendorDashboardPage() {
           <div className="card p-6 lg:col-span-2">
             <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Link href="/vendor/products" className="btn-outline text-center">Manage Products</Link>
-              <Link href="/vendor/orders" className="btn-outline text-center">View Orders</Link>
-              <Link href="/vendor/analytics" className="btn-outline text-center">Open Analytics</Link>
-              <Link href="/vendor/account" className="btn-primary text-center">Update Account</Link>
+              <Link href="/vendor/products" className={`${quickActionCardBase} hover:border-violet-300`}>
+                <Package className={`${quickActionIconBase} text-violet-600`} />
+                <p className="text-sm font-semibold text-gray-900">Manage Products</p>
+                <p className="text-xs text-gray-500 mt-1">Create, edit, and publish items</p>
+              </Link>
+              <Link href="/vendor/orders" className={`${quickActionCardBase} hover:border-blue-300`}>
+                <ShoppingBag className={`${quickActionIconBase} text-blue-600`} />
+                <p className="text-sm font-semibold text-gray-900">View Orders</p>
+                <p className="text-xs text-gray-500 mt-1">Track and fulfill customer orders</p>
+              </Link>
+              <Link href="/vendor/analytics" className={`${quickActionCardBase} hover:border-emerald-300`}>
+                <BarChart3 className={`${quickActionIconBase} text-emerald-600`} />
+                <p className="text-sm font-semibold text-gray-900">Open Analytics</p>
+                <p className="text-xs text-gray-500 mt-1">Review sales and performance</p>
+              </Link>
+              <Link href="/vendor/account" className={`${quickActionCardBase} hover:border-primary-300`}>
+                <Settings className={`${quickActionIconBase} text-primary-600`} />
+                <p className="text-sm font-semibold text-gray-900">Update Account</p>
+                <p className="text-xs text-gray-500 mt-1">Edit profile and contact info</p>
+              </Link>
             </div>
 
             <div className="mt-6 pt-6 border-t">

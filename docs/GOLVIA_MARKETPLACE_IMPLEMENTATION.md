@@ -1,11 +1,11 @@
-# Golvia Nepal Marketplace Implementation Blueprint
+# glovia Market place Implementation Blueprint
 
 This blueprint is designed for a premium multi-vendor e-commerce marketplace with modern UX, scalable backend, and Nepal-specific payments.
 
 ## 1) Recommended Monorepo Structure
 
 ```txt
-golvia-nepal/
+glovia-marketplace/
 ├─ apps/
 │  ├─ web/                          # Next.js frontend
 │  └─ api/                          # Express backend (alternative: Django DRF)

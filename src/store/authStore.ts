@@ -28,9 +28,9 @@ export const useAuthStore = create<AuthState>()(
           const response = await authAPI.login({ email, password });
           const { user, accessToken, refreshToken } = response.data;
 
-          Cookies.set('access_token', accessToken);
-          Cookies.set('refresh_token', refreshToken);
-          Cookies.set('user_id', user.id);
+          Cookies.set('access_token', accessToken, { expires: 7 });
+          Cookies.set('refresh_token', refreshToken, { expires: 30 });
+          Cookies.set('user_id', user.id, { expires: 30 });
 
           set({ user, isAuthenticated: true, isLoading: false });
         } catch (error) {

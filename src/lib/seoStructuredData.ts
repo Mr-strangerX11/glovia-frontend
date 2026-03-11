@@ -4,7 +4,7 @@ export function getOrganizationStructuredData() {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Glovia Nepal',
+    name: 'glovia Market place',
     url: siteUrl,
     logo: `${siteUrl}/logo.png`,
     description: 'Premium Beauty & Cosmetics in Nepal',
@@ -27,7 +27,7 @@ export function getWebsiteStructuredData() {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'Glovia Nepal',
+    name: 'glovia Market place',
     url: siteUrl,
     potentialAction: {
       '@type': 'SearchAction',

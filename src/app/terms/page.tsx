@@ -13,7 +13,7 @@ export default function TermsAndConditions() {
         <section>
           <h2 className="text-2xl font-serif font-semibold mt-8 mb-4">1. Acceptance of Terms</h2>
           <p>
-            By accessing and using Glovia Nepal's website and services, you accept and agree to be bound by these 
+            By accessing and using glovia Market place's website and services, you accept and agree to be bound by these 
             Terms and Conditions. If you do not agree to these terms, please do not use our services.
           </p>
         </section>
@@ -68,7 +68,7 @@ export default function TermsAndConditions() {
         <section>
           <h2 className="text-2xl font-serif font-semibold mt-8 mb-4">7. Intellectual Property</h2>
           <p>
-            All content on this website, including logos, images, and text, is the property of Glovia Nepal 
+            All content on this website, including logos, images, and text, is the property of glovia Market place 
             and protected by copyright laws.
           </p>
         </section>
@@ -76,7 +76,7 @@ export default function TermsAndConditions() {
         <section>
           <h2 className="text-2xl font-serif font-semibold mt-8 mb-4">8. Limitation of Liability</h2>
           <p>
-            Glovia Nepal shall not be liable for any indirect, incidental, or consequential damages arising 
+            glovia Market place shall not be liable for any indirect, incidental, or consequential damages arising 
             from the use of our products or services.
           </p>
         </section>

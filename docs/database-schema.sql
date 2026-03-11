@@ -1,4 +1,4 @@
--- Golvia Nepal marketplace baseline schema (PostgreSQL)
+-- glovia Market place baseline schema (PostgreSQL)
 
 create table if not exists users (
   id uuid primary key,

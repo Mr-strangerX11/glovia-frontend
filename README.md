@@ -1,6 +1,6 @@
-# Golvia Nepal — Premium Marketplace Frontend
+# glovia Market place — Premium Marketplace Frontend
 
-Golvia Nepal is a modern multi-vendor e-commerce marketplace frontend built with Next.js, Tailwind CSS, Framer Motion, Three.js, and GSAP.
+glovia Market place is a modern multi-vendor e-commerce marketplace frontend built with Next.js, Tailwind CSS, Framer Motion, Three.js, and GSAP.
 
 This repository now includes:
 - Premium 3D hero interaction and animated homepage sections

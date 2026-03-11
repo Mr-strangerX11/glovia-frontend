@@ -108,7 +108,7 @@ export default function HomeContent({ featuredProducts, banners }: HomeContentPr
         </div>
         <div className="p-4 sm:p-5">
           <h3 className="line-clamp-1 text-base font-semibold text-secondary-900">{product.name}</h3>
-          <p className="mt-1 line-clamp-2 text-sm text-secondary-600">{product.description || 'Premium quality product from Glovia Nepal.'}</p>
+          <p className="mt-1 line-clamp-2 text-sm text-secondary-600">{product.description || 'Premium quality product from glovia Market place.'}</p>
           <div className="mt-3 flex items-center justify-between">
             <div>
               <p className="text-lg font-bold text-primary-700">NPR {Number(product.price || 0).toLocaleString()}</p>
@@ -137,7 +137,7 @@ export default function HomeContent({ featuredProducts, banners }: HomeContentPr
             className="space-y-5"
           >
             <span className="inline-flex items-center rounded-full border border-white/40 bg-white/75 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-primary-700 backdrop-blur-md">
-              Golvia Nepal Marketplace
+              glovia Market place
             </span>
             <h1 className="text-3xl font-bold leading-tight text-secondary-950 sm:text-4xl lg:text-5xl">
               Premium 3D Shopping Experience for Nepal
@@ -190,14 +190,10 @@ export default function HomeContent({ featuredProducts, banners }: HomeContentPr
       </section>
 
       <section className="container py-4 sm:py-6">
-        <div className="grid gap-6 rounded-3xl border border-white/40 bg-gradient-to-r from-secondary-900 via-secondary-800 to-primary-900 p-6 text-white sm:p-8 lg:grid-cols-2">
-          <div>
-            <h3 className="text-2xl font-bold">Seasonal Offers & Promo Banners</h3>
-            <p className="mt-2 text-sm text-white/85">Rotate targeted campaigns with conversion-first visuals and first-buyer discount popups.</p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-3xl border border-white/40 bg-gradient-to-r from-secondary-900 via-secondary-800 to-primary-900 p-6 text-white sm:p-8">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {heroBanners.length > 0 ? (
-              heroBanners.slice(0, 2).map((banner, i) => (
+              heroBanners.slice(0, 4).map((banner, i) => (
                 <Link
                   key={banner.id || i}
                   href={banner.link || '#'}
@@ -232,6 +228,20 @@ export default function HomeContent({ featuredProducts, banners }: HomeContentPr
                   <div className="absolute inset-0 bg-black/35 p-3">
                     <p className="text-xs font-semibold uppercase">Campaign</p>
                     <p className="mt-1 text-sm font-bold">New Collection</p>
+                  </div>
+                </div>
+                <div className="relative h-32 overflow-hidden rounded-2xl border border-white/20">
+                  <Image src="/icon-512.svg" alt="Flash Offer" fill className="object-cover" />
+                  <div className="absolute inset-0 bg-black/35 p-3">
+                    <p className="text-xs font-semibold uppercase">Campaign</p>
+                    <p className="mt-1 text-sm font-bold">Flash Offer</p>
+                  </div>
+                </div>
+                <div className="relative h-32 overflow-hidden rounded-2xl border border-white/20">
+                  <Image src="/icon-512.svg" alt="Limited Deal" fill className="object-cover" />
+                  <div className="absolute inset-0 bg-black/35 p-3">
+                    <p className="text-xs font-semibold uppercase">Campaign</p>
+                    <p className="mt-1 text-sm font-bold">Limited Deal</p>
                   </div>
                 </div>
               </>

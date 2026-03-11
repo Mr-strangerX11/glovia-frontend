@@ -61,7 +61,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md space-y-6 bg-white p-8 rounded-2xl shadow-lg">
         <div className="space-y-2 text-center">
           <h1 className="text-2xl font-bold">Create your account</h1>
-          <p className="text-sm text-gray-600">Join Glovia Nepal and start shopping</p>
+          <p className="text-sm text-gray-600">Join glovia Market place and start shopping</p>
         </div>
 
         {error && <div className="rounded-lg bg-red-50 text-red-700 px-4 py-3 text-sm">{error}</div>}

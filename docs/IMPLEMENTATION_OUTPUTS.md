@@ -1,6 +1,6 @@
-# Golvia Nepal — Implementation Outputs (March 2026)
+# glovia Market place — Implementation Outputs (March 2026)
 
-This document maps the exact deliverables requested for the Golvia Nepal marketplace implementation and upgrade.
+This document maps the exact deliverables requested for the glovia Market place implementation and upgrade.
 
 ## 1) Folder Structure
 

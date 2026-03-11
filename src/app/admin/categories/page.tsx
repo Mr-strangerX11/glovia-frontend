@@ -1,7 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+export const dynamic = 'force-dynamic';
+
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { ArrowLeft, Loader2, Pencil, Plus, Save, Trash2, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
@@ -42,9 +45,12 @@ function createDraft(category: CategoryItem): EditingDraft {
   };
 }
 
-export default function AdminCategoriesPage() {
+function AdminCategoriesContent() {
   const { user, isChecking } = useAuthGuard({ roles: ['ADMIN', 'SUPER_ADMIN'] });
+  const searchParams = useSearchParams();
+  const initialView = searchParams?.get('view') === 'subcategories' ? 'subcategories' : 'all';
   const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [viewMode, setViewMode] = useState<'all' | 'subcategories'>(initialView);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -80,6 +86,15 @@ export default function AdminCategoriesPage() {
 
   const flatCount = useMemo(() => {
     return categories.reduce((acc, category) => acc + 1 + (category.children?.length || 0), 0);
+  }, [categories]);
+
+  const subcategories = useMemo(() => {
+    return categories.flatMap((parent) =>
+      (parent.children || []).map((child) => ({
+        parentName: parent.name,
+        category: child,
+      })),
+    );
   }, [categories]);
 
   const handleDelete = async (category: CategoryItem) => {
@@ -284,18 +299,43 @@ export default function AdminCategoriesPage() {
             </div>
 
             <div className="flex items-center gap-2">
+              <button
+                className={viewMode === 'all' ? 'btn-primary' : 'btn-outline'}
+                onClick={() => setViewMode('all')}
+                type="button"
+              >
+                All Categories
+              </button>
+              <button
+                className={viewMode === 'subcategories' ? 'btn-primary' : 'btn-outline'}
+                onClick={() => setViewMode('subcategories')}
+                type="button"
+              >
+                Manage Sub-Categories
+              </button>
               <button className="btn-outline" onClick={() => loadCategories(true)} disabled={refreshing}>
                 {refreshing ? 'Refreshing...' : 'Refresh'}
               </button>
               <Link href="/admin/categories/new" className="btn-primary inline-flex items-center gap-2">
                 <Plus className="h-4 w-4" /> Add Category
               </Link>
+              <Link href="/admin/categories/new?level=sub" className="btn-outline inline-flex items-center gap-2">
+                <Plus className="h-4 w-4" /> Add Sub-Category
+              </Link>
             </div>
           </div>
 
           <div className="mb-4 rounded-lg border border-gray-200 bg-white p-4">
             <p className="text-sm text-gray-700">
-              Total items: <span className="font-semibold">{flatCount}</span> ({categories.length} main categories)
+              {viewMode === 'all' ? (
+                <>
+                  Total items: <span className="font-semibold">{flatCount}</span> ({categories.length} main categories)
+                </>
+              ) : (
+                <>
+                  Total sub-categories: <span className="font-semibold">{subcategories.length}</span>
+                </>
+              )}
             </p>
           </div>
 
@@ -311,6 +351,24 @@ export default function AdminCategoriesPage() {
                 <Plus className="h-4 w-4" /> Create first category
               </Link>
             </div>
+          ) : viewMode === 'subcategories' ? (
+            <div className="space-y-3">
+              {subcategories.length === 0 ? (
+                <div className="rounded-lg bg-white p-10 text-center">
+                  <p className="text-gray-700">No sub-categories found.</p>
+                  <Link href="/admin/categories/new?level=sub" className="btn-primary mt-4 inline-flex items-center gap-2">
+                    <Plus className="h-4 w-4" /> Create first sub-category
+                  </Link>
+                </div>
+              ) : (
+                subcategories.map((entry) => (
+                  <div key={getCategoryId(entry.category) || entry.category.slug} className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Parent: {entry.parentName}</p>
+                    {renderCategoryRow(entry.category, 1)}
+                  </div>
+                ))
+              )}
+            </div>
           ) : (
             <div className="space-y-4">
               {categories.map((mainCategory) => (
@@ -324,5 +382,19 @@ export default function AdminCategoriesPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AdminCategoriesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+        </div>
+      }
+    >
+      <AdminCategoriesContent />
+    </Suspense>
   );
 }

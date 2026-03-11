@@ -161,9 +161,9 @@ Steps:
 ### 8.8 Information Pages
 | Page | Purpose |
 |---|---|
-| About Golvia Nepal | Brand story |
+| About glovia Market place | Brand story |
 | How to Shop | Step-by-step guide |
-| Sell on Golvia | Seller onboarding |
+| Sell on glovia Market place | Seller onboarding |
 | Delivery and Shipping | Policies |
 | Return and Refund | Clear instructions |
 | FAQ | Common user questions |

@@ -40,7 +40,7 @@ export function getProductStructuredData(product: Product) {
         : 'https://schema.org/OutOfStock',
       seller: {
         '@type': 'Organization',
-        name: 'Glovia Nepal'
+        name: 'glovia Market place'
       }
     },
     aggregateRating: product.averageRating ? {
@@ -72,7 +72,7 @@ export function getOrganizationStructuredData() {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Glovia Nepal',
+    name: 'glovia Market place',
     url: process.env.NEXT_PUBLIC_SITE_URL || 'https://glovia.com.np',
     logo: `${process.env.NEXT_PUBLIC_SITE_URL}/logo.png`,
     description: 'Premium Beauty & Cosmetics in Nepal',
@@ -94,7 +94,7 @@ export function getWebsiteStructuredData() {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'Glovia Nepal',
+    name: 'glovia Market place',
     url: process.env.NEXT_PUBLIC_SITE_URL || 'https://glovia.com.np',
     potentialAction: {
       '@type': 'SearchAction',
@@ -130,7 +130,7 @@ export function getLocalBusinessStructuredData() {
   return {
     '@context': 'https://schema.org',
     '@type': 'BeautySalon',
-    name: 'Glovia Nepal',
+    name: 'glovia Market place',
     image: `${process.env.NEXT_PUBLIC_SITE_URL}/logo.png`,
     address: {
       '@type': 'PostalAddress',
@@ -169,7 +169,7 @@ export function SeoHead({
   category,
   brand
 }: SeoHeadProps) {
-  const siteName = 'Glovia Nepal';
+  const siteName = 'glovia Market place';
   const defaultImage = '/icon-512.svg';
   const fullUrl = url ? `${process.env.NEXT_PUBLIC_SITE_URL || ''}${url}` : undefined;
   

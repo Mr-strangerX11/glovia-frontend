@@ -45,8 +45,8 @@ api.interceptors.response.use(
             { refreshToken, userId }
           );
 
-          Cookies.set('access_token', data.accessToken);
-          Cookies.set('refresh_token', data.refreshToken);
+          Cookies.set('access_token', data.accessToken, { expires: 7 });
+          Cookies.set('refresh_token', data.refreshToken, { expires: 30 });
 
           originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
           return api(originalRequest);

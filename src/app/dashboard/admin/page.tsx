@@ -73,6 +73,9 @@ export default function AdminDashboardPage() {
     },
   ];
 
+  const quickActionCardBase = "group rounded-2xl border border-gray-200 bg-white p-5 min-h-[138px] hover:shadow-md hover:-translate-y-0.5 transition-all";
+  const quickActionIconBase = "w-8 h-8 mb-3";
+
   return (
     <div className="min-h-screen bg-gray-50 py-10">
       <div className="container space-y-8">
@@ -96,6 +99,12 @@ export default function AdminDashboardPage() {
             </Link>
             <Link href="/admin/orders" className="btn-outline">
               View Orders
+            </Link>
+            <Link href="/admin/categories" className="btn-outline">
+              Manage Categories
+            </Link>
+            <Link href="/admin/categories?view=subcategories" className="btn-outline">
+              Manage Sub-Categories
             </Link>
           </div>
         </div>
@@ -355,40 +364,45 @@ export default function AdminDashboardPage() {
         {/* Quick Actions */}
         <div className="card p-6">
           <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-            <Link href="/admin/products/new" className="group p-5 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all text-center">
-              <Package className="w-10 h-10 text-gray-400 group-hover:text-primary-600 mx-auto mb-3" />
-              <p className="text-sm font-semibold text-gray-700 group-hover:text-primary-700">Add Product</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <Link href="/admin/products/new" className={`${quickActionCardBase} hover:border-violet-300`}>
+              <Package className={`${quickActionIconBase} text-violet-600`} />
+              <p className="text-sm font-semibold text-gray-900">Add Product</p>
               <p className="text-xs text-gray-500 mt-1">Create new catalog item</p>
             </Link>
-            <Link href="/admin/brands" className="group p-5 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all text-center">
-              <TrendingUp className="w-10 h-10 text-gray-400 group-hover:text-primary-600 mx-auto mb-3" />
-              <p className="text-sm font-semibold text-gray-700 group-hover:text-primary-700">Manage Brands</p>
-              <p className="text-xs text-gray-500 mt-1">View and edit brands</p>
-            </Link>
-            <Link href="/admin/orders" className="group p-5 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all text-center">
-              <ShoppingBag className="w-10 h-10 text-gray-400 group-hover:text-primary-600 mx-auto mb-3" />
-              <p className="text-sm font-semibold text-gray-700 group-hover:text-primary-700">View Orders</p>
+            <Link href="/admin/orders" className={`${quickActionCardBase} hover:border-blue-300`}>
+              <ShoppingBag className={`${quickActionIconBase} text-blue-600`} />
+              <p className="text-sm font-semibold text-gray-900">Manage Orders</p>
               <p className="text-xs text-gray-500 mt-1">Review and fulfill orders</p>
             </Link>
-            <Link href="/admin/users" className="group p-5 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all text-center">
-              <Users className="w-10 h-10 text-gray-400 group-hover:text-primary-600 mx-auto mb-3" />
-              <p className="text-sm font-semibold text-gray-700 group-hover:text-primary-700">Manage Users</p>
+            <Link href="/admin/users" className={`${quickActionCardBase} hover:border-indigo-300`}>
+              <Users className={`${quickActionIconBase} text-indigo-600`} />
+              <p className="text-sm font-semibold text-gray-900">Manage Users</p>
               <p className="text-xs text-gray-500 mt-1">User and role management</p>
             </Link>
-            <Link href="/admin/categories" className="group p-5 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all text-center">
-              <Layers className="w-10 h-10 text-gray-400 group-hover:text-primary-600 mx-auto mb-3" />
-              <p className="text-sm font-semibold text-gray-700 group-hover:text-primary-700">Manage Categories</p>
-              <p className="text-xs text-gray-500 mt-1">Edit category tree</p>
+            <Link href="/admin/brands" className={`${quickActionCardBase} hover:border-emerald-300`}>
+              <TrendingUp className={`${quickActionIconBase} text-emerald-600`} />
+              <p className="text-sm font-semibold text-gray-900">Manage Brands</p>
+              <p className="text-xs text-gray-500 mt-1">View and edit brands</p>
             </Link>
-            <Link href="/admin/settings/delivery" className="group p-5 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all text-center">
-              <DollarSign className="w-10 h-10 text-gray-400 group-hover:text-green-600 mx-auto mb-3" />
-              <p className="text-sm font-semibold text-gray-700 group-hover:text-green-700">Delivery Settings</p>
+            <Link href="/admin/categories" className={`${quickActionCardBase} hover:border-cyan-300`}>
+              <Layers className={`${quickActionIconBase} text-cyan-600`} />
+              <p className="text-sm font-semibold text-gray-900">Manage Categories</p>
+              <p className="text-xs text-gray-500 mt-1">Edit main category tree</p>
+            </Link>
+            <Link href="/admin/categories?view=subcategories" className={`${quickActionCardBase} hover:border-sky-300`}>
+              <Layers className={`${quickActionIconBase} text-sky-600`} />
+              <p className="text-sm font-semibold text-gray-900">Manage Sub-Categories</p>
+              <p className="text-xs text-gray-500 mt-1">Update child category structure</p>
+            </Link>
+            <Link href="/admin/settings/delivery" className={`${quickActionCardBase} hover:border-green-300`}>
+              <DollarSign className={`${quickActionIconBase} text-green-600`} />
+              <p className="text-sm font-semibold text-gray-900">Delivery Settings</p>
               <p className="text-xs text-gray-500 mt-1">Configure discounts & delivery</p>
             </Link>
-            <Link href="/loyalty" className="group p-5 border-2 border-dashed border-gray-300 rounded-lg hover:border-amber-500 hover:bg-amber-50 transition-all text-center">
-              <Award className="w-10 h-10 text-gray-400 group-hover:text-amber-600 mx-auto mb-3" />
-              <p className="text-sm font-semibold text-gray-700 group-hover:text-amber-700">Loyalty Points</p>
+            <Link href="/loyalty" className={`${quickActionCardBase} hover:border-amber-300`}>
+              <Award className={`${quickActionIconBase} text-amber-600`} />
+              <p className="text-sm font-semibold text-gray-900">Loyalty Points</p>
               <p className="text-xs text-gray-500 mt-1">Check points and rewards</p>
             </Link>
           </div>

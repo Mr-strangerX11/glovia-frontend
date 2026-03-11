@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: 'Glovia Nepal - Premium Beauty Marketplace',
+    title: 'glovia Market place - Premium Beauty Marketplace',
     description:
       'Discover trending beauty products, seasonal offers, and trusted sellers across Nepal.',
     url: '/',

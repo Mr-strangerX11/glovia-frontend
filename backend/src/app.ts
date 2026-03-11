@@ -13,7 +13,7 @@ export function createApp() {
   app.use(morgan('dev'));
 
   app.get('/health', (_req, res) => {
-    res.json({ ok: true, service: 'golvia-nepal-api' });
+    res.json({ ok: true, service: 'glovia-marketplace-api' });
   });
 
   app.use('/api/v1', apiRouter);
