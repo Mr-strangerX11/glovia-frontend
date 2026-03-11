@@ -9,12 +9,14 @@ interface ImageUploadFieldProps {
   onImagesChange: (urls: string[]) => void;
   images: string[];
   maxImages?: number;
+  allowUrlInput?: boolean;
 }
 
 export default function ImageUploadField({
   onImagesChange,
   images,
   maxImages = 5,
+  allowUrlInput = true,
 }: ImageUploadFieldProps) {
   const [uploading, setUploading] = useState(false);
   const [uploadedUrls, setUploadedUrls] = useState<string[]>(images || []);
@@ -168,34 +170,36 @@ export default function ImageUploadField({
       </div>
 
       {/* Image URL Input */}
-      <div className="space-y-2">
-        <p className="text-sm font-medium text-gray-700">Or paste image URL</p>
-        <div className="flex gap-2">
-          <input
-            type="url"
-            placeholder="https://example.com/image.jpg"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                const input = e.currentTarget;
+      {allowUrlInput && (
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-gray-700">Or paste image URL</p>
+          <div className="flex gap-2">
+            <input
+              type="url"
+              placeholder="https://example.com/image.jpg"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  const input = e.currentTarget;
+                  addImageUrl(input.value);
+                  input.value = "";
+                }
+              }}
+              className="input flex-1"
+            />
+            <button
+              type="button"
+              onClick={(e) => {
+                const input = (e.target as HTMLElement).previousElementSibling as HTMLInputElement;
                 addImageUrl(input.value);
                 input.value = "";
-              }
-            }}
-            className="input flex-1"
-          />
-          <button
-            type="button"
-            onClick={(e) => {
-              const input = (e.target as HTMLElement).previousElementSibling as HTMLInputElement;
-              addImageUrl(input.value);
-              input.value = "";
-            }}
-            className="btn-primary"
-          >
-            Add
-          </button>
+              }}
+              className="btn-primary"
+            >
+              Add
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Uploaded Images Preview */}
       {uploadedUrls.length > 0 && (

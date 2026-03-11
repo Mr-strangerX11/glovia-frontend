@@ -7,6 +7,7 @@ import { adminAPI } from '@/lib/api';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import ImageUploadField from '@/components/ImageUploadField';
 
 export default function NewBrandPage() {
   const router = useRouter();
@@ -110,25 +111,14 @@ export default function NewBrandPage() {
             </div>
 
             <div>
-              <label className="label">Logo URL</label>
-              <input
-                type="url"
-                value={formData.logo}
-                onChange={(e) => setFormData({ ...formData, logo: e.target.value })}
-                className="input"
-                placeholder="https://example.com/logo.png"
+              <label className="label">Brand Logo</label>
+              <ImageUploadField
+                images={formData.logo ? [formData.logo] : []}
+                onImagesChange={(urls) => setFormData({ ...formData, logo: urls[0] || '' })}
+                maxImages={1}
+                allowUrlInput={false}
               />
-              {formData.logo && (
-                <div className="mt-3">
-                  <p className="text-sm text-gray-600 mb-2">Preview:</p>
-                  <img
-                    src={formData.logo}
-                    alt="Brand Logo"
-                    className="h-16 object-contain"
-                    onError={() => {}}
-                  />
-                </div>
-              )}
+              <p className="text-sm text-gray-500 mt-1">Upload brand logo image (PNG/JPG/WebP)</p>
             </div>
 
             <div className="flex gap-4 pt-4">
