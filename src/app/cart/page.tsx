@@ -5,11 +5,24 @@ import Image from "next/image";
 import { useCart } from "@/hooks/useData";
 import { cartAPI } from "@/lib/api";
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Sparkles } from "lucide-react";
 import toast from "react-hot-toast";
-import Recommendations from '@/components/Recommendations';
-import WalletInfo from '@/components/WalletInfo';
-import LoyaltyInfo from '@/components/LoyaltyInfo';
+
+const Recommendations = dynamic(() => import('@/components/Recommendations'), {
+  ssr: false,
+  loading: () => null,
+});
+
+const WalletInfo = dynamic(() => import('@/components/WalletInfo'), {
+  ssr: false,
+  loading: () => null,
+});
+
+const LoyaltyInfo = dynamic(() => import('@/components/LoyaltyInfo'), {
+  ssr: false,
+  loading: () => null,
+});
 
 export default function CartPage() {
   const { cart, isLoading, mutate } = useCart();

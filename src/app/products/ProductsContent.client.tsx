@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import { useAuthStore } from "@/store/authStore";
 import { wishlistAPI } from "@/lib/api";
 import { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   GLOVIA_AI_SHORTCUTS,
   GLOVIA_MAIN_CATEGORIES,
@@ -77,6 +77,7 @@ export default function ProductsContent({
   initialSearch
 }: ProductsContentProps) {
   const { user } = useAuthStore();
+  const prefersReducedMotion = useReducedMotion();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
@@ -229,7 +230,7 @@ export default function ProductsContent({
     return (
       <motion.div
         key={product.id || product.slug}
-        whileHover={{ y: -6, rotateX: 2, rotateY: -2 }}
+        whileHover={prefersReducedMotion ? { y: -2 } : { y: -6, rotateX: 2, rotateY: -2 }}
         transition={{ type: "spring", stiffness: 200, damping: 16 }}
         style={{ transformStyle: "preserve-3d" }}
       >
@@ -240,6 +241,7 @@ export default function ProductsContent({
               alt={product.name}
               fill
               sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              loading="lazy"
               className="object-contain p-4 transition-transform duration-500 group-hover:scale-105"
             />
             <button

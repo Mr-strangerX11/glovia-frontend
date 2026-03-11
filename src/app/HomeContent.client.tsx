@@ -15,7 +15,7 @@ import {
   Download,
 } from 'lucide-react';
 import { useMemo, useState, FormEvent } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Product, Banner } from '@/types';
 
 const HeroThreeScene = dynamic(() => import('@/components/premium/HeroThreeScene'), {
@@ -43,6 +43,7 @@ function normalizeList<T>(payload: T[] | { data?: T[] } | null | undefined): T[]
 
 export default function HomeContent({ featuredProducts, banners }: HomeContentProps) {
   const [newsletterEmail, setNewsletterEmail] = useState('');
+  const prefersReducedMotion = useReducedMotion();
 
   const products = useMemo(() => normalizeList<Product>(featuredProducts), [featuredProducts]);
   const heroBanners = useMemo(() => normalizeList<Banner>(banners), [banners]);
@@ -89,7 +90,7 @@ export default function HomeContent({ featuredProducts, banners }: HomeContentPr
     <motion.div
       key={product.id || `${product.name}-${index}`}
       className="group card overflow-hidden border border-white/30 bg-white/70 backdrop-blur-xl"
-      whileHover={{ y: -8, rotateX: 6, rotateY: index % 2 === 0 ? -5 : 5 }}
+      whileHover={prefersReducedMotion ? { y: -2 } : { y: -8, rotateX: 6, rotateY: index % 2 === 0 ? -5 : 5 }}
       transition={{ type: 'spring', stiffness: 180, damping: 16 }}
       style={{ transformStyle: 'preserve-3d' }}
     >
@@ -99,6 +100,8 @@ export default function HomeContent({ featuredProducts, banners }: HomeContentPr
             src={product.images?.[0]?.url || '/icon-512.svg'}
             alt={product.images?.[0]?.altText || product.name}
             fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            loading="lazy"
             className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />

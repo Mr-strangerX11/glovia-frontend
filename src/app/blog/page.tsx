@@ -3,6 +3,7 @@
 import { BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import Head from 'next/head';
+import Image from 'next/image';
 
 export default function BlogPage() {
   const blogPosts = [
@@ -73,9 +74,13 @@ export default function BlogPage() {
             {blogPosts.map((post) => (
               <article key={post.id} className="group bg-white rounded-2xl border border-gray-100 shadow-soft p-4 cursor-pointer hover:shadow-lg transition-shadow">
                 <div className="aspect-video overflow-hidden rounded-xl mb-4">
-                  <img
+                  <Image
                     src={post.image}
                     alt={post.title}
+                    width={800}
+                    height={450}
+                    loading="lazy"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 </div>
