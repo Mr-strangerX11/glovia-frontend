@@ -112,7 +112,7 @@ self.addEventListener('push', (event) => {
   const data = event.data?.json() || {};
   
   const options = {
-    body: data.body || 'New notification from glovia Market place',
+    body: data.body || 'New notification from Glovia Market place',
     icon: '/icon-192.svg',
     vibrate: [100, 50, 100],
     data: {
@@ -122,7 +122,7 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title || 'glovia Market place', options)
+    self.registration.showNotification(data.title || 'Glovia Market place', options)
   );
 });
 

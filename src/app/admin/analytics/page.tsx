@@ -112,7 +112,7 @@ export default function AdminAnalyticsDashboard() {
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-primary-700">glovia Market place · Admin Intelligence</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-primary-700">Glovia Market place · Admin Intelligence</p>
               <h1 className="mt-1 text-2xl font-bold text-slate-900 md:text-3xl">Premium Analytics Dashboard</h1>
               <p className="mt-1 text-sm text-slate-600">Real-time sales intelligence, top movers, and operational signals for high-conversion decisions.</p>
             </div>

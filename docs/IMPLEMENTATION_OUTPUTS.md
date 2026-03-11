@@ -1,6 +1,6 @@
-# glovia Market place — Implementation Outputs (March 2026)
+# Glovia Market place — Implementation Outputs (March 2026)
 
-This document maps the exact deliverables requested for the glovia Market place implementation and upgrade.
+This document maps the exact deliverables requested for the Glovia Market place implementation and upgrade.
 
 ## 1) Folder Structure
 

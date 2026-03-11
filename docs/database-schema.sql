@@ -1,4 +1,4 @@
--- glovia Market place baseline schema (PostgreSQL)
+-- Glovia Market place baseline schema (PostgreSQL)
 
 create table if not exists users (
   id uuid primary key,

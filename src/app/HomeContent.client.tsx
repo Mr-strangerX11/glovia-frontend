@@ -108,7 +108,7 @@ export default function HomeContent({ featuredProducts, banners }: HomeContentPr
         </div>
         <div className="p-4 sm:p-5">
           <h3 className="line-clamp-1 text-base font-semibold text-secondary-900">{product.name}</h3>
-          <p className="mt-1 line-clamp-2 text-sm text-secondary-600">{product.description || 'Premium quality product from glovia Market place.'}</p>
+          <p className="mt-1 line-clamp-2 text-sm text-secondary-600">{product.description || 'Premium quality product from Glovia Market place.'}</p>
           <div className="mt-3 flex items-center justify-between">
             <div>
               <p className="text-lg font-bold text-primary-700">NPR {Number(product.price || 0).toLocaleString()}</p>
@@ -137,7 +137,7 @@ export default function HomeContent({ featuredProducts, banners }: HomeContentPr
             className="space-y-5"
           >
             <span className="inline-flex items-center rounded-full border border-white/40 bg-white/75 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-primary-700 backdrop-blur-md">
-              glovia Market place
+              Glovia Market place
             </span>
             <h1 className="text-3xl font-bold leading-tight text-secondary-950 sm:text-4xl lg:text-5xl">
               Premium 3D Shopping Experience for Nepal

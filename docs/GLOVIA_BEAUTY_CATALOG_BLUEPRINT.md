@@ -1,4 +1,4 @@
-# glovia Market place Beauty Catalog Blueprint
+# Glovia Market place Beauty Catalog Blueprint
 
 This blueprint implements the requested beauty-first category system in a format that is clean, SEO-friendly, easy to expand, and ready for relational database rollout.
 

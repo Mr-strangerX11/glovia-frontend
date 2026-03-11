@@ -1,4 +1,4 @@
-# glovia Market place Implementation Blueprint
+# Glovia Market place Implementation Blueprint
 
 This blueprint is designed for a premium multi-vendor e-commerce marketplace with modern UX, scalable backend, and Nepal-specific payments.
 

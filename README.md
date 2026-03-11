@@ -1,6 +1,6 @@
-# glovia Market place — Premium Marketplace Frontend
+# Glovia Market place — Premium Marketplace Frontend
 
-glovia Market place is a modern multi-vendor e-commerce marketplace frontend built with Next.js, Tailwind CSS, Framer Motion, Three.js, and GSAP.
+Glovia Market place is a modern multi-vendor e-commerce marketplace frontend built with Next.js, Tailwind CSS, Framer Motion, Three.js, and GSAP.
 
 This repository now includes:
 - Premium 3D hero interaction and animated homepage sections

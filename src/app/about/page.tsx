@@ -4,9 +4,9 @@ export default function AboutPage() {
       <div className="container py-12 space-y-6">
         <div>
           <p className="text-sm text-gray-500">About</p>
-          <h1 className="text-3xl font-bold">About glovia Market place</h1>
+          <h1 className="text-3xl font-bold">About Glovia Market place</h1>
           <p className="text-gray-600 max-w-3xl mt-3">
-            glovia Market place is a premium beauty and cosmetics destination tailored for Nepali customers. We curate skincare, haircare, and makeup products with a focus on authenticity, fast delivery, and customer delight.
+            Glovia Market place is a premium beauty and cosmetics destination tailored for Nepali customers. We curate skincare, haircare, and makeup products with a focus on authenticity, fast delivery, and customer delight.
           </p>
         </div>
         <div className="grid md:grid-cols-3 gap-6">

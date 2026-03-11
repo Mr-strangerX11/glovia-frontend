@@ -161,9 +161,9 @@ Steps:
 ### 8.8 Information Pages
 | Page | Purpose |
 |---|---|
-| About glovia Market place | Brand story |
+| About Glovia Market place | Brand story |
 | How to Shop | Step-by-step guide |
-| Sell on glovia Market place | Seller onboarding |
+| Sell on Glovia Market place | Seller onboarding |
 | Delivery and Shipping | Policies |
 | Return and Refund | Clear instructions |
 | FAQ | Common user questions |

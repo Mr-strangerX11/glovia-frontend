@@ -13,7 +13,7 @@ export default function PrivacyPolicy() {
         <section>
           <h2 className="text-2xl font-serif font-semibold mt-8 mb-4">1. Information We Collect</h2>
           <p>
-            At glovia Market place, we collect the following information when you use our services:
+            At Glovia Market place, we collect the following information when you use our services:
           </p>
           <ul className="list-disc pl-6 space-y-2">
             <li>Personal information (name, email, phone number)</li>
@@ -97,7 +97,7 @@ export default function PrivacyPolicy() {
 
         <div className="mt-12 p-6 bg-gray-50 rounded-lg">
           <p className="text-sm text-gray-600">
-            By using glovia Market place's services, you agree to this Privacy Policy. We may update this policy periodically, 
+            By using Glovia Market place's services, you agree to this Privacy Policy. We may update this policy periodically, 
             and we will notify you of significant changes.
           </p>
         </div>
