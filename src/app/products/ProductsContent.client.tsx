@@ -457,15 +457,19 @@ export default function ProductsContent({
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-primary-50/20 to-secondary-50/20">
-      <div className="container py-6 sm:py-10 space-y-6 sm:space-y-8">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-          <p className="text-xs sm:text-sm text-gray-500">Catalog</p>
-          <h1 className="text-2xl sm:text-3xl font-bold">
+      <div className="bg-gradient-to-r from-rose-600 via-pink-600 to-fuchsia-600 pt-10 pb-20">
+        <div className="container text-white">
+          <p className="text-rose-200 text-sm font-medium mb-1">Catalog</p>
+          <h1 className="text-3xl font-bold">
             {category ? `Products - ${category}` : brand ? `Products - ${brand}` : searchValue ? `Search: ${searchValue}` : "All Products"}
           </h1>
-          <p className="mt-1 text-xs sm:text-sm text-gray-600">Premium beauty discovery with smart filters and AI-assisted browsing.</p>
-          </div>
+          <p className="mt-1 text-sm text-pink-100">Premium beauty discovery with smart filters and AI-assisted browsing.</p>
+        </div>
+      </div>
+
+      <div className="container -mt-10 pb-10 space-y-6 sm:space-y-8">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div />
           <button
             onClick={() => setIsMobileFilterOpen(true)}
             className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold shadow-sm lg:hidden"
@@ -479,7 +483,7 @@ export default function ProductsContent({
           <div className="hidden lg:block lg:sticky lg:top-24 lg:self-start">{filterPanel}</div>
 
           <div className="space-y-4">
-            <div className="flex flex-col gap-3 rounded-2xl border border-white/50 bg-white/80 p-4 shadow-sm backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-soft sm:flex-row sm:items-center sm:justify-between">
               <div className="flex w-full flex-1 items-center gap-2">
                 <input
                   type="text"

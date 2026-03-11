@@ -71,7 +71,7 @@ export default function HomeContent({ featuredProducts, banners }: HomeContentPr
   ];
 
   const testimonials = [
-    { name: 'Sushmita R.', quote: 'Golvia feels premium. Delivery was fast and packaging was excellent.', rating: 5 },
+    { name: 'Sushmita R.', quote: 'Glovia feels premium. Delivery was fast and packaging was excellent.', rating: 5 },
     { name: 'Rabin K.', quote: 'The product recommendations are very accurate and useful for gifting.', rating: 5 },
     { name: 'Aakriti M.', quote: 'Smooth checkout and trusted payment options made me buy instantly.', rating: 5 },
   ];
@@ -294,12 +294,12 @@ export default function HomeContent({ featuredProducts, banners }: HomeContentPr
       </section>
 
       <section className="container pb-24 pt-6 sm:pb-12">
-        <div className="grid gap-6 rounded-3xl border border-white/40 bg-white/75 p-6 shadow-soft backdrop-blur-xl lg:grid-cols-2 lg:p-8">
+        <div className="grid gap-6 rounded-3xl border border-white/50 bg-white/85 p-6 shadow-soft backdrop-blur-xl lg:grid-cols-2 lg:p-8">
           <div>
             <div className="inline-flex items-center rounded-full bg-primary-100 px-3 py-1 text-xs font-semibold text-primary-700">
-              <Smartphone className="mr-1 h-3.5 w-3.5" /> Golvia App
+              <Smartphone className="mr-1 h-3.5 w-3.5" /> Glovia App
             </div>
-            <h3 className="mt-3 text-2xl font-bold text-secondary-950">Shop faster with the Golvia app</h3>
+            <h3 className="mt-3 text-2xl font-bold text-secondary-950">Shop faster with the Glovia app</h3>
             <p className="mt-2 text-sm text-secondary-700">Get order tracking, flash sale alerts, and one-tap checkout optimized for Nepali customers.</p>
             <button className="btn-primary mt-4 rounded-2xl px-5 py-3">
               <Download className="mr-2 h-4 w-4" /> Download App
