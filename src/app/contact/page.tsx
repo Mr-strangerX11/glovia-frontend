@@ -56,9 +56,9 @@ ${formData.message}
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white py-16">
+      <div className="bg-gradient-to-r from-rose-600 via-pink-600 to-fuchsia-600 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium mb-4">
             <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
@@ -67,13 +67,13 @@ ${formData.message}
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Need Help? We're Online 24/7
           </h1>
-          <p className="text-xl text-primary-100 max-w-2xl mx-auto">
+          <p className="text-xl text-pink-100 max-w-2xl mx-auto">
             Message us anytime — support replies within a few hours.
           </p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 pb-12">
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Contact Form - 2 columns */}
           <div className="lg:col-span-2 space-y-8">

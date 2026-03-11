@@ -66,17 +66,18 @@ export default function TrackOrderPage() {
   };
 
   return (
-    <div className="container py-12">
-      <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-8">
-          <Package className="w-16 h-16 text-primary-600 mx-auto mb-4" />
+    <div className="min-h-screen bg-gray-50">
+      <div className="bg-gradient-to-r from-rose-600 via-pink-600 to-fuchsia-600 pt-10 pb-20">
+        <div className="container text-center text-white">
+          <Package className="w-14 h-14 text-rose-200 mx-auto mb-3" />
           <h1 className="text-3xl font-serif font-bold mb-2">Track Your Order</h1>
-          <p className="text-gray-600">
-            Enter your order number to track your delivery status
-          </p>
+          <p className="text-pink-100">Enter your order details and get real-time delivery progress.</p>
         </div>
+      </div>
 
-        <div className="card">
+      <div className="container -mt-10 pb-12">
+      <div className="max-w-2xl mx-auto">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-soft p-6">
           <form onSubmit={handleTrack}>
             <div className="mb-6">
               <label className="label">Order Number</label>
@@ -119,7 +120,7 @@ export default function TrackOrderPage() {
         </div>
 
         {trackedOrder && (
-          <div className="card mt-6 space-y-5">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-soft p-6 mt-6 space-y-5">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm text-gray-600">Order</p>
@@ -131,19 +132,19 @@ export default function TrackOrderPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              <div className="rounded border p-3">
+              <div className="rounded-xl border border-gray-200 p-3">
                 <p className="text-gray-500">Total</p>
                 <p className="font-semibold">NPR {Number(trackedOrder.total || 0).toLocaleString()}</p>
               </div>
-              <div className="rounded border p-3">
+              <div className="rounded-xl border border-gray-200 p-3">
                 <p className="text-gray-500">Payment Method</p>
                 <p className="font-semibold">{trackedOrder.paymentMethod || 'N/A'}</p>
               </div>
-              <div className="rounded border p-3">
+              <div className="rounded-xl border border-gray-200 p-3">
                 <p className="text-gray-500">Tracking Number</p>
                 <p className="font-semibold">{trackedOrder.trackingNumber || 'Not assigned yet'}</p>
               </div>
-              <div className="rounded border p-3">
+              <div className="rounded-xl border border-gray-200 p-3">
                 <p className="text-gray-500">Delivery Partner</p>
                 <p className="font-semibold">{trackedOrder.deliveryPartner || 'Pending assignment'}</p>
               </div>
@@ -155,7 +156,7 @@ export default function TrackOrderPage() {
                 {(trackedOrder.timeline || []).map((step) => {
                   const reached = Boolean(step.at);
                   return (
-                    <div key={step.key} className="flex items-center justify-between rounded border p-3">
+                    <div key={step.key} className="flex items-center justify-between rounded-xl border border-gray-200 p-3">
                       <div className="flex items-center gap-2">
                         {step.key === 'DELIVERED' && reached ? (
                           <CheckCircle2 className="w-4 h-4 text-green-600" />
@@ -189,6 +190,7 @@ export default function TrackOrderPage() {
             </a>
           </p>
         </div>
+      </div>
       </div>
     </div>
   );

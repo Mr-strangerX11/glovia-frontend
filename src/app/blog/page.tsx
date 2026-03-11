@@ -57,41 +57,47 @@ export default function BlogPage() {
         }) }} />
       </Head>
 
-      <div className="text-center mb-12">
-        <BookOpen className="w-16 h-16 text-primary-600 mx-auto mb-4" />
-        <h1 className="text-4xl font-serif font-bold mb-4">Beauty Tips & Guides</h1>
-        <p className="text-gray-600 max-w-2xl mx-auto">
-          Discover expert beauty tips, skincare routines, and product guides to help you achieve your best skin
-        </p>
-      </div>
-
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {blogPosts.map((post) => (
-          <article key={post.id} className="card group cursor-pointer hover:shadow-lg transition-shadow">
-            <div className="aspect-video overflow-hidden rounded-lg mb-4">
-              <img
-                src={post.image}
-                alt={post.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-            </div>
-            <div className="mb-2">
-              <span className="text-xs font-semibold text-primary-600 uppercase tracking-wide">
-                {post.category}
-              </span>
-            </div>
-            <h2 className="text-xl font-serif font-semibold mb-2 group-hover:text-primary-600 transition-colors">
-              {post.title}
-            </h2>
-            <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-              {post.excerpt}
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-gradient-to-r from-rose-600 via-pink-600 to-fuchsia-600 pt-10 pb-20">
+          <div className="container text-center text-white">
+            <BookOpen className="w-14 h-14 mx-auto mb-4 text-rose-200" />
+            <h1 className="text-4xl font-serif font-bold mb-3">Beauty Tips & Guides</h1>
+            <p className="text-pink-100 max-w-2xl mx-auto">
+              Discover expert beauty tips, skincare routines, and product guides to help you achieve your best skin.
             </p>
-            <div className="flex items-center justify-between text-sm text-gray-500">
-              <span>{post.author}</span>
-              <span>{post.date}</span>
-            </div>
-          </article>
-        ))}
+          </div>
+        </div>
+
+        <div className="container -mt-10 pb-12">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {blogPosts.map((post) => (
+              <article key={post.id} className="group bg-white rounded-2xl border border-gray-100 shadow-soft p-4 cursor-pointer hover:shadow-lg transition-shadow">
+                <div className="aspect-video overflow-hidden rounded-xl mb-4">
+                  <img
+                    src={post.image}
+                    alt={post.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="mb-2">
+                  <span className="text-xs font-semibold text-primary-600 uppercase tracking-wide">
+                    {post.category}
+                  </span>
+                </div>
+                <h2 className="text-xl font-serif font-semibold mb-2 group-hover:text-primary-600 transition-colors">
+                  {post.title}
+                </h2>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                  {post.excerpt}
+                </p>
+                <div className="flex items-center justify-between text-sm text-gray-500">
+                  <span>{post.author}</span>
+                  <span>{post.date}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
       </div>
     </>
   );
