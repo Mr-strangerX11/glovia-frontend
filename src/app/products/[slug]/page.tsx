@@ -481,8 +481,16 @@ export default function ProductDetailPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-primary-50/30 pb-28 md:pb-8">
+      <div className="bg-gradient-to-r from-rose-600 via-pink-600 to-fuchsia-600 pt-10 pb-16">
+        <div className="container text-white">
+          <p className="text-rose-200 text-sm font-medium mb-1">Product Detail</p>
+          <h1 className="text-3xl font-bold line-clamp-2">{product.name}</h1>
+          <p className="text-pink-100 mt-1 text-sm">Authentic beauty products with fast delivery across Nepal</p>
+        </div>
+      </div>
+
       {/* Breadcrumb */}
-      <div className="bg-white/90 border-b backdrop-blur-sm">
+      <div className="bg-white/95 border-b border-gray-100 backdrop-blur-sm">
         <div className="container py-4">
           <div className="flex items-center gap-2 text-sm overflow-x-auto whitespace-nowrap scrollbar-thin">
             <Link href="/" className="text-gray-600 hover:text-gray-900">
@@ -512,12 +520,12 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      <div className="container py-8">
+      <div className="container -mt-6 py-8">
         {/* Back Button */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <Link
             href="/products"
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
+            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 bg-white border border-gray-200 rounded-xl px-3 py-2 shadow-sm"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Products
@@ -632,7 +640,7 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Product Info */}
-          <div className="space-y-6 rounded-2xl border border-white/60 bg-white/85 p-4 shadow-sm backdrop-blur-md sm:p-6">
+          <div className="space-y-6 rounded-2xl border border-gray-100 bg-white p-4 shadow-soft sm:p-6">
             {product.brand && (
               <Link
                 href={`/brands/${product.brand.slug}`}
@@ -641,23 +649,6 @@ export default function ProductDetailPage() {
                 {product.brand.name}
               </Link>
             )}
-
-            {/* Price & Discount */}
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-2xl font-bold text-primary-600">
-                NPR {discountedPrice?.toLocaleString()}
-              </span>
-              {discountPercentage > 0 && (
-                <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold">
-                  {discountPercentage}% OFF
-                </span>
-              )}
-              {product.compareAtPrice && product.compareAtPrice > (discountedPrice ?? 0) && (
-                <span className="text-gray-400 line-through text-base">
-                  NPR {product.compareAtPrice.toLocaleString()}
-                </span>
-              )}
-            </div>
 
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -689,7 +680,7 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            <div className="flex items-baseline gap-3">
+            <div className="flex items-baseline gap-3 rounded-xl border border-rose-100 bg-rose-50/60 px-4 py-3">
               <span className="text-3xl font-bold text-gray-900">
                 ₨{discountedPrice?.toFixed(2)}
               </span>
@@ -704,7 +695,7 @@ export default function ProductDetailPage() {
               {product.description}
             </p>
 
-            <div className="rounded-2xl border border-primary-100 bg-primary-50/60 p-4">
+            <div className="rounded-2xl border border-primary-100 bg-primary-50/70 p-4">
               <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-primary-800">
                 <MapPin className="h-4 w-4" />
                 Delivery Estimator
@@ -739,7 +730,7 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-gray-200 bg-white p-4">
+            <div className="rounded-2xl border border-gray-200 bg-gray-50/40 p-4">
               <h3 className="mb-2 text-sm font-semibold text-gray-900">Skin Type Compatibility</h3>
               <div className="flex flex-wrap gap-2">
                 {skinTypeCompatibility.map((skinType: string) => (
@@ -750,7 +741,7 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4">
+            <div className="rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4">
               <h3 className="mb-2 text-sm font-semibold text-indigo-900">AI Beauty Assistant</h3>
               <div className="flex flex-wrap gap-2">
                 {GLOVIA_AI_SHORTCUTS.map((prompt) => (
@@ -832,7 +823,7 @@ export default function ProductDetailPage() {
                   <motion.button
                     onClick={handleAddToCart}
                     disabled={isAddingToCart}
-                    className="btn-primary flex-1 flex items-center justify-center gap-2"
+                    className="btn-primary rounded-xl flex-1 flex items-center justify-center gap-2"
                     whileTap={{ scale: 0.98 }}
                   >
                     <ShoppingCart className="w-5 h-5" />
@@ -841,7 +832,7 @@ export default function ProductDetailPage() {
                   <motion.button
                     onClick={handleBuyNow}
                     disabled={isAddingToCart}
-                    className="btn-outline flex-1 flex items-center justify-center gap-2"
+                    className="btn-outline rounded-xl flex-1 flex items-center justify-center gap-2"
                     whileTap={{ scale: 0.98 }}
                   >
                     <Zap className="w-5 h-5" />
@@ -850,7 +841,7 @@ export default function ProductDetailPage() {
                   <button
                     onClick={handleAddToWishlist}
                     disabled={isAddingToWishlist}
-                    className={`h-12 w-full sm:w-12 flex items-center justify-center border rounded-lg transition-colors ${
+                    className={`h-12 w-full sm:w-12 flex items-center justify-center border rounded-xl transition-colors ${
                       isWishlisted
                         ? "border-red-300 bg-red-50"
                         : "border-gray-300 hover:bg-gray-50"
@@ -888,7 +879,7 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Product Details Tabs */}
-        <div className="mt-12 bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+        <div className="mt-12 bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-soft">
           <div className="border-b border-gray-200">
             <div className="px-4 py-4 sm:px-6">
               <h2 className="text-xl font-semibold">Product Details</h2>
@@ -928,7 +919,7 @@ export default function ProductDetailPage() {
               <h3 className="font-semibold text-lg mb-2">Frequently Asked Questions</h3>
               <div className="space-y-2">
                 {productFaqs.map((faq) => (
-                  <div key={faq.q} className="rounded-lg border border-gray-200 p-3">
+                  <div key={faq.q} className="rounded-xl border border-gray-200 p-3 bg-gray-50/40">
                     <p className="text-sm font-semibold text-gray-900">{faq.q}</p>
                     <p className="mt-1 text-sm text-gray-600">{faq.a}</p>
                   </div>
@@ -943,7 +934,7 @@ export default function ProductDetailPage() {
               ) : (
                 <div className="space-y-2">
                   {reviews.slice(0, 3).map((review: ProductReview) => (
-                    <article key={review.id || review._id} className="rounded-lg border border-gray-200 p-3">
+                    <article key={review.id || review._id} className="rounded-xl border border-gray-200 p-3 bg-white">
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-sm font-semibold text-gray-900">
                           {review.user?.firstName || "Customer"} {review.user?.lastName || ""}
@@ -964,7 +955,7 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
-              <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3">
+              <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-3">
                 <p className="text-sm font-semibold text-gray-900">Write a review</p>
                 {!user ? (
                   <p className="mt-1 text-sm text-gray-600">
@@ -1040,7 +1031,7 @@ export default function ProductDetailPage() {
                 <Link
                   key={relatedProduct._id}
                   href={`/products/${relatedProduct.slug}`}
-                  className="bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
+                  className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-soft hover:shadow-lg transition-shadow"
                 >
                   <div className="aspect-square relative">
                     <Image
