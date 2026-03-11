@@ -94,14 +94,6 @@ export default function AdminDashboardPage() {
             <Link href="/admin/products/new" className="btn-primary">
               Add Product
             </Link>
-            <Link href="/admin/brands" className="btn-outline flex items-center gap-2">
-              <Award className="w-4 h-4" />
-              Manage Brands
-            </Link>
-            <Link href="/admin/brands/new" className="btn-primary flex items-center gap-2">
-              <Award className="w-4 h-4" />
-              Add Brand
-            </Link>
             <Link href="/admin/orders" className="btn-outline">
               View Orders
             </Link>
@@ -370,14 +362,9 @@ export default function AdminDashboardPage() {
               <p className="text-xs text-gray-500 mt-1">Create new catalog item</p>
             </Link>
             <Link href="/admin/brands" className="group p-5 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all text-center">
-              <Award className="w-10 h-10 text-gray-400 group-hover:text-primary-600 mx-auto mb-3" />
+              <TrendingUp className="w-10 h-10 text-gray-400 group-hover:text-primary-600 mx-auto mb-3" />
               <p className="text-sm font-semibold text-gray-700 group-hover:text-primary-700">Manage Brands</p>
               <p className="text-xs text-gray-500 mt-1">View and edit brands</p>
-            </Link>
-            <Link href="/admin/brands/new" className="group p-5 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-center">
-              <Award className="w-10 h-10 text-gray-400 group-hover:text-purple-600 mx-auto mb-3" />
-              <p className="text-sm font-semibold text-gray-700 group-hover:text-purple-700">Add Brand</p>
-              <p className="text-xs text-gray-500 mt-1">Register a new brand</p>
             </Link>
             <Link href="/admin/orders" className="group p-5 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all text-center">
               <ShoppingBag className="w-10 h-10 text-gray-400 group-hover:text-primary-600 mx-auto mb-3" />
