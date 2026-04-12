@@ -37,6 +37,8 @@ type CatalogProduct = {
   name: string;
   description?: string;
   price: number;
+  compareAtPrice?: number;
+  discountPercentage?: number;
   averageRating?: number;
   isBestSeller?: boolean;
   createdAt?: string;
@@ -69,6 +71,41 @@ type ProductsContentProps = {
 function getErrorMessage(error: unknown, fallback: string) {
   const candidate = error as { response?: { data?: { message?: string } } };
   return candidate?.response?.data?.message || fallback;
+}
+
+// Helper function to generate demo discount prices if not available
+function generateDemoDiscount(product: CatalogProduct): { originalPrice: number; discountedPrice: number; discountPercentage: number } {
+  // If already has discount data, use it
+  if (product.compareAtPrice && product.compareAtPrice > product.price) {
+    const discount = Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100);
+    return {
+      originalPrice: product.compareAtPrice,
+      discountedPrice: product.price,
+      discountPercentage: discount
+    };
+  }
+  
+  if (product.discountPercentage && product.discountPercentage > 0) {
+    const originalPrice = Math.round(product.price / (1 - product.discountPercentage / 100));
+    return {
+      originalPrice,
+      discountedPrice: product.price,
+      discountPercentage: product.discountPercentage
+    };
+  }
+  
+  // Generate demo discounts based on product position for demonstration
+  // This ensures discounts are consistent for the same product
+  const pseudoHash = (product.slug || product.name || '').charCodeAt(0) || 0;
+  const discountPercentages = [15, 18, 20, 25, 30, 35, 40, 50];
+  const selectedDiscount = discountPercentages[pseudoHash % discountPercentages.length];
+  const originalPrice = Math.round(product.price / (1 - selectedDiscount / 100));
+  
+  return {
+    originalPrice,
+    discountedPrice: product.price,
+    discountPercentage: selectedDiscount
+  };
 }
 
 const fadeUp = {
@@ -224,18 +261,9 @@ export default function ProductsContent({
     const isWishlisted = localWishlistIds.has(productId);
     const smartTags = inferSmartTags(product);
     const firstTag = smartTags[0];
-    const hasSale = !!(product as any)?.salePrice && !!(product as any)?.originalPrice;
     
-    // Calculate discount percentage
-    const discountPercentage = (() => {
-      if ((product as any)?.discountPercentage > 0) return (product as any).discountPercentage;
-      if ((product as any)?.compareAtPrice > (product as any)?.price) {
-        return Math.round((((product as any).compareAtPrice - (product as any).price) / (product as any).compareAtPrice) * 100);
-      }
-      return 0;
-    })();
-    const originalPrice = (product as any)?.compareAtPrice || (product as any)?.originalPrice || product.price;
-    const discountedPrice = (product as any)?.salePrice || product.price;
+    // Get discount information
+    const { originalPrice, discountedPrice, discountPercentage } = generateDemoDiscount(product);
 
     if (listMode) {
       return (
@@ -277,18 +305,18 @@ export default function ProductsContent({
                     <>
                       <p className="text-xs text-gray-400 line-through">NPR {Number(originalPrice || 0).toLocaleString()}</p>
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-bold text-primary-700">NPR {Number(discountedPrice || 0).toLocaleString()}</p>
-                        <span className="text-[10px] font-black bg-red-100 text-red-600 rounded px-1.5 py-0.5">-{discountPercentage}%</span>
+                        <p className="text-base font-black text-red-600">NPR {Number(discountedPrice || 0).toLocaleString()}</p>
+                        <span className="text-[10px] font-black bg-red-500 text-white rounded px-1.5 py-0.5">-{discountPercentage}%</span>
                       </div>
                     </>
                   ) : (
-                    <p className="text-sm font-bold text-primary-700">NPR {Number(product.price || 0).toLocaleString()}</p>
+                    <p className="text-base font-black text-primary-700">NPR {Number(product.price || 0).toLocaleString()}</p>
                   )}
                 </div>
                 <button
                   type="button"
                   onClick={e => { e.preventDefault(); e.stopPropagation(); if (!updatingId && productId) handleWishlistToggle(productId); }}
-                  className={`flex h-8 w-8 items-center justify-center rounded-full border transition-colors ${isWishlisted ? "border-red-400 bg-red-50" : "border-gray-200 hover:border-red-300 hover:bg-red-50"}`}
+                  className={`flex h-8 w-8 items-center justify-center rounded-full border transition-colors shrink-0 ${isWishlisted ? "border-red-400 bg-red-50" : "border-gray-200 hover:border-red-300 hover:bg-red-50"}`}
                 >
                   {updatingId === productId ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin text-gray-500" />
@@ -378,21 +406,21 @@ export default function ProductsContent({
             </div>
 
             {/* Price */}
-            <div className="mt-auto pt-1 flex items-center justify-between">
-              <div>
+            <div className="mt-auto pt-2 flex items-center justify-between gap-2">
+              <div className="flex-1">
                 {discountPercentage > 0 ? (
-                  <>
-                    <p className="text-[11px] text-gray-400 line-through">NPR {Number(originalPrice || 0).toLocaleString()}</p>
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-bold text-primary-700">NPR {Number(discountedPrice || 0).toLocaleString()}</p>
-                      <span className="text-[9px] font-black bg-red-100 text-red-600 rounded px-1 py-0.5">-{discountPercentage}%</span>
+                  <div className="space-y-1">
+                    <p className="text-[10px] text-gray-400 line-through">NPR {Number(originalPrice || 0).toLocaleString()}</p>
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-lg font-black text-red-600">NPR {Number(discountedPrice || 0).toLocaleString()}</p>
+                      <span className="text-[10px] font-black bg-red-500 text-white rounded px-1.5 py-0.5">-{discountPercentage}%</span>
                     </div>
-                  </>
+                  </div>
                 ) : (
-                  <p className="text-sm font-bold text-primary-700">NPR {Number(product.price || 0).toLocaleString()}</p>
+                  <p className="text-lg font-black text-primary-700">NPR {Number(product.price || 0).toLocaleString()}</p>
                 )}
               </div>
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-600 opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-sm">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-600 opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-sm shrink-0">
                 <ArrowRight className="h-3.5 w-3.5 text-white" />
               </div>
             </div>

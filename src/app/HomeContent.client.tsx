@@ -373,9 +373,9 @@ export default function HomeContent({ brands, banners }: HomeContentProps) {
               {/* Stats */}
               <div className="flex flex-wrap items-center gap-x-8 gap-y-3 pt-2">
                 {[
-                  { value: '10K+', label: 'Products' },
-                  { value: '500+', label: 'Brands' },
-                  { value: '50K+', label: 'Happy Customers' },
+                  { value: '1K+', label: 'Products' },
+                  { value: '50+', label: 'Brands' },
+                  { value: '1K+', label: 'Happy Customers' },
                 ].map(({ value, label }, i) => (
                   <div key={label} className="flex items-center gap-3">
                     {i > 0 && <div className="h-6 w-px bg-white/10" />}
@@ -1012,7 +1012,7 @@ export default function HomeContent({ brands, banners }: HomeContentProps) {
                   ))}
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-white/80">12,000+ subscribers</p>
+                  <p className="text-xs font-bold text-white/80">12,0+ subscribers</p>
                   <p className="text-[10px] text-white/35">Already getting deals</p>
                 </div>
               </div>
