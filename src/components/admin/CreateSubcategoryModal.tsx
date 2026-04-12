@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { X, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { categoriesAPI } from '@/lib/api';
-import { toast } from 'sonner';
+import toast from 'react-hot-toast';
 
 interface CreateSubcategoryModalProps {
   isOpen: boolean;

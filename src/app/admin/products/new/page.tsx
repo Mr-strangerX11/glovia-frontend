@@ -6,19 +6,18 @@ import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { adminAPI, categoriesAPI, brandsAPI } from '@/lib/api';
 import {
   ArrowLeft, ChevronRight, Loader2, Package, Tag, DollarSign,
-  Layers, Image as ImageIcon, Star, Sparkles, AlertCircle, CheckCircle2, Plus,
+  Layers, Image as ImageIcon, Star, Sparkles, AlertCircle, CheckCircle2,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import ImageUploadField from '@/components/ImageUploadField';
-import CreateSubcategoryModal from '@/components/admin/CreateSubcategoryModal';
 
 // Separate component to handle search params
 function NewProductContent() {
     const [errors, setErrors] = useState<any>({});
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, isChecking } = useAuthGuard({ roles: ['ADMIN', 'SUPER_ADMIN', 'VENDOR'] });
+  const { user, isChecking } = useAuthGuard({ roles: ['ADMIN', 'SUPER_ADMIN'] });
   const [categories, setCategories] = useState<any[]>([]);
   const [subCategories, setSubCategories] = useState<any[]>([]);
   const [brands, setBrands] = useState<any[]>([]);
@@ -29,9 +28,6 @@ function NewProductContent() {
   const [brandsLoading, setBrandsLoading] = useState(true);
   const [vendorsLoading, setVendorsLoading] = useState(true);
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
-  const [showSubcategoryModal, setShowSubcategoryModal] = useState(false);
-  const [selectedMainCategory, setSelectedMainCategory] = useState<any>(null);
-  
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -179,8 +175,7 @@ function NewProductContent() {
   const fetchCategories = async () => {
     try {
       setCategoriesLoading(true);
-      // Fetch main categories only using the new endpoint
-      const response = await categoriesAPI.getMain();
+      const response = await categoriesAPI.getAll();
       
       // Handle various response formats
       let categoriesData = [];
@@ -195,7 +190,7 @@ function NewProductContent() {
       setCategories(categoriesData);
       
       if (categoriesData.length === 0) {
-        toast.error('No main categories found. Please seed categories first.');
+        toast.error('No categories found. Please create categories first.');
       }
     } catch (error) {
       console.error('Failed to load categories:', error);
@@ -571,30 +566,26 @@ function NewProductContent() {
               <h2 className="font-semibold text-gray-900">Categorization</h2>
             </div>
             <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Main Category */}
+              {/* Category */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Main Category <span className="text-red-500">*</span>
+                  Category <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={formData.categoryId}
-                  onChange={(e) => {
-                    const selected = categories.find(cat => getCategoryId(cat) === e.target.value);
-                    setFormData({ ...formData, categoryId: e.target.value, subCategoryId: '' });
-                    setSelectedMainCategory(selected);
-                  }}
+                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value, subCategoryId: '' })}
                   className={`w-full rounded-lg border px-3.5 py-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition bg-white ${errors.categoryId ? 'border-red-400' : 'border-gray-300'}`}
                   disabled={categoriesLoading}
                   required
                 >
-                  <option value="">{categoriesLoading ? 'Loading…' : '— Select Main Category —'}</option>
-                  {categories.map((cat) => (
+                  <option value="">{categoriesLoading ? 'Loading…' : '— Select Category —'}</option>
+                  {parentCategories.map((cat) => (
                     <option key={getCategoryId(cat)} value={getCategoryId(cat)}>{cat.name}</option>
                   ))}
                 </select>
-                {!categoriesLoading && categories.length === 0 && (
+                {!categoriesLoading && parentCategories.length === 0 && (
                   <p className="mt-1 text-xs text-amber-600">
-                    No categories. Please seed categories first.
+                    No categories. <Link href="/admin/categories/new" className="underline">Create one</Link>
                   </p>
                 )}
                 {errors.categoryId && <p className="mt-1 text-xs text-red-600 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.categoryId}</p>}
@@ -618,7 +609,7 @@ function NewProductContent() {
                 >
                   <option value="">
                     {!formData.categoryId
-                      ? 'Select a Main Category first'
+                      ? 'Select a Category first'
                       : subCategoriesLoading
                         ? 'Loading…'
                         : availableSubCategories.length === 0
@@ -629,20 +620,9 @@ function NewProductContent() {
                     <option key={getCategoryId(subCat)} value={getCategoryId(subCat)}>{subCat.name}</option>
                   ))}
                 </select>
-                {formData.categoryId && !subCategoriesLoading && (
-                  <div className="mt-2 flex gap-2">
-                    {availableSubCategories.length === 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setShowSubcategoryModal(true)}
-                        className="text-xs text-indigo-600 hover:text-indigo-700 font-medium inline-flex items-center gap-1"
-                      >
-                        <Plus className="w-3 h-3" /> Create sub-category
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
+                {formData.categoryId && !subCategoriesLoading && availableSubCategories.length === 0 && (
+                  <p className="mt-1 text-xs text-gray-500">
+                    <Link href={`/admin/categories/new?level=sub&parentId=${formData.categoryId}`} className="text-indigo-600 underline">
                       + Add sub-category
                     </Link>
                   </p>
@@ -787,23 +767,6 @@ function NewProductContent() {
             </div>
           </div>
         </form>
-
-        {/* Create Subcategory Modal */}
-        {selectedMainCategory && (
-          <CreateSubcategoryModal
-            isOpen={showSubcategoryModal}
-            onClose={() => setShowSubcategoryModal(false)}
-            parentCategoryId={formData.categoryId}
-            parentCategoryName={selectedMainCategory?.name || 'Category'}
-            onSuccess={(newSubcategory) => {
-              // Refresh subcategories after creation
-              setSubCategories(prev => [...prev, newSubcategory]);
-              // Auto-select the newly created subcategory
-              setFormData(prev => ({ ...prev, subCategoryId: newSubcategory._id || newSubcategory.id }));
-              toast.success('Subcategory created! It has been auto-selected.');
-            }}
-          />
-        )}
       </div>
     </div>
   );
