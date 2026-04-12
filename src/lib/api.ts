@@ -86,6 +86,7 @@ export const productsAPI = {
 // Categories API
 export const categoriesAPI = {
   getAll: () => api.get('/categories'),
+  getMain: () => api.get('/categories/main'),
   getByParent: async (parentId: string) => {
     const normalizeId = (value: any): string => {
       if (!value) return '';
@@ -141,6 +142,7 @@ export const categoriesAPI = {
   },
   getBySlug: (slug: string) => api.get(`/categories/${slug}`),
   create: (data: unknown) => api.post('/categories', data),
+  createSubcategory: (data: any) => api.post('/categories/subcategory', data),
   update: (id: string, data: unknown) => api.put(`/categories/${id}`, data),
   delete: (id: string) => api.delete(`/categories/${id}`),
 };
