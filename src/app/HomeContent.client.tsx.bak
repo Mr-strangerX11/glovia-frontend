@@ -1,0 +1,602 @@
+"use client";
+
+import Link from 'next/link';
+import Image from 'next/image';
+import dynamic from 'next/dynamic';
+import {
+  ArrowRight,
+  Star,
+  ShieldCheck,
+  Truck,
+  RefreshCcw,
+  Search,
+  ChevronRight,
+  Sparkles,
+  Heart,
+  TrendingUp,
+  Award,
+} from 'lucide-react';
+import { Button, Card, CardContent, Input } from '@/components/ui';
+import { useMemo, useState, FormEvent, useRef, useEffect } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
+import { Brand, Banner } from '@/types';
+import { newsletterAPI, adminAPI } from '@/lib/api';
+import { normalizeList } from '@/lib/utils';
+
+const Recommendations = dynamic(() => import('@/components/Recommendations'), {
+  ssr: false,
+  loading: () => null,
+});
+
+type HomeContentProps = {
+  brands: Brand[] | { data?: Brand[] } | null;
+  banners: Banner[] | { data?: Banner[] } | null;
+};
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+};
+
+const CATEGORIES = [
+  {
+    slug: 'beauty',
+    label: 'Beauty',
+    nepali: 'सौन्दर्य',
+    emoji: '💄',
+    description: 'Skincare · Makeup · Haircare',
+    query: 'skincare',
+    gradient: 'from-rose-400 to-pink-600',
+    bg: 'bg-rose-50',
+    border: 'border-rose-100',
+    iconBg: 'bg-rose-100',
+    iconText: 'text-rose-600',
+  },
+  {
+    slug: 'medicine',
+    label: 'Medicine',
+    nepali: 'औषधि',
+    emoji: '💊',
+    description: 'Organic · Herbal · Wellness',
+    query: 'organic-natural',
+    gradient: 'from-emerald-400 to-teal-600',
+    bg: 'bg-emerald-50',
+    border: 'border-emerald-100',
+    iconBg: 'bg-emerald-100',
+    iconText: 'text-emerald-600',
+  },
+  {
+    slug: 'clothing',
+    label: 'Clothing',
+    nepali: 'लुगाफाटा',
+    emoji: '👕',
+    description: 'Fashion · Apparel · Accessories',
+    query: 'clothing',
+    gradient: 'from-violet-400 to-purple-600',
+    bg: 'bg-violet-50',
+    border: 'border-violet-100',
+    iconBg: 'bg-violet-100',
+    iconText: 'text-violet-600',
+  },
+  {
+    slug: 'essentials',
+    label: 'Essentials',
+    nepali: 'आवश्यक सामान',
+    emoji: '🛒',
+    description: 'Daily · Home · Kitchen',
+    query: 'body-care',
+    gradient: 'from-amber-400 to-orange-600',
+    bg: 'bg-amber-50',
+    border: 'border-amber-100',
+    iconBg: 'bg-amber-100',
+    iconText: 'text-amber-600',
+  },
+];
+
+const testimonials = [
+  { name: 'Sushmita R.', quote: 'Glovia feels premium. Delivery was fast and packaging excellent.', rating: 5, tag: 'Verified Buyer' },
+  { name: 'Rabin K.', quote: 'The vendor variety is amazing. Found exactly what I needed.', rating: 5, tag: 'Verified Buyer' },
+  { name: 'Aakriti M.', quote: 'Smooth checkout and trusted payment options made me buy instantly.', rating: 5, tag: 'Verified Buyer' },
+];
+
+const trustItems = [
+  { title: 'Fast Delivery', description: 'Reliable delivery across Nepal.', icon: Truck },
+  { title: 'Return & Exchange', description: 'Hassle-free 7-day returns.', icon: RefreshCcw },
+  { title: 'Secure Payments', description: 'eSewa, Khalti, IME Pay & COD.', icon: ShieldCheck },
+];
+
+type NewsletterState = 'idle' | 'loading' | 'success' | 'already' | 'error';
+
+export default function HomeContent({ brands, banners }: HomeContentProps) {
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterState, setNewsletterState] = useState<NewsletterState>('idle');
+  const [newsletterMsg, setNewsletterMsg] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [featuredVendorsList, setFeaturedVendorsList] = useState<any[]>([]);
+  const prefersReducedMotion = useReducedMotion();
+  const router = useRouter();
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  const vendorList = useMemo(() => normalizeList<Brand>(brands), [brands]);
+  const heroBanners = useMemo(() => normalizeList<Banner>(banners), [banners]);
+
+  // Fetch featured vendors from API
+  useEffect(() => {
+    const fetchFeaturedVendors = async () => {
+      try {
+        const response = await adminAPI.getFeaturedVendors();
+        const vendors = response.data?.data || [];
+        
+        // Transform vendor data to match UI requirements
+        const transformed = vendors.map((vendor: any) => ({
+          id: vendor._id,
+          name: `${vendor.firstName} ${vendor.lastName}`,
+          slug: vendor.email, // Use email as slug for vendor link
+          logo: vendor.vendorLogo,
+          description: vendor.vendorDescription,
+        })).slice(0, 8); // Limit to 8 vendors
+        
+        setFeaturedVendorsList(transformed);
+      } catch (error) {
+        console.error('Failed to fetch featured vendors:', error);
+        // Fallback to empty list on error
+        setFeaturedVendorsList([]);
+      }
+    };
+
+    fetchFeaturedVendors();
+  }, []);
+
+  const featuredVendors = featuredVendorsList.length > 0 ? featuredVendorsList : vendorList.slice(0, 8);
+  const hasVendors = featuredVendors.length > 0;
+
+  const handleSearch = (e: FormEvent) => {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    if (!q) return;
+    router.push(`/products?search=${encodeURIComponent(q)}`);
+  };
+
+  const handleNewsletterSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (newsletterState === 'loading') return;
+    setNewsletterState('loading');
+    setNewsletterMsg('');
+    try {
+      const { data } = await newsletterAPI.subscribe(newsletterEmail, 'homepage');
+      setNewsletterState(data.alreadySubscribed ? 'already' : 'success');
+      setNewsletterMsg(data.message);
+      setNewsletterEmail('');
+    } catch (err: any) {
+      setNewsletterState('error');
+      setNewsletterMsg(err?.response?.data?.message || 'Something went wrong. Please try again.');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-white">
+
+      {/* ─── HERO ─── */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-secondary-950 via-secondary-900 to-primary-950 pb-20 pt-14 sm:pt-20">
+        {/* decorative blobs */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-primary-600/20 blur-3xl" />
+          <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-secondary-600/25 blur-3xl" />
+          <div className="absolute left-1/2 top-1/3 h-64 w-64 -translate-x-1/2 rounded-full bg-primary-400/10 blur-2xl" />
+        </div>
+
+        <div className="container relative">
+          {/* Top badge */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="mb-6 flex justify-center"
+          >
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-white/80 backdrop-blur-md">
+              <Sparkles className="h-3.5 w-3.5 text-primary-400" />
+              Nepal&apos;s Premium Marketplace
+            </span>
+          </motion.div>
+
+          {/* Headline */}
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55 }}
+            className="mx-auto max-w-3xl text-center text-4xl font-bold leading-tight text-white sm:text-5xl lg:text-6xl"
+          >
+            Shop from Nepal&apos;s{' '}
+            <span className="bg-gradient-to-r from-primary-400 to-pink-400 bg-clip-text text-transparent">
+              Best Vendors
+            </span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="mx-auto mt-4 max-w-xl text-center text-sm text-white/70 sm:text-base"
+          >
+            Discover trusted sellers across Beauty, Medicine, Clothing & Essentials — fast delivery, secure checkout.
+          </motion.p>
+
+          {/* Search bar */}
+          <motion.form
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.18 }}
+            onSubmit={handleSearch}
+            className="mx-auto mt-8 flex max-w-xl overflow-hidden rounded-2xl border border-white/20 bg-white/10 p-1.5 backdrop-blur-xl shadow-2xl"
+          >
+            <input
+              ref={searchRef}
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search vendors, products, brands…"
+              className="flex-1 bg-transparent px-4 py-2.5 text-sm text-white placeholder-white/50 outline-none"
+            />
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              className="rounded-xl"
+            >
+              <Search className="h-4 w-4" />
+              <span className="hidden sm:inline">Search</span>
+            </Button>
+          </motion.form>
+
+          {/* Quick links */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="mt-5 flex flex-wrap justify-center gap-2 text-xs text-white/60"
+          >
+            <span>Popular:</span>
+            {['Skincare', 'Vitamin C Serum', 'Herbal', 'Face Wash'].map((term) => (
+              <Button
+                key={term}
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push(`/products?search=${encodeURIComponent(term)}`)}
+                className="border border-white/20 bg-white/10 hover:bg-white/20 hover:text-white text-white/80"
+              >
+                {term}
+              </Button>
+            ))}
+          </motion.div>
+        </div>
+
+        {/* Wave divider */}
+        <div className="absolute bottom-0 left-0 right-0">
+          <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
+            <path d="M0 60L48 50C96 40 192 20 288 15C384 10 480 20 576 28C672 36 768 42 864 40C960 38 1056 28 1152 22C1248 16 1344 14 1392 13L1440 12V60H1392C1344 60 1248 60 1152 60C1056 60 960 60 864 60C768 60 672 60 576 60C480 60 384 60 288 60C192 60 96 60 48 60H0V60Z" fill="white" />
+          </svg>
+        </div>
+      </section>
+
+      {/* ─── CATEGORIES ─── */}
+      <section className="container py-12 sm:py-16">
+        <div className="mb-8 flex items-end justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary-600">Browse by</p>
+            <h2 className="mt-1 text-2xl font-bold text-secondary-950 sm:text-3xl">Main Categories</h2>
+          </div>
+          <Link href="/products" className="flex items-center gap-1 text-sm font-semibold text-primary-700 hover:underline">
+            All products <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-60px' }}
+          className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4"
+        >
+          {CATEGORIES.map((cat) => (
+            <motion.div key={cat.slug} variants={itemVariants}>
+              <Link
+                href={`/products?category=${cat.query}`}
+                className={`group relative flex flex-col items-center overflow-hidden rounded-2xl border ${cat.border} ${cat.bg} p-5 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg sm:p-6`}
+              >
+                {/* gradient line at top */}
+                <div className={`absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r ${cat.gradient} opacity-0 transition-opacity group-hover:opacity-100`} />
+
+                <div className={`mb-3 flex h-14 w-14 items-center justify-center rounded-2xl ${cat.iconBg} text-3xl shadow-sm transition-transform duration-300 group-hover:scale-110`}>
+                  {cat.emoji}
+                </div>
+                <h3 className="text-base font-bold text-secondary-900">{cat.label}</h3>
+                <p className="mt-0.5 text-[11px] font-medium text-secondary-500">{cat.nepali}</p>
+                <p className="mt-2 text-xs text-secondary-600">{cat.description}</p>
+                <span className={`mt-3 inline-flex items-center gap-1 rounded-full bg-gradient-to-r ${cat.gradient} px-3 py-1 text-xs font-semibold text-white shadow-sm`}>
+                  Shop now <ChevronRight className="h-3 w-3" />
+                </span>
+              </Link>
+            </motion.div>
+          ))}
+        </motion.div>
+      </section>
+
+      {/* ─── BANNER STRIP ─── */}
+      {heroBanners.length > 0 && (
+        <section className="container pb-6">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {heroBanners.slice(0, 4).map((banner, i) => (
+              <Link
+                key={banner.id || i}
+                href={banner.link || '#'}
+                className="relative h-28 overflow-hidden rounded-2xl group"
+              >
+                <Image
+                  src={banner.image || '/icon-512.svg'}
+                  alt={banner.title || 'Banner'}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent p-3 flex flex-col justify-end">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-white/70">Campaign</p>
+                  <p className="text-sm font-bold text-white">{banner.title || 'Special Offer'}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ─── FEATURED VENDORS ─── */}
+      <section className="container py-12 sm:py-16">
+        <div className="mb-8 flex items-end justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary-600">Trusted sellers</p>
+            <h2 className="mt-1 text-2xl font-bold text-secondary-950 sm:text-3xl">Featured Vendors</h2>
+          </div>
+          <Link href="/vendors" className="flex items-center gap-1 text-sm font-semibold text-primary-700 hover:underline">
+            All vendors <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
+        {hasVendors ? (
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-60px' }}
+            className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4"
+          >
+            {featuredVendors.map((vendor, index) => (
+              <motion.div
+                key={vendor.id || index}
+                variants={itemVariants}
+              >
+                <Link
+                  href={`/vendors/${vendor.slug}`}
+                  className="group flex flex-col items-center rounded-2xl border border-gray-100 bg-white p-5 text-center shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-primary-200 hover:shadow-md"
+                >
+                  {/* Logo */}
+                  <div className="relative mb-4 h-16 w-16 overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 shadow-sm transition-transform duration-300 group-hover:scale-105 sm:h-20 sm:w-20">
+                    {vendor.logo ? (
+                      <Image
+                        src={vendor.logo}
+                        alt={vendor.name}
+                        fill
+                        sizes="80px"
+                        className="object-contain p-2"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-100 to-secondary-100 text-2xl font-bold text-primary-700">
+                        {vendor.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+
+                  <h3 className="text-sm font-bold text-secondary-900 transition-colors group-hover:text-primary-700">
+                    {vendor.name}
+                  </h3>
+
+                  {vendor.description && (
+                    <p className="mt-1 line-clamp-2 text-[11px] text-secondary-500">{vendor.description}</p>
+                  )}
+
+                  {/* Trust badge */}
+                  <div className="mt-3 flex items-center gap-1">
+                    <Award className="h-3 w-3 text-amber-500" />
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-amber-600">Verified Seller</span>
+                  </div>
+
+                  <span className="mt-3 rounded-full border border-primary-200 bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-700 transition-colors group-hover:bg-primary-600 group-hover:text-white">
+                    Visit Store
+                  </span>
+                </Link>
+              </motion.div>
+            ))}
+          </motion.div>
+        ) : (
+          /* Skeleton placeholder when no vendors */
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="flex flex-col items-center rounded-2xl border border-gray-100 bg-white p-5 animate-pulse">
+                <div className="mb-4 h-16 w-16 rounded-2xl bg-gray-100 sm:h-20 sm:w-20" />
+                <div className="h-4 w-24 rounded bg-gray-100" />
+                <div className="mt-2 h-3 w-16 rounded bg-gray-100" />
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* ─── TRUST STRIP ─── */}
+      <section className="bg-gradient-to-r from-secondary-950 to-secondary-900 py-10">
+        <div className="container">
+          <div className="grid gap-6 sm:grid-cols-3">
+            {trustItems.map((item) => (
+              <div key={item.title} className="flex items-center gap-4">
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-white/10">
+                  <item.icon className="h-6 w-6 text-primary-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-white">{item.title}</p>
+                  <p className="text-xs text-white/60">{item.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── WHY GLOVIA ─── */}
+      <section className="container py-12 sm:py-16">
+        <div className="mb-8 text-center">
+          <p className="text-xs font-semibold uppercase tracking-widest text-primary-600">Why choose us</p>
+          <h2 className="mt-1 text-2xl font-bold text-secondary-950 sm:text-3xl">Built for Nepal</h2>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            { icon: TrendingUp, title: 'Verified Vendors', desc: 'Every seller goes through a strict verification process before listing on Glovia.' },
+            { icon: ShieldCheck, title: 'Buyer Protection', desc: 'Your money is safe. We hold payments until your order is delivered and verified.' },
+            { icon: Heart, title: 'Community First', desc: 'We prioritize Nepali businesses and give local vendors the tools to scale online.' },
+          ].map((feature) => (
+            <Card key={feature.title} shadow="md">
+              <CardContent className="flex flex-col items-start pt-6">
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary-50">
+                  <feature.icon className="h-5 w-5 text-primary-600" />
+                </div>
+                <h3 className="text-base font-bold text-secondary-900">{feature.title}</h3>
+                <p className="mt-1 text-sm text-secondary-600">{feature.desc}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── AI RECOMMENDATIONS ─── */}
+      <section className="container pb-6">
+        <div className="mb-4 flex items-end justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary-600">For you</p>
+            <h2 className="mt-1 text-2xl font-bold text-secondary-950">Picked just for you</h2>
+          </div>
+        </div>
+        <Recommendations />
+      </section>
+
+      {/* ─── TESTIMONIALS ─── */}
+      <section className="bg-gray-50 py-12 sm:py-16">
+        <div className="container">
+          <div className="mb-8 text-center">
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary-600">Happy customers</p>
+            <h2 className="mt-1 text-2xl font-bold text-secondary-950 sm:text-3xl">What Nepal says</h2>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            {testimonials.map((item) => (
+              <motion.div
+                key={item.name}
+                whileHover={prefersReducedMotion ? {} : { y: -4 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+              >
+                <Card shadow="md" hover>
+                  <CardContent className="flex flex-col pt-6">
+                    <div className="mb-3 flex items-center gap-1 text-yellow-400">
+                      {Array.from({ length: item.rating }).map((_, i) => (
+                        <Star key={i} className="h-4 w-4 fill-current" />
+                      ))}
+                    </div>
+                    <p className="text-sm italic text-secondary-700">&ldquo;{item.quote}&rdquo;</p>
+                    <div className="mt-4 flex items-center gap-2">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700">
+                        {item.name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-secondary-900">{item.name}</p>
+                        <p className="text-[10px] font-medium text-emerald-600">{item.tag}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── NEWSLETTER ─── */}
+      <section className="container py-12 sm:py-16">
+        <div className="overflow-hidden rounded-3xl bg-gradient-to-r from-secondary-950 via-secondary-900 to-primary-950 p-8 shadow-xl sm:p-10">
+          <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
+            <div className="text-white">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/80">
+                <Sparkles className="h-3 w-3 text-primary-400" /> Glovia Rewards
+              </span>
+              <h3 className="mt-4 text-2xl font-bold sm:text-3xl">
+                Get exclusive deals &amp; first-buyer offers
+              </h3>
+              <p className="mt-3 text-sm text-white/60">
+                Subscribe for loyalty points updates, referral bonuses, and flash sale alerts delivered to your inbox.
+              </p>
+            </div>
+            <div className="flex flex-col justify-center">
+              {newsletterState === 'success' || newsletterState === 'already' ? (
+                <div className={`rounded-2xl border px-5 py-4 text-sm font-semibold ${
+                  newsletterState === 'already'
+                    ? 'border-yellow-400/40 bg-yellow-400/10 text-yellow-300'
+                    : 'border-emerald-400/40 bg-emerald-400/10 text-emerald-300'
+                }`}>
+                  {newsletterMsg}
+                  <button
+                    type="button"
+                    onClick={() => { setNewsletterState('idle'); setNewsletterMsg(''); }}
+                    className="ml-3 text-xs underline opacity-70 hover:opacity-100"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <form className="flex flex-col gap-3 sm:flex-row" onSubmit={handleNewsletterSubmit}>
+                    <Input
+                      type="email"
+                      placeholder="Enter your email"
+                      value={newsletterEmail}
+                      onChange={(e) => setNewsletterEmail(e.target.value)}
+                      disabled={newsletterState === 'loading'}
+                      required
+                      className="bg-white/10 border-white/20 text-white placeholder-white/40 flex-1"
+                    />
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      disabled={newsletterState === 'loading'}
+                      className="whitespace-nowrap"
+                    >
+                      {newsletterState === 'loading' ? (
+                        <>
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                          Subscribing…
+                        </>
+                      ) : 'Subscribe'}
+                    </Button>
+                  </form>
+                  {newsletterState === 'error' && (
+                    <p className="mt-2 text-xs font-medium text-red-400">{newsletterMsg}</p>
+                  )}
+                  <p className="mt-2 text-[11px] text-white/40">No spam. Unsubscribe any time.</p>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  );
+}
