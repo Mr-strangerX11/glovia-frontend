@@ -112,8 +112,8 @@ export default function WishlistPage() {
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {wishlist!.map((item) => {
               const product = item.product;
-              const hasDiscount = product?.compareAtPrice > product?.price;
-              const discount = hasDiscount
+              const hasDiscount = !!(product?.compareAtPrice && product?.price && product.compareAtPrice > product.price);
+              const discount = hasDiscount && product?.compareAtPrice && product?.price
                 ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
                 : 0;
               return (
