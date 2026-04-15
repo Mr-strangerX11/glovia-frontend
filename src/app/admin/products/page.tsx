@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { adminAPI, categoriesAPI, productsAPI } from '@/lib/api';
 import { Plus, Edit2, Trash2, Loader2, Search, Upload } from 'lucide-react';
@@ -54,6 +54,7 @@ export default function AdminProductsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
+  const selectAllCheckboxRef = useRef<HTMLInputElement>(null);
 
   const fetchAllPages = async (
     request: (params: { page: number; limit: number }) => Promise<{ data: any }>
@@ -101,6 +102,16 @@ export default function AdminProductsPage() {
       fetchData();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (selectAllCheckboxRef.current) {
+      const filtered = products.filter((p) =>
+        p.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      const isIndeterminate = selectedProducts.size > 0 && selectedProducts.size < filtered.length;
+      selectAllCheckboxRef.current.indeterminate = isIndeterminate;
+    }
+  }, [selectedProducts, searchQuery, products]);
 
   const fetchData = async () => {
     try {
@@ -304,9 +315,9 @@ export default function AdminProductsPage() {
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
                       <input
+                        ref={selectAllCheckboxRef}
                         type="checkbox"
                         checked={selectedProducts.size > 0 && filteredProducts.length > 0 && selectedProducts.size === filteredProducts.length}
-                        indeterminate={selectedProducts.size > 0 && selectedProducts.size < filteredProducts.length}
                         onChange={(e) => toggleSelectAll(e.target.checked)}
                         className="w-4 h-4 rounded"
                       />
