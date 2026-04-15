@@ -8,6 +8,7 @@ import { Loader2, Save, ArrowLeft, Tag, Truck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { mutate } from 'swr';
+import { AddressDisplay } from '@/components/AddressDisplay';
 
 interface OrderItem {
   id?: string;
@@ -417,17 +418,15 @@ export default function OrderDetailPage() {
               {/* Delivery Address */}
               <div className="card p-6">
                 <h3 className="font-semibold mb-4">Delivery Address</h3>
-                <div className="space-y-2 text-sm">
-                  {order?.address ? (
-                    <>
-                      <p className="font-medium">{order.address.fullName || 'N/A'}</p>
-                      <p className="text-gray-600">{order.address.area || 'N/A'}</p>
-                      <p className="text-gray-600">{order.address.district || 'N/A'}</p>
-                    </>
-                  ) : (
-                    <p className="text-gray-500">No address provided</p>
-                  )}
-                </div>
+                {order?.address ? (
+                  <AddressDisplay 
+                    address={order.address} 
+                    showPhone={false}
+                    className="text-sm space-y-2"
+                  />
+                ) : (
+                  <p className="text-gray-500">No address provided</p>
+                )}
               </div>
 
               {/* Status & Tracking */}

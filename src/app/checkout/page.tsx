@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useAddresses, useCart } from "@/hooks/useData";
+import { AddressDisplay } from "@/components/AddressDisplay";
 import { cartAPI, ordersAPI, promoCodesAPI } from "@/lib/api";
 import { PaymentMethod } from "@/types";
 import { Minus, Plus, ChevronRight, ShieldCheck, Tag } from "lucide-react";
@@ -277,10 +278,10 @@ export default function CheckoutPage() {
                     {addresses.map((address) => (
                       <label
                         key={address.id}
-                        className={`flex items-start gap-3 p-4 border rounded-xl cursor-pointer transition ${
+                        className={`flex items-start gap-3 p-4 border-2 rounded-xl cursor-pointer transition ${
                           effectiveAddressId === address.id
                             ? "border-primary-500 bg-primary-50"
-                            : "border-gray-200 hover:border-gray-300"
+                            : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                         }`}
                       >
                         <input
@@ -288,25 +289,18 @@ export default function CheckoutPage() {
                           name="address"
                           checked={effectiveAddressId === address.id}
                           onChange={() => setSelectedAddressId(address.id)}
-                          className="mt-1"
+                          className="mt-1.5 w-5 h-5"
                         />
-                        <div className="space-y-1">
-                          <p className="font-semibold">
-                            {address.fullName} {address.isDefault && "(Default)"}
-                          </p>
-                          <p className="text-sm text-gray-600">{address.phone}</p>
-                          <p className="text-sm text-gray-600">
-                            {address.area}, Ward {address.wardNo}, {address.municipality}, {address.district},
-                            {" "}{address.province}
-                          </p>
-                          {address.landmark && (
-                            <p className="text-sm text-gray-600">Landmark: {address.landmark}</p>
-                          )}
+                        <div className="flex-1 min-w-0">
+                          <AddressDisplay address={address} compact showPhone />
                         </div>
+                        {address.isDefault && (
+                          <span className="text-xs font-bold text-primary-600 bg-primary-50 px-2.5 py-1 rounded-lg whitespace-nowrap flex-shrink-0">Default</span>
+                        )}
                       </label>
                     ))}
-                    <Link href="/account/addresses" className="text-primary-600 text-sm font-medium">
-                      Manage addresses
+                    <Link href="/account/addresses" className="text-primary-600 text-sm font-semibold hover:text-primary-700 hover:underline">
+                      + Manage addresses
                     </Link>
                   </div>
                 ) : (

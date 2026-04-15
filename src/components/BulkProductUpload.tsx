@@ -8,29 +8,66 @@ import {
 } from "lucide-react";
 
 // ─── CSV Template ──────────────────────────────────────────────────────────────
+// Human-friendly column names — backend resolves Category/Brand/Vendor by name
 const CSV_HEADERS = [
-  "name", "slug", "description", "price", "compareAtPrice",
-  "sku", "stockQuantity", "categoryId", "brandId", "vendorId",
-  "ingredients", "benefits", "howToUse",
-  "isFeatured", "isBestSeller", "isNew", "tags", "imageUrls",
+  "Product Name", "Slug", "Description", "Price(NRP)", "Discount(%)",
+  "Stock Quantity", "SKU", "Category", "Brand", "Vendor",
+  "Product Images", "Featured Product", "New Arrival",
 ];
 
 const CSV_SAMPLE_ROWS = [
   [
-    "Vitamin C Serum", "vitamin-c-serum", "Brightening serum with 20% Vitamin C",
-    "1500", "2000", "VC-SERUM-001", "50",
-    "CATEGORY_OBJECT_ID_HERE", "BRAND_OBJECT_ID_HERE", "VENDOR_OBJECT_ID_HERE",
-    "Vitamin C Ascorbic Acid", "Brightens skin tone", "Apply 2-3 drops morning",
-    "false", "true", "false", "serum,vitamin-c,brightening", "https://image-url-1.jpg,https://image-url-2.jpg",
+    "COSRX Snail Mucin Essence", "cosrx-snail-mucin-essence",
+    "Hydrating essence with snail mucin for skin repair",
+    "1800", "10", "50", "COSRX-SNAIL-100ML",
+    "Beauty", "COSRX", "",
+    "https://example.com/snail1.jpg", "false", "true",
   ],
   [
-    "Hyaluronic Acid Moisturizer", "ha-moisturizer", "Deep hydration moisturizer with HA",
-    "1200", "", "HA-MOIST-001", "30",
-    "CATEGORY_OBJECT_ID_HERE", "", "VENDOR_OBJECT_ID_HERE",
-    "Hyaluronic Acid", "Intense hydration", "Apply on damp skin",
-    "false", "false", "true", "moisturizer,hyaluronic", "https://image-url-3.jpg",
+    "Wai Wai Instant Noodles", "waiwai-instant-noodles",
+    "Popular instant noodles snack in Nepal",
+    "20", "5", "500", "WAI-NOODLE-75",
+    "Groceries", "Wai Wai", "",
+    "https://example.com/waiwai.jpg", "true", "false",
   ],
 ];
+
+// Maps raw CSV column names (human-friendly OR legacy API names) to API field names
+function normalizeRow(raw: Record<string, string>): Record<string, string> {
+  // Strip BOM from any key that might have slipped through
+  const clean: Record<string, string> = {};
+  for (const [k, v] of Object.entries(raw)) {
+    clean[k.replace(/^\uFEFF/, "").trim()] = v;
+  }
+  const get = (...keys: string[]) => {
+    for (const k of keys) {
+      if (clean[k] !== undefined && clean[k] !== "") return clean[k];
+    }
+    return "";
+  };
+  const parseBool = (v: string) => (v.toLowerCase() === "true" || v.toUpperCase() === "TRUE" ? "true" : "false");
+  return {
+    name:               get("Product Name", "name"),
+    slug:               get("Slug", "slug"),
+    description:        get("Description", "description"),
+    price:              get("Price(NRP)", "Price", "price"),
+    discountPercentage: get("Discount(%)", "Discount", "discountPercentage"),
+    stockQuantity:      get("Stock Quantity", "stockQuantity"),
+    sku:                get("SKU", "sku"),
+    category:           get("Category", "category", "categoryId"),
+    brand:              get("Brand", "brand", "brandId"),
+    vendor:             get("Vendor", "vendor", "vendorId"),
+    imageUrls:          get("Product Images", "imageUrls", "images"),
+    isFeatured:         parseBool(get("Featured Product", "isFeatured")),
+    isBestSeller:       parseBool(get("isBestSeller")),
+    isNew:              parseBool(get("New Arrival", "isNew")),
+    tags:               get("tags"),
+    ingredients:        get("ingredients"),
+    benefits:           get("benefits"),
+    howToUse:           get("howToUse"),
+    compareAtPrice:     get("compareAtPrice"),
+  };
+}
 
 function generateCSVTemplate(): string {
   const rows = [CSV_HEADERS, ...CSV_SAMPLE_ROWS];
@@ -48,44 +85,52 @@ function downloadCSV(content: string, filename: string) {
 }
 
 // ─── CSV Parser ────────────────────────────────────────────────────────────────
-function parseCSV(text: string): Record<string, string>[] {
-  const lines = text.trim().split(/\r?\n/);
-  if (lines.length < 2) return [];
-  const headers = lines[0].split(",").map((h) => h.replace(/^"|"$/g, "").trim());
-  return lines.slice(1).map((line) => {
-    // Handle quoted fields with commas inside
-    const values: string[] = [];
-    let inQuotes = false;
-    let current = "";
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-      if (char === '"') {
-        inQuotes = !inQuotes;
-      } else if (char === "," && !inQuotes) {
-        values.push(current.trim());
-        current = "";
-      } else {
-        current += char;
-      }
+function splitCSVLine(line: string): string[] {
+  const values: string[] = [];
+  let inQuotes = false;
+  let current = "";
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === "," && !inQuotes) {
+      values.push(current.trim());
+      current = "";
+    } else {
+      current += char;
     }
-    values.push(current.trim());
+  }
+  values.push(current.trim());
+  return values;
+}
+
+function parseCSV(text: string): Record<string, string>[] {
+  // Strip UTF-8 BOM (\uFEFF) and any leading whitespace
+  const cleaned = text.replace(/^\uFEFF/, "").trim();
+  const lines = cleaned.split(/\r?\n/);
+  if (lines.length < 2) return [];
+  // Parse headers using the same quoted-field logic as data rows
+  const headers = splitCSVLine(lines[0]).map((h) => h.replace(/^"|"$/g, "").trim());
+  return lines.slice(1).filter((l) => l.trim()).map((line) => {
+    const values = splitCSVLine(line);
     const obj: Record<string, string> = {};
-    headers.forEach((h, i) => { obj[h] = values[i] ?? ""; });
+    headers.forEach((h, i) => { obj[h] = (values[i] ?? "").replace(/^"|"$/g, "").trim(); });
     return obj;
   });
 }
 
-// ─── Row Validator ─────────────────────────────────────────────────────────────
+// ─── Row Validator (operates on normalized row) ────────────────────────────────
 function validateRow(row: Record<string, string>): string[] {
   const errs: string[] = [];
-  if (!row.name?.trim()) errs.push("name required");
-  if (!row.slug?.trim()) errs.push("slug required");
-  if (!row.description?.trim()) errs.push("description required");
-  if (!row.sku?.trim()) errs.push("sku required");
-  if (!row.categoryId?.trim() || row.categoryId === "CATEGORY_OBJECT_ID_HERE") errs.push("valid categoryId required");
-  if (!row.price || isNaN(Number(row.price)) || Number(row.price) < 0) errs.push("valid price required");
-  if (row.stockQuantity && isNaN(Number(row.stockQuantity))) errs.push("stockQuantity must be a number");
-  // vendorId is optional, imageUrls is optional
+  if (!row.name?.trim()) errs.push("Product Name required");
+  if (!row.slug?.trim()) errs.push("Slug required");
+  if (!row.description?.trim()) errs.push("Description required");
+  if (!row.sku?.trim()) errs.push("SKU required");
+  if (!row.category?.trim()) errs.push("Category required (name or ID)");
+  if (!row.price || isNaN(Number(row.price)) || Number(row.price) < 0) errs.push("valid Price required");
+  if (row.stockQuantity && isNaN(Number(row.stockQuantity))) errs.push("Stock Quantity must be a number");
+  if (row.discountPercentage && (isNaN(Number(row.discountPercentage)) || Number(row.discountPercentage) < 0 || Number(row.discountPercentage) > 100))
+    errs.push("Discount must be 0–100");
   return errs;
 }
 
@@ -122,11 +167,14 @@ export default function BulkProductUpload({ onSubmit }: Props) {
     reader.onload = (e) => {
       const text = e.target?.result as string;
       const parsed = parseCSV(text);
-      const withValidation = parsed.map((row, i) => ({
-        ...row,
-        _errors: validateRow(row),
-        _index: i,
-      })) as ParsedRow[];
+      const withValidation = parsed.map((row, i) => {
+        const normalized = normalizeRow(row);
+        return {
+          ...normalized,
+          _errors: validateRow(normalized),
+          _index: i,
+        };
+      }) as ParsedRow[];
       setRows(withValidation);
       setStep("preview");
     };
@@ -226,11 +274,12 @@ export default function BulkProductUpload({ onSubmit }: Props) {
           <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm text-amber-800">
             <p className="mb-2 flex items-center gap-2 font-bold"><AlertTriangle className="h-4 w-4" /> Before uploading:</p>
             <ul className="space-y-1 pl-6 text-xs list-disc">
-              <li>Replace <code className="rounded bg-amber-100 px-1">CATEGORY_OBJECT_ID_HERE</code> with real MongoDB category IDs from your database.</li>
-              <li>Replace <code className="rounded bg-amber-100 px-1">BRAND_OBJECT_ID_HERE</code> with real brand IDs (or leave blank if no brand).</li>
-              <li>SKU and slug must be unique across all products.</li>
-              <li>Boolean fields: use <code className="rounded bg-amber-100 px-1">true</code> or <code className="rounded bg-amber-100 px-1">false</code>.</li>
-              <li>Tags: comma-separated values within the cell (e.g. serum,vitamin-c).</li>
+              <li><strong>Category</strong> — enter the exact category name (e.g. <code className="rounded bg-amber-100 px-1">Beauty</code>, <code className="rounded bg-amber-100 px-1">Groceries</code>) or a MongoDB ObjectId.</li>
+              <li><strong>Brand</strong> — enter the brand name or leave blank. If the brand doesn&apos;t exist it will be skipped.</li>
+              <li><strong>Vendor</strong> — enter the vendor&apos;s email address or leave blank.</li>
+              <li>SKU and Slug must be unique across all products.</li>
+              <li>Boolean fields (<strong>Featured Product</strong>, <strong>New Arrival</strong>): use <code className="rounded bg-amber-100 px-1">true</code> or <code className="rounded bg-amber-100 px-1">false</code>.</li>
+              <li><strong>Product Images</strong>: comma-separated URLs (e.g. https://…jpg,https://…jpg).</li>
             </ul>
           </div>
 
@@ -312,6 +361,7 @@ export default function BulkProductUpload({ onSubmit }: Props) {
                       <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-500">SKU</th>
                       <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Price</th>
                       <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Stock</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Category</th>
                       <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Issues</th>
                       <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-gray-500"></th>
                     </tr>
@@ -339,6 +389,7 @@ export default function BulkProductUpload({ onSubmit }: Props) {
                             <td className="px-4 py-3 font-mono text-xs text-gray-600">{row.sku || "—"}</td>
                             <td className="px-4 py-3 text-secondary-700">NPR {row.price || "—"}</td>
                             <td className="px-4 py-3 text-secondary-700">{row.stockQuantity || "0"}</td>
+                            <td className="px-4 py-3 text-xs text-gray-600 max-w-[120px] truncate">{row.category || "—"}</td>
                             <td className="px-4 py-3 text-xs text-red-600">{hasErrors ? row._errors.join("; ") : "—"}</td>
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-1">
@@ -369,9 +420,9 @@ export default function BulkProductUpload({ onSubmit }: Props) {
                           </tr>
                           {isExpanded && (
                             <tr key={`${row._index}-expanded`} className="bg-gray-50/80">
-                              <td colSpan={8} className="px-4 pb-3 pt-1">
+                              <td colSpan={9} className="px-4 pb-3 pt-1">
                                 <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs sm:grid-cols-3 lg:grid-cols-4">
-                                  {CSV_HEADERS.map((h) => (
+                                  {(["name","slug","sku","price","discountPercentage","stockQuantity","category","brand","vendor","isFeatured","isNew","imageUrls"] as const).map((h) => (
                                     <div key={h}>
                                       <span className="font-semibold text-gray-500">{h}: </span>
                                       <span className="text-secondary-700 break-all">{row[h] || <em className="text-gray-300">empty</em>}</span>

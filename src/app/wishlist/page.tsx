@@ -2,20 +2,20 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Heart, ShoppingCart, Sparkles, ArrowRight, Package } from "lucide-react";
+import { Heart, ShoppingCart, Sparkles, ArrowRight, Package, Star } from "lucide-react";
 import { useWishlist } from "@/hooks/useData";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
-import Recommendations from '@/components/Recommendations';
+import Recommendations from "@/components/Recommendations";
 
 function SkeletonCard() {
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden animate-pulse dark:bg-gray-900 dark:border-gray-800">
-      <div className="aspect-square bg-gray-100 dark:bg-gray-800" />
-      <div className="p-4 space-y-2">
-        <div className="h-3 w-16 rounded bg-gray-100 dark:bg-gray-800" />
-        <div className="h-4 w-full rounded bg-gray-100 dark:bg-gray-800" />
-        <div className="h-4 w-3/4 rounded bg-gray-100 dark:bg-gray-800" />
-        <div className="h-5 w-20 rounded bg-gray-100 dark:bg-gray-800 mt-1" />
+    <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden animate-pulse">
+      <div className="aspect-square bg-gray-100" />
+      <div className="p-4 space-y-2.5">
+        <div className="h-2.5 w-14 rounded bg-gray-100" />
+        <div className="h-4 w-full rounded bg-gray-100" />
+        <div className="h-4 w-2/3 rounded bg-gray-100" />
+        <div className="h-5 w-20 rounded bg-gray-100 mt-1" />
       </div>
     </div>
   );
@@ -27,10 +27,10 @@ export default function WishlistPage() {
 
   if (isChecking || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-9 w-9 animate-spin rounded-full border-[3px] border-primary-200 border-t-primary-600" />
-          <p className="text-sm text-gray-500">Loading…</p>
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary-100 border-t-primary-500" />
+          <p className="text-sm text-gray-400 font-medium">Loading your wishlist…</p>
         </div>
       </div>
     );
@@ -39,34 +39,29 @@ export default function WishlistPage() {
   const count = wishlist?.length ?? 0;
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950">
+    <div className="min-h-screen bg-gray-50">
 
-      {/* ─── Hero ─── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-rose-500 via-pink-500 to-fuchsia-600 pt-12 pb-20">
-        <div className="pointer-events-none absolute -top-16 -right-16 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-12 -left-12 h-44 w-44 rounded-full bg-white/8 blur-2xl" />
+      {/* Hero */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-rose-500 via-pink-500 to-fuchsia-600 pt-12 pb-24">
+        <div className="pointer-events-none absolute -top-20 -right-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-white/8 blur-2xl" />
         <div className="container relative z-10">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-white/80 mb-4">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-white/80 mb-4 backdrop-blur-sm">
             <Sparkles className="h-3.5 w-3.5" /> Your Collection
           </span>
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-white sm:text-4xl flex items-center gap-3">
-                <Heart className="h-8 w-8 fill-white/80 text-white" />
-                Wishlist
+              <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight flex items-center gap-3">
+                <Heart className="h-8 w-8 fill-white/80 text-white" /> Wishlist
               </h1>
               <p className="mt-2 text-pink-100/80 text-sm">
-                {isLoading
-                  ? 'Loading your saved items…'
-                  : count > 0
-                    ? `${count} item${count !== 1 ? 's' : ''} saved for later`
-                    : 'Start saving products you love'}
+                {isLoading ? "Loading…" : count > 0 ? `${count} item${count !== 1 ? "s" : ""} saved for later` : "Start saving products you love"}
               </p>
             </div>
             {count > 0 && (
               <Link
                 href="/products"
-                className="inline-flex items-center gap-2 self-start sm:self-auto rounded-xl border border-white/30 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/20"
+                className="inline-flex items-center gap-2 self-start sm:self-auto rounded-xl border border-white/30 bg-white/15 px-5 py-2.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/25"
               >
                 Browse More <ArrowRight className="h-4 w-4" />
               </Link>
@@ -75,10 +70,10 @@ export default function WishlistPage() {
         </div>
       </section>
 
-      {/* ─── Content ─── */}
-      <div className="container py-10">
+      {/* Content */}
+      <div className="container -mt-10 pb-16">
 
-        {/* Loading skeletons */}
+        {/* Skeletons */}
         {isLoading && (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
@@ -87,24 +82,24 @@ export default function WishlistPage() {
 
         {/* Empty state */}
         {!isLoading && count === 0 && (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-primary-50 dark:bg-primary-900/20">
-              <Heart className="h-10 w-10 text-primary-300 dark:text-primary-600" />
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center py-24 px-8 text-center">
+            <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-rose-50">
+              <Heart className="h-10 w-10 text-rose-300" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Nothing saved yet</h2>
-            <p className="mt-2 max-w-xs text-sm text-gray-500 dark:text-gray-400">
+            <h2 className="text-xl font-black text-gray-900 mb-2">Nothing saved yet</h2>
+            <p className="mt-1 max-w-xs text-sm text-gray-400 leading-relaxed">
               Tap the heart icon on any product to save it here for quick access later.
             </p>
-            <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link
                 href="/products"
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 px-6 py-3 text-sm font-bold text-white shadow transition hover:from-primary-700 hover:to-primary-600"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 px-7 py-3.5 text-sm font-bold text-white shadow-lg hover:opacity-90 transition"
               >
                 <Package className="h-4 w-4" /> Browse Products
               </Link>
               <Link
                 href="/brands"
-                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-gray-700 shadow-soft transition hover:border-primary-200 hover:text-primary-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
+                className="inline-flex items-center gap-2 rounded-xl border-2 border-gray-100 bg-white px-7 py-3.5 text-sm font-bold text-gray-700 shadow-sm hover:border-primary-200 hover:text-primary-600 transition"
               >
                 Explore Brands
               </Link>
@@ -115,50 +110,83 @@ export default function WishlistPage() {
         {/* Product grid */}
         {!isLoading && count > 0 && (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {wishlist!.map((item) => (
-              <Link
-                key={item.id || item.product?.slug}
-                href={`/products/${item.product.slug}`}
-                className="group rounded-2xl border border-gray-100 bg-white overflow-hidden shadow-soft transition-all duration-300 hover:shadow-elevation-3 hover:-translate-y-1 dark:bg-gray-900 dark:border-gray-800"
-              >
-                <div className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-gray-800">
-                  <Image
-                    src={item.product.images?.[0]?.url || "/placeholder.jpg"}
-                    alt={item.product.name}
-                    fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  {/* Heart badge */}
-                  <div className="absolute top-2.5 right-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur-sm dark:bg-gray-900/90">
-                    <Heart className="h-4 w-4 fill-rose-500 text-rose-500" />
-                  </div>
-                </div>
-                <div className="p-3.5 space-y-1">
-                  {item.product.category?.name && (
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
-                      {item.product.category.name}
-                    </p>
-                  )}
-                  <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug dark:text-gray-100">
-                    {item.product.name}
-                  </h3>
-                  <div className="flex items-center justify-between pt-0.5">
-                    <p className="text-sm font-bold text-primary-600 dark:text-primary-400">
-                      NPR {item.product.price?.toLocaleString()}
-                    </p>
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-50 text-primary-600 opacity-0 transition-all duration-200 group-hover:opacity-100 dark:bg-primary-900/20 dark:text-primary-400">
-                      <ShoppingCart className="h-3.5 w-3.5" />
+            {wishlist!.map((item) => {
+              const product = item.product;
+              const hasDiscount = product?.compareAtPrice > product?.price;
+              const discount = hasDiscount
+                ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
+                : 0;
+              return (
+                <Link
+                  key={item.id || product?.slug}
+                  href={`/products/${product.slug}`}
+                  className="group rounded-2xl border border-gray-100 bg-white overflow-hidden shadow-sm hover:shadow-elevation-3 hover:-translate-y-1 transition-all duration-300"
+                >
+                  <div className="relative aspect-square overflow-hidden bg-gray-50">
+                    <Image
+                      src={product.images?.[0]?.url || "/placeholder.jpg"}
+                      alt={product.name}
+                      fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    {/* Badges */}
+                    <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5">
+                      {hasDiscount && (
+                        <span className="bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+                          -{discount}%
+                        </span>
+                      )}
+                      {product.isNewProduct && (
+                        <span className="bg-blue-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+                          NEW
+                        </span>
+                      )}
+                    </div>
+                    {/* Heart */}
+                    <div className="absolute top-2.5 right-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur-sm">
+                      <Heart className="h-4 w-4 fill-rose-500 text-rose-500" />
+                    </div>
+                    {/* Quick action overlay */}
+                    <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-200 bg-gradient-to-t from-black/60 to-transparent pt-8 pb-3 px-3">
+                      <div className="flex items-center gap-1 justify-center text-white text-xs font-bold">
+                        <ShoppingCart className="h-3.5 w-3.5" /> View Product
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+
+                  <div className="p-3.5 space-y-1.5">
+                    {product.category?.name && (
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                        {product.category.name}
+                      </p>
+                    )}
+                    <h3 className="text-sm font-bold text-gray-900 line-clamp-2 leading-snug">
+                      {product.name}
+                    </h3>
+                    <div className="flex items-center gap-2 pt-0.5">
+                      <p className="text-sm font-black text-primary-600">
+                        NPR {product.price?.toLocaleString()}
+                      </p>
+                      {hasDiscount && (
+                        <p className="text-xs text-gray-400 line-through">
+                          NPR {product.compareAtPrice?.toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+                    {product.isBestSeller && (
+                      <div className="flex items-center gap-1 text-[10px] font-bold text-amber-600">
+                        <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> Best Seller
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* ─── Recommendations ─── */}
       <Recommendations />
     </div>
   );

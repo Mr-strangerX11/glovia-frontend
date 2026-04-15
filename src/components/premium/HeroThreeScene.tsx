@@ -12,6 +12,7 @@ export default function HeroThreeScene() {
             alt="Glovia Logo"
             fill
             priority
+            sizes="(max-width: 640px) 80vw, (max-width: 1024px) 70vw, 50vw"
             className="object-contain p-6 sm:p-8"
           />
         </div>

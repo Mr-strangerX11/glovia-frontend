@@ -402,6 +402,7 @@ export default function HomeContent({ brands, banners }: HomeContentProps) {
                     src="/logo.png" 
                     alt="Glovia Logo" 
                     fill 
+                    sizes="128px"
                     className="object-contain"
                   />
                 </div>

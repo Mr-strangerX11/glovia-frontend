@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { ordersAPI } from "@/lib/api";
+import { AddressDisplay } from "@/components/AddressDisplay";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import Image from "next/image";
@@ -234,12 +235,7 @@ export default function OrderDetailPage() {
                 <h2 className="font-bold text-lg text-gray-900">Delivery Address</h2>
               </div>
               {order.address ? (
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
-                  <p className="font-semibold text-gray-900">{order.address.fullName}</p>
-                  <p className="text-gray-600 mt-2">{order.address.area}</p>
-                  <p className="text-gray-600">{order.address.district}</p>
-                  {order.address.phone && <p className="text-gray-600 mt-2">Phone: {order.address.phone}</p>}
-                </div>
+                <AddressDisplay address={order.address} />
               ) : (
                 <p className="text-gray-500 py-4">Address not available</p>
               )}
