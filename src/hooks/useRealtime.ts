@@ -24,13 +24,12 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
     if (!autoConnect) return;
 
     if (!socketRef.current) {
-      socketRef.current = io(url, {
+      socketRef.current = io(`${url}/realtime`, {
         path: '/socket.io/',
         reconnection: true,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
         reconnectionAttempts: 5,
-        namespace: '/realtime',
       });
 
       socketRef.current.on('connect', () => {
