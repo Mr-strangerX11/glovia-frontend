@@ -52,6 +52,8 @@ export default function AdminProductsPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchAllPages = async (
     request: (params: { page: number; limit: number }) => Promise<{ data: any }>
@@ -132,6 +134,63 @@ export default function AdminProductsPage() {
 
   const getProductId = (product: Product) => product.id || product._id || '';
 
+  const toggleProductSelection = (productId: string) => {
+    const newSelected = new Set(selectedProducts);
+    if (newSelected.has(productId)) {
+      newSelected.delete(productId);
+    } else {
+      newSelected.add(productId);
+    }
+    setSelectedProducts(newSelected);
+  };
+
+  const toggleSelectAll = (selectAll: boolean) => {
+    if (selectAll) {
+      const allIds = new Set(filteredProducts.map(p => getProductId(p)).filter(Boolean));
+      setSelectedProducts(allIds);
+    } else {
+      setSelectedProducts(new Set());
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedProducts.size === 0) {
+      toast.error('Please select products to delete');
+      return;
+    }
+
+    const confirmMessage = `Are you sure you want to delete ${selectedProducts.size} product(s)? This action cannot be undone.`;
+    if (!confirm(confirmMessage)) return;
+
+    setIsDeleting(true);
+    try {
+      const deletePromises = Array.from(selectedProducts).map(id =>
+        adminAPI.deleteProduct(id).catch(error => {
+          console.error(`Failed to delete product ${id}:`, error);
+          return null;
+        })
+      );
+
+      const results = await Promise.all(deletePromises);
+      const successCount = results.filter(r => r !== null).length;
+      
+      if (successCount > 0) {
+        toast.success(`${successCount} product(s) deleted successfully`);
+        setSelectedProducts(new Set());
+        fetchData();
+      }
+      
+      if (successCount < selectedProducts.size) {
+        toast.error(`Failed to delete ${selectedProducts.size - successCount} product(s)`);
+      }
+    } catch (error) {
+      console.error('Bulk delete error:', error);
+      toast.error('Failed to delete products');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const handleDelete = async (product: Product) => {
     const id = getProductId(product);
     if (!id) {
@@ -193,17 +252,37 @@ export default function AdminProductsPage() {
             )}
           </div>
 
-          <div className="mb-6">
-            <div className="relative">
+          <div className="mb-6 flex gap-3 items-center">
+            <div className="flex-1 relative">
               <input
                 type="text"
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="input pr-10"
+                className="input pr-10 w-full"
               />
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             </div>
+            
+            {selectedProducts.size > 0 && (
+              <button
+                onClick={handleBulkDelete}
+                disabled={isDeleting}
+                className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-4 py-2 rounded-lg inline-flex items-center gap-2 font-medium transition-colors"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Delete ({selectedProducts.size})
+                  </>
+                )}
+              </button>
+            )}
           </div>
 
           {loading ? (
@@ -223,6 +302,15 @@ export default function AdminProductsPage() {
               <table className="w-full">
                 <thead className="bg-gray-50 border-b">
                   <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                      <input
+                        type="checkbox"
+                        checked={selectedProducts.size > 0 && filteredProducts.length > 0 && selectedProducts.size === filteredProducts.length}
+                        indeterminate={selectedProducts.size > 0 && selectedProducts.size < filteredProducts.length}
+                        onChange={(e) => toggleSelectAll(e.target.checked)}
+                        className="w-4 h-4 rounded"
+                      />
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Product
                     </th>
@@ -243,8 +331,17 @@ export default function AdminProductsPage() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredProducts.map((product) => {
                     const productId = getProductId(product);
+                    const isSelected = selectedProducts.has(productId);
                     return (
-                    <tr key={productId || product.slug}>
+                    <tr key={productId || product.slug} className={isSelected ? 'bg-blue-50' : ''}>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleProductSelection(productId)}
+                          className="w-4 h-4 rounded"
+                        />
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           {product.images?.[0] && (
@@ -253,6 +350,7 @@ export default function AdminProductsPage() {
                               alt={product.name}
                               width={40}
                               height={40}
+                              sizes="40px"
                               className="w-10 h-10 rounded object-cover mr-3"
                               loading="lazy"
                             />

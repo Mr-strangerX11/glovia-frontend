@@ -6,6 +6,7 @@ import { vendorAPI } from '@/lib/api';
 import { Plus, Edit2, Trash2, Loader2, Search, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface Product {
   id?: string;
@@ -48,8 +49,67 @@ export default function VendorProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const getProductId = (product: Product) => product.id || product._id || '';
+
+  const toggleProductSelection = (productId: string) => {
+    const newSelected = new Set(selectedProducts);
+    if (newSelected.has(productId)) {
+      newSelected.delete(productId);
+    } else {
+      newSelected.add(productId);
+    }
+    setSelectedProducts(newSelected);
+  };
+
+  const toggleSelectAll = (selectAll: boolean) => {
+    if (selectAll) {
+      const allIds = new Set(filteredProducts.map(p => getProductId(p)).filter(Boolean));
+      setSelectedProducts(allIds);
+    } else {
+      setSelectedProducts(new Set());
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedProducts.size === 0) {
+      toast.error('Please select products to delete');
+      return;
+    }
+
+    const confirmMessage = `Are you sure you want to delete ${selectedProducts.size} product(s)? This action cannot be undone.`;
+    if (!confirm(confirmMessage)) return;
+
+    setIsDeleting(true);
+    try {
+      const deletePromises = Array.from(selectedProducts).map(id =>
+        vendorAPI.deleteProduct(id).catch(error => {
+          console.error(`Failed to delete product ${id}:`, error);
+          return null;
+        })
+      );
+
+      const results = await Promise.all(deletePromises);
+      const successCount = results.filter(r => r !== null).length;
+      
+      if (successCount > 0) {
+        toast.success(`${successCount} product(s) deleted successfully`);
+        setSelectedProducts(new Set());
+        fetchProducts();
+      }
+      
+      if (successCount < selectedProducts.size) {
+        toast.error(`Failed to delete ${selectedProducts.size - successCount} product(s)`);
+      }
+    } catch (error) {
+      console.error('Bulk delete error:', error);
+      toast.error('Failed to delete products');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const fetchAllVendorProducts = async () => {
     const pageSize = 100;
@@ -167,17 +227,37 @@ export default function VendorProductsPage() {
             )}
           </div>
 
-          <div className="mb-6">
-            <div className="relative">
+          <div className="mb-6 flex gap-3 items-center">
+            <div className="flex-1 relative">
               <input
                 type="text"
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="input pr-10"
+                className="input pr-10 w-full"
               />
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             </div>
+            
+            {selectedProducts.size > 0 && (
+              <button
+                onClick={handleBulkDelete}
+                disabled={isDeleting}
+                className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-4 py-2 rounded-lg inline-flex items-center gap-2 font-medium transition-colors"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Delete ({selectedProducts.size})
+                  </>
+                )}
+              </button>
+            )}
           </div>
 
           {loading ? (
@@ -197,6 +277,15 @@ export default function VendorProductsPage() {
               <table className="w-full">
                 <thead className="bg-gray-50 border-b">
                   <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                      <input
+                        type="checkbox"
+                        checked={selectedProducts.size > 0 && filteredProducts.length > 0 && selectedProducts.size === filteredProducts.length}
+                        indeterminate={selectedProducts.size > 0 && selectedProducts.size < filteredProducts.length}
+                        onChange={(e) => toggleSelectAll(e.target.checked)}
+                        className="w-4 h-4 rounded"
+                      />
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Product
                     </th>
@@ -215,15 +304,30 @@ export default function VendorProductsPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredProducts.map((product) => (
-                    <tr key={getProductId(product) || product.slug}>
+                  {filteredProducts.map((product) => {
+                    const productId = getProductId(product);
+                    const isSelected = selectedProducts.has(productId);
+                    return (
+                    <tr key={productId || product.slug} className={isSelected ? 'bg-blue-50' : ''}>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleProductSelection(productId)}
+                          className="w-4 h-4 rounded"
+                        />
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           {product.images?.[0] && (
-                            <img
+                            <Image
                               src={product.images[0].url}
                               alt={product.name}
+                              width={40}
+                              height={40}
+                              sizes="40px"
                               className="w-10 h-10 rounded object-cover mr-3"
+                              loading="lazy"
                             />
                           )}
                           <div>
@@ -252,7 +356,7 @@ export default function VendorProductsPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end gap-2">
                           <Link
-                            href={getProductId(product) ? `/vendor/products/${getProductId(product)}/edit` : '/vendor/products'}
+                            href={productId ? `/vendor/products/${productId}/edit` : '/vendor/products'}
                             className="text-primary-600 hover:text-primary-900"
                             aria-label={`Edit ${product.name}`}
                           >
@@ -267,7 +371,8 @@ export default function VendorProductsPage() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  );
+                  })}
                 </tbody>
               </table>
             </div>
