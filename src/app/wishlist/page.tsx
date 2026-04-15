@@ -137,7 +137,7 @@ export default function WishlistPage() {
                           -{discount}%
                         </span>
                       )}
-                      {product?.isNewProduct && (
+                      {product?.isNew && (
                         <span className="bg-blue-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
                           NEW
                         </span>
