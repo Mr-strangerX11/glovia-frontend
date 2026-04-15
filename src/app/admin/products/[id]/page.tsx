@@ -67,7 +67,7 @@ export default function EditProductPage() {
       if (!formData?.categoryId) { if (active) setSubCategories([]); return; }
       try {
         const { data } = await categoriesAPI.getByParent(formData.categoryId);
-        let apiList: any[] = Array.isArray(data) ? data : data?.data && Array.isArray(data.data) ? data.data : [];
+        const apiList: any[] = Array.isArray(data) ? data : data?.data && Array.isArray(data.data) ? data.data : [];
         const fallbackList = getSubCategoriesFromParent(formData.categoryId);
         const list = apiList.length > 0 ? apiList : fallbackList;
         if (!active) return;
