@@ -4,7 +4,10 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { userAPI } from '@/lib/api';
-import { MapPin, Plus, Edit2, Trash2, Loader2, X, CheckCircle2, Star, Home, ArrowLeft } from 'lucide-react';
+import {
+  MapPin, Plus, Edit2, Trash2, Loader2, X,
+  CheckCircle2, Star, Home, ArrowLeft, Navigation, Phone, User, Briefcase, Building2,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { provinces, getDistrictsForProvince, getMunicipalitiesForDistrict, getWardNumbers } from '@/data/nepalLocations';
@@ -22,12 +25,16 @@ interface Address {
   area: string;
   landmark?: string;
   isDefault: boolean;
+  addressType?: 'home' | 'office' | 'other';
 }
 
 const EMPTY_FORM = {
   fullName: '', phone: '', province: 'Bagmati Province', district: 'Kathmandu',
-  municipality: '', wardNo: 1, area: '', landmark: '', isDefault: false,
+  municipality: '', wardNo: 1, area: '', landmark: '', isDefault: false, addressType: 'home' as 'home' | 'office' | 'other',
 };
+
+const inputCls = "w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 transition bg-white placeholder-gray-300";
+const selectCls = `${inputCls} appearance-none cursor-pointer`;
 
 export default function AddressesPage() {
   const router = useRouter();
@@ -91,7 +98,7 @@ export default function AddressesPage() {
       fullName: address.fullName, phone: address.phone, province: address.province,
       district: address.district, municipality: address.municipality,
       wardNo: address.wardNo, area: address.area, landmark: address.landmark || '',
-      isDefault: address.isDefault,
+      isDefault: address.isDefault, addressType: (address.addressType || 'home') as 'home' | 'office' | 'other',
     });
     setEditingId(getAddressId(address));
     setShowForm(true);
@@ -100,156 +107,296 @@ export default function AddressesPage() {
 
   const resetForm = () => { setFormData({ ...EMPTY_FORM }); setEditingId(null); setShowForm(false); };
 
-  const Field = ({ label, children, required, helperText }: { label: string; children: React.ReactNode; required?: boolean; helperText?: string }) => (
-    <div>
-      <label className="block text-sm font-bold text-gray-800 mb-2">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      {children}
-      {helperText && <p className="text-xs text-gray-500 mt-1">{helperText}</p>}
-    </div>
-  );
-
   if (authLoading || !isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-50 to-purple-50">
         <div className="text-center space-y-4">
-          <div className="w-12 h-12 border-4 border-primary-100 border-t-primary-500 rounded-full animate-spin mx-auto" />
-          <p className="text-sm text-gray-400">Loading…</p>
+          <div className="w-12 h-12 border-[3px] border-violet-200 border-t-violet-500 rounded-full animate-spin mx-auto" />
+          <p className="text-sm text-gray-400 font-medium">Loading…</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50/80">
       {/* Hero */}
-      <div className="relative bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 pt-12 pb-24 overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -ml-24 -mb-24 blur-2xl pointer-events-none" />
+      <div className="relative bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 py-5 overflow-hidden">
+        <div className="absolute top-0 right-0 w-72 h-72 bg-white/5 rounded-full -mr-36 -mt-36 blur-3xl pointer-events-none" />
         <div className="container relative z-10">
-          <div className="flex items-end justify-between gap-4">
+          <div className="flex items-center justify-between gap-4">
             <div className="text-white">
-              <p className="text-violet-200 text-xs font-bold uppercase tracking-widest mb-2">My Account</p>
-              <h1 className="text-3xl sm:text-4xl font-black tracking-tight flex items-center gap-3">
-                <MapPin className="w-8 h-8" />
+              <p className="text-violet-200 text-xs font-bold uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-violet-300 inline-block" />
+                My Account
+              </p>
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2">
+                <div className="w-7 h-7 bg-white/15 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                  <MapPin className="w-3.5 h-3.5" />
+                </div>
                 Saved Addresses
               </h1>
-              <p className="text-violet-200 mt-2 text-sm">
-                {addresses.length > 0 ? `${addresses.length} address${addresses.length > 1 ? 'es' : ''} saved` : 'No addresses yet'}
-              </p>
             </div>
             <Link
               href="/account"
-              className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-all border border-white/30 backdrop-blur-sm flex-shrink-0"
+              className="flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white font-semibold px-3 py-2 rounded-lg transition-all border border-white/20 backdrop-blur-sm flex-shrink-0 text-xs"
             >
-              <ArrowLeft className="w-4 h-4" /> Back
+              <ArrowLeft className="w-3 h-3" /> <span className="hidden sm:inline">Back</span>
             </Link>
           </div>
         </div>
       </div>
 
-      <div className="container max-w-5xl -mt-14 pb-20 space-y-6">
+      <div className="container max-w-5xl pt-5 pb-24 space-y-5">
 
         {/* Add/Edit Form */}
         {showForm ? (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-lg overflow-hidden">
-            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-violet-50 to-purple-50">
+            {/* Form header */}
+            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-violet-50 via-purple-50 to-white">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-violet-100 rounded-xl flex items-center justify-center">
-                  {editingId ? <Edit2 className="w-4 h-4 text-violet-600" /> : <Plus className="w-4 h-4 text-violet-600" />}
+                <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-sm">
+                  {editingId ? <Edit2 className="w-4 h-4 text-white" /> : <Plus className="w-4 h-4 text-white" />}
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold text-gray-800">{editingId ? 'Edit Address' : 'Add New Address'}</h2>
-                  <p className="text-xs text-gray-400">Fill in the delivery details</p>
+                  <h2 className="text-base font-bold text-gray-900">{editingId ? 'Edit Address' : 'Add New Address'}</h2>
+                  <p className="text-xs text-gray-400 mt-0.5">Fill in your delivery details</p>
                 </div>
               </div>
-              <button onClick={resetForm} className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+              <button
+                onClick={resetForm}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-5">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <Field label="Full Name" required helperText="Recipient's name">
-                  <input type="text" value={formData.fullName} onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 transition" placeholder="e.g. Ram Sharma" required />
-                </Field>
-                <Field label="Phone Number" required helperText="10-digit mobile number">
-                  <input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 transition" placeholder="e.g. 9841234567" required />
-                </Field>
-
-                <Field label="Province" required helperText="Select your province">
-                  <select value={formData.province}
-                    onChange={(e) => {
-                      const d = getDistrictsForProvince(e.target.value);
-                      setFormData({ ...formData, province: e.target.value, district: d[0] || '', municipality: '' });
-                    }} className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 transition appearance-none bg-white cursor-pointer" required>
-                    <option value="">Select province</option>
-                    {provinces.map((p) => <option key={p} value={p}>{p}</option>)}
-                  </select>
-                </Field>
-
-                <Field label="District" required helperText="Select your district">
-                  <select value={formData.district}
-                    onChange={(e) => setFormData({ ...formData, district: e.target.value, municipality: '' })}
-                    className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 transition appearance-none bg-white cursor-pointer" required>
-                    <option value="">Select district</option>
-                    {getDistrictsForProvince(formData.province).map((d) => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                </Field>
-
-                <Field label="Municipality" required helperText="Select your municipality or city">
-                  <select value={formData.municipality} onChange={(e) => setFormData({ ...formData, municipality: e.target.value })} className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 transition appearance-none bg-white cursor-pointer" required>
-                    <option value="">Select municipality</option>
-                    {getMunicipalitiesForDistrict(formData.district).map((m) => <option key={m} value={m}>{m}</option>)}
-                  </select>
-                </Field>
-
-                <Field label="Ward No." required helperText="Select your ward number">
-                  <select value={formData.wardNo} onChange={(e) => setFormData({ ...formData, wardNo: parseInt(e.target.value) })} className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 transition appearance-none bg-white cursor-pointer" required>
-                    {getWardNumbers().map((w) => <option key={w} value={w}>Ward {w}</option>)}
-                  </select>
-                </Field>
-
-                <Field label="Area / Tole" required helperText="Neighborhood or locality name">
-                  <input type="text" value={formData.area} onChange={(e) => setFormData({ ...formData, area: e.target.value })} className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 transition" placeholder="e.g. Baneshwor, Koteshwor" required />
-                </Field>
-
-                <Field label="Landmark (Optional)" helperText="Shop name, gate color, etc.">
-                  <input type="text" value={formData.landmark} onChange={(e) => setFormData({ ...formData, landmark: e.target.value })} className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 transition" placeholder="e.g. Near the blue gate" />
-                </Field>
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              {/* Section: Contact */}
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <User className="w-3.5 h-3.5" /> Contact Details
+                </p>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                      Full Name <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.fullName}
+                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                      className={inputCls}
+                      placeholder="e.g. Ram Sharma"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                      Phone Number <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className={inputCls}
+                      placeholder="e.g. 9841234567"
+                      required
+                    />
+                  </div>
+                </div>
               </div>
 
-              <label className="flex items-center gap-3 cursor-pointer group">
-                <div
-                  onClick={() => setFormData({ ...formData, isDefault: !formData.isDefault })}
-                  className={`relative w-10 h-5.5 rounded-full transition-colors cursor-pointer flex-shrink-0 ${formData.isDefault ? 'bg-violet-500' : 'bg-gray-200'}`}
-                  style={{ height: 22 }}
-                >
-                  <span className={`absolute top-0.5 left-0.5 bg-white rounded-full shadow transition-transform`}
-                    style={{ width: 18, height: 18, transform: formData.isDefault ? 'translateX(18px)' : 'translateX(0)' }} />
+              {/* Section: Address Type */}
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <Briefcase className="w-3.5 h-3.5" /> Address Type
+                </p>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { value: 'home', label: 'Home', icon: Home, description: 'Residential' },
+                    { value: 'office', label: 'Office', icon: Building2, description: 'Work' },
+                    { value: 'other', label: 'Other', icon: MapPin, description: 'Other' },
+                  ].map(({ value, label, icon: Icon, description }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, addressType: value as any })}
+                      className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                        formData.addressType === value
+                          ? 'border-violet-500 bg-violet-50 shadow-md'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <Icon className={`w-5 h-5 ${formData.addressType === value ? 'text-violet-600' : 'text-gray-400'}`} />
+                      <span className={`text-xs font-bold ${formData.addressType === value ? 'text-violet-700' : 'text-gray-700'}`}>
+                        {label}
+                      </span>
+                      <span className={`text-[10px] ${formData.addressType === value ? 'text-violet-500' : 'text-gray-400'}`}>
+                        {description}
+                      </span>
+                    </button>
+                  ))}
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-700">Set as default address</p>
-                  <p className="text-xs text-gray-400">This address will be pre-selected at checkout</p>
-                </div>
-              </label>
+              </div>
 
+              {/* Section: Location */}
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <Navigation className="w-3.5 h-3.5" /> Location
+                </p>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                      Province <span className="text-red-400">*</span>
+                    </label>
+                    <select
+                      value={formData.province}
+                      onChange={(e) => {
+                        const d = getDistrictsForProvince(e.target.value);
+                        setFormData({ ...formData, province: e.target.value, district: d[0] || '', municipality: '' });
+                      }}
+                      className={selectCls}
+                      required
+                    >
+                      <option value="">Select province</option>
+                      {provinces.map((p) => <option key={p} value={p}>{p}</option>)}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                      District <span className="text-red-400">*</span>
+                    </label>
+                    <select
+                      value={formData.district}
+                      onChange={(e) => setFormData({ ...formData, district: e.target.value, municipality: '' })}
+                      className={selectCls}
+                      required
+                    >
+                      <option value="">Select district</option>
+                      {getDistrictsForProvince(formData.province).map((d) => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                      Municipality <span className="text-red-400">*</span>
+                    </label>
+                    <select
+                      value={formData.municipality}
+                      onChange={(e) => setFormData({ ...formData, municipality: e.target.value })}
+                      className={selectCls}
+                      required
+                    >
+                      <option value="">Select municipality</option>
+                      {getMunicipalitiesForDistrict(formData.district).map((m) => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                      Ward No. <span className="text-red-400">*</span>
+                    </label>
+                    <select
+                      value={formData.wardNo}
+                      onChange={(e) => setFormData({ ...formData, wardNo: parseInt(e.target.value) })}
+                      className={selectCls}
+                      required
+                    >
+                      {getWardNumbers().map((w) => <option key={w} value={w}>Ward {w}</option>)}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section: Address details */}
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <Home className="w-3.5 h-3.5" /> Address Details
+                </p>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                      Area / Tole <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.area}
+                      onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+                      className={inputCls}
+                      placeholder="e.g. Baneshwor, Koteshwor"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                      Landmark <span className="text-gray-300 font-normal">(optional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.landmark}
+                      onChange={(e) => setFormData({ ...formData, landmark: e.target.value })}
+                      className={inputCls}
+                      placeholder="e.g. Near the blue gate"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Default toggle */}
+              <div
+                className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all ${
+                  formData.isDefault
+                    ? 'bg-violet-50 border-violet-200'
+                    : 'bg-gray-50 border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => setFormData({ ...formData, isDefault: !formData.isDefault })}
+              >
+                <div className="flex items-center gap-3">
+                  <Star className={`w-4 h-4 flex-shrink-0 ${formData.isDefault ? 'text-violet-500 fill-violet-500' : 'text-gray-300'}`} />
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">Set as default address</p>
+                    <p className="text-xs text-gray-400 mt-0.5">Pre-selected at checkout</p>
+                  </div>
+                </div>
+                <div
+                  className={`relative w-11 flex-shrink-0 rounded-full transition-colors duration-200 ${formData.isDefault ? 'bg-violet-500' : 'bg-gray-200'}`}
+                  style={{ height: 24 }}
+                >
+                  <span
+                    className="absolute top-0.5 left-0.5 bg-white rounded-full shadow transition-transform duration-200"
+                    style={{ width: 20, height: 20, transform: formData.isDefault ? 'translateX(20px)' : 'translateX(0)' }}
+                  />
+                </div>
+              </div>
+
+              {/* Actions */}
               <div className="flex gap-3 pt-2">
-                <button type="submit" disabled={saving} className="btn-primary flex items-center gap-2">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex items-center gap-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white font-bold px-6 py-3 rounded-xl transition-all shadow-md shadow-violet-200 disabled:opacity-60"
+                >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                   {editingId ? 'Update Address' : 'Save Address'}
                 </button>
-                <button type="button" onClick={resetForm} className="btn-outline">Cancel</button>
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="flex items-center gap-2 px-6 py-3 rounded-xl border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
               </div>
             </form>
           </div>
         ) : (
           <button
             onClick={() => setShowForm(true)}
-            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl border-2 border-dashed border-violet-200 bg-white text-violet-600 font-semibold text-sm hover:bg-violet-50 hover:border-violet-300 transition-all group"
+            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl border-2 border-dashed border-violet-200 bg-white text-violet-600 font-semibold text-sm hover:bg-violet-50 hover:border-violet-300 transition-all group shadow-sm"
           >
-            <div className="w-8 h-8 bg-violet-100 rounded-lg flex items-center justify-center group-hover:bg-violet-200 transition-colors">
+            <div className="w-8 h-8 bg-violet-100 rounded-xl flex items-center justify-center group-hover:bg-violet-200 transition-colors">
               <Plus className="w-4 h-4" />
             </div>
             Add New Address
@@ -258,21 +405,29 @@ export default function AddressesPage() {
 
         {/* Address Cards */}
         {loading ? (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex justify-center py-16">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex justify-center py-20">
             <div className="text-center space-y-3">
-              <div className="w-10 h-10 border-4 border-violet-100 border-t-violet-500 rounded-full animate-spin mx-auto" />
-              <p className="text-sm text-gray-400">Loading addresses…</p>
+              <div className="relative w-12 h-12 mx-auto">
+                <div className="w-12 h-12 border-[3px] border-violet-100 border-t-violet-500 rounded-full animate-spin" />
+                <MapPin className="w-4 h-4 text-violet-400 absolute inset-0 m-auto" />
+              </div>
+              <p className="text-sm text-gray-400 font-medium">Loading addresses…</p>
             </div>
           </div>
         ) : addresses.length === 0 && !showForm ? (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm text-center py-20 px-8">
-            <div className="w-20 h-20 bg-violet-50 rounded-3xl flex items-center justify-center mx-auto mb-5">
-              <MapPin className="w-10 h-10 text-violet-300" />
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm text-center py-24 px-8">
+            <div className="w-24 h-24 bg-gradient-to-br from-violet-100 to-purple-100 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <MapPin className="w-12 h-12 text-violet-300" />
             </div>
-            <h3 className="text-lg font-bold text-gray-800 mb-2">No addresses saved</h3>
-            <p className="text-sm text-gray-400 mb-6">Add your first delivery address to speed up checkout.</p>
-            <button onClick={() => setShowForm(true)} className="btn-primary">
-              <Plus className="w-4 h-4" /> Add Address
+            <h3 className="text-xl font-black text-gray-900 mb-2">No addresses saved</h3>
+            <p className="text-sm text-gray-400 mb-8 max-w-xs mx-auto leading-relaxed">
+              Add your delivery address to speed up checkout and track your orders.
+            </p>
+            <button
+              onClick={() => setShowForm(true)}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold px-8 py-3.5 rounded-xl hover:from-violet-700 hover:to-purple-700 transition shadow-lg shadow-violet-200"
+            >
+              <Plus className="w-4 h-4" /> Add First Address
             </button>
           </div>
         ) : (
@@ -283,46 +438,81 @@ export default function AddressesPage() {
               return (
                 <div
                   key={id || address.fullName}
-                  className={`relative bg-white rounded-2xl border shadow-sm hover:shadow-md transition-all ${
+                  className={`relative bg-white rounded-2xl border shadow-sm hover:shadow-md transition-all overflow-hidden ${
                     address.isDefault ? 'border-violet-200 ring-1 ring-violet-100' : 'border-gray-100'
                   }`}
                 >
-                  {address.isDefault && (
-                    <div className="absolute top-4 right-4 flex items-center gap-1 bg-violet-100 text-violet-700 text-[10px] font-bold px-2.5 py-1 rounded-full">
-                      <Star className="w-3 h-3 fill-violet-500 text-violet-500" /> Default
-                    </div>
-                  )}
+                  {/* Top accent */}
+                  <div className={`h-1 w-full ${address.isDefault ? 'bg-gradient-to-r from-violet-500 to-purple-500' : 'bg-gray-100'}`} />
 
                   <div className="p-5">
-                    <div className="flex items-start gap-3 mb-4">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${address.isDefault ? 'bg-violet-100' : 'bg-gray-100'}`}>
-                        <Home className={`w-5 h-5 ${address.isDefault ? 'text-violet-600' : 'text-gray-500'}`} />
+                    <div className="flex items-start justify-between gap-3 mb-4">
+                      <div className="flex items-center gap-3">
+                        {/* Address Type Icon */}
+                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm ${
+                          address.isDefault
+                            ? 'bg-gradient-to-br from-violet-500 to-purple-600'
+                            : address.addressType === 'office'
+                              ? 'bg-gradient-to-br from-blue-400 to-blue-600'
+                              : address.addressType === 'other'
+                                ? 'bg-gradient-to-br from-gray-400 to-gray-600'
+                                : 'bg-gradient-to-br from-emerald-400 to-emerald-600'
+                        }`}>
+                          {address.addressType === 'office' ? (
+                            <Building2 className="w-5 h-5 text-white" />
+                          ) : address.addressType === 'other' ? (
+                            <MapPin className="w-5 h-5 text-white" />
+                          ) : (
+                            <Home className="w-5 h-5 text-white" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="font-bold text-gray-900 text-sm">{address.fullName}</p>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full capitalize ${
+                              address.addressType === 'office'
+                                ? 'bg-blue-100 text-blue-600'
+                                : address.addressType === 'other'
+                                  ? 'bg-gray-100 text-gray-600'
+                                  : 'bg-emerald-100 text-emerald-600'
+                            }`}>
+                              {address.addressType || 'home'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                            <Phone className="w-3 h-3" />
+                            {address.phone}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-bold text-gray-900">{address.fullName}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{address.phone}</p>
-                      </div>
+                      {address.isDefault && (
+                        <span className="flex items-center gap-1 bg-violet-100 text-violet-700 text-[10px] font-bold px-2.5 py-1 rounded-full flex-shrink-0">
+                          <Star className="w-3 h-3 fill-violet-500 text-violet-500" /> Default
+                        </span>
+                      )}
                     </div>
 
-                    <AddressDisplay 
-                      address={address} 
-                      showPhone={false}
-                      className="text-sm text-gray-600 space-y-1 mb-4"
-                    />
+                    <div className="bg-gray-50 rounded-xl p-3 mb-4 border border-gray-100">
+                      <AddressDisplay
+                        address={address}
+                        showPhone={false}
+                        className="text-sm text-gray-600 space-y-0.5"
+                      />
+                    </div>
 
-                    <div className="flex gap-2 pt-3 border-t border-gray-50">
+                    <div className="flex gap-2 pt-2 border-t border-gray-100">
                       <button
                         onClick={() => handleEdit(address)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-colors"
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-violet-600 bg-violet-50 hover:bg-violet-100 border border-violet-100 transition-all hover:scale-105"
                       >
-                        <Edit2 className="w-3 h-3" /> Edit
+                        <Edit2 className="w-3.5 h-3.5" /> Edit
                       </button>
                       <button
                         onClick={() => handleDelete(address)}
                         disabled={isDeleting}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-red-500 bg-red-50 hover:bg-red-100 border border-red-100 transition-colors disabled:opacity-50"
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-red-500 bg-red-50 hover:bg-red-100 border border-red-100 transition-all hover:scale-105 disabled:opacity-50"
                       >
-                        {isDeleting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                        {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                         Delete
                       </button>
                     </div>

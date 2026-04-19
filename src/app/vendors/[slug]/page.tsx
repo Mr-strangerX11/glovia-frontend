@@ -54,12 +54,23 @@ export default async function VendorStorePage({ params }: Props) {
     // Fetch products by vendor email
     const productsResult = await fetchProducts({ brand: vendor.email, limit: 50 });
     products = Array.isArray(productsResult) ? productsResult : productsResult?.data ?? [];
+
+    // Also fetch all products for the "View All" option
+    const allProductsResult = await fetchProducts({ limit: 100 });
+    const allProducts = Array.isArray(allProductsResult) ? allProductsResult : allProductsResult?.data ?? [];
+    
+    return (
+      <VendorStoreContent 
+        vendor={vendor} 
+        products={products} 
+        allProducts={allProducts}
+        slug={slug} 
+      />
+    );
   } catch (err) {
     console.warn(`[VendorStore] Fetch failed (${getServerErrorSummary(err)})`);
     notFound();
   }
 
   if (!vendor) notFound();
-
-  return <VendorStoreContent vendor={vendor} products={products} slug={slug} />;
 }

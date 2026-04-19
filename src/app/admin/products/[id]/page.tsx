@@ -23,6 +23,38 @@ export default function EditProductPage() {
   const [brands, setBrands] = useState<any[]>([]);
   const [formData, setFormData] = useState<any>(null);
 
+  // Category to size type mapping
+  const categoryTupleTypes: Record<string, string> = {
+    'Clothing': 'clothing',
+    'Apparel': 'clothing',
+    'Fashion': 'clothing',
+    'Groceries': 'weight',
+    'Food': 'weight',
+    'Beverages': 'volume',
+    'Liquids': 'volume',
+    'Beauty': 'volume',
+    'Skincare': 'volume',
+  };
+
+  // Size options for different types
+  const clothingSizes = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL', '4XL'];
+  const weightUnits = ['Gram', 'kg'];
+  const volumeUnits = ['ML', 'L'];
+
+  // Determine size type based on selected category name
+  const getSizeTypeForCategory = (categoryId: string): string => {
+    const category = categories.find(cat => getCategoryId(cat) === categoryId);
+    if (!category) return '';
+    
+    const categoryName = category.name || '';
+    for (const [key, value] of Object.entries(categoryTupleTypes)) {
+      if (categoryName.toLowerCase().includes(key.toLowerCase())) {
+        return value;
+      }
+    }
+    return '';
+  };
+
   const normalizeId = (value: any): string => {
     if (!value) return "";
     if (typeof value === "string") return value;
@@ -105,8 +137,12 @@ export default function EditProductPage() {
       const rawCategoryId = normalizeId(product.categoryId || product.category?._id || product.category?.id || "");
       const selectedCategory = categoriesList.find((cat: any) => getCategoryId(cat) === rawCategoryId);
       const selectedCategoryParentId = selectedCategory ? getParentId(selectedCategory) : "";
+      const categoryIdForSize = selectedCategoryParentId || rawCategoryId;
       const cleanedData = {
         ...product,
+        sizeType: getSizeTypeForCategory(categoryIdForSize),
+        sizeValue: product?.size || '',
+        sizeUnit: product?.sizeUnit || '',
         categoryId: selectedCategoryParentId || rawCategoryId,
         subCategoryId: selectedCategoryParentId ? rawCategoryId : "",
         brandId: normalizeId(product.brandId || product.brand?._id || product.brand?.id || ""),
@@ -152,7 +188,7 @@ export default function EditProductPage() {
         isActive: formData.isActive,
         isFeatured: formData.isFeatured,
         isBestSeller: formData.isBestSeller,
-        isNew: formData.isNew || formData.isNewProduct,
+        isNew: !!(formData.isNew || formData.isNewProduct),
       };
       if (formData.images && Array.isArray(formData.images)) {
         cleanData.images = formData.images.map((img: any) => typeof img === "string" ? img : img.url);
@@ -165,6 +201,23 @@ export default function EditProductPage() {
       if (formData.howToUse) cleanData.howToUse = formData.howToUse;
       if (formData.tags) cleanData.tags = formData.tags;
       if (formData.suitableFor) cleanData.suitableFor = formData.suitableFor;
+      
+      // Handle size/volume based on type
+      if (formData.sizeType === 'clothing' && formData.sizeValue) {
+        cleanData.size = formData.sizeValue; // S, M, L, XL, etc.
+      } else if (formData.sizeType === 'weight' && formData.sizeValue && formData.sizeUnit) {
+        cleanData.weight = `${formData.sizeValue}${formData.sizeUnit}`; // e.g., "500G" or "1KG"
+      } else if (formData.sizeType === 'volume' && formData.sizeValue && formData.sizeUnit) {
+        // Convert to milliliters for consistency
+        let mlValue = Number(formData.sizeValue);
+        if (formData.sizeUnit === 'L') {
+          mlValue *= 1000;
+        }
+        cleanData.quantityMl = mlValue;
+      } else if (Number.isFinite(formData.quantityMl) && Number(formData.quantityMl) >= 0) {
+        cleanData.quantityMl = Number(formData.quantityMl);
+      }
+      
       await adminAPI.updateProduct(id, cleanData);
       toast.success("Product updated successfully!");
       router.push("/admin/products");
@@ -380,7 +433,18 @@ export default function EditProductPage() {
                       <label className="block text-xs font-semibold text-gray-600 mb-1.5">Category <span className="text-red-500">*</span></label>
                       <select
                         name="categoryId" value={formData.categoryId || ""}
-                        onChange={(e) => setFormData((prev: any) => ({ ...prev, categoryId: e.target.value, subCategoryId: "" }))}
+                        onChange={(e) => {
+                          const newCategoryId = e.target.value;
+                          const newSizeType = getSizeTypeForCategory(newCategoryId);
+                          setFormData((prev: any) => ({ 
+                            ...prev, 
+                            categoryId: newCategoryId, 
+                            subCategoryId: '',
+                            sizeType: newSizeType,
+                            sizeValue: '',
+                            sizeUnit: newSizeType === 'weight' ? 'kg' : newSizeType === 'volume' ? 'ML' : ''
+                          }));
+                        }}
                         className="input text-sm" required
                       >
                         <option value="">Select category</option>
@@ -416,6 +480,45 @@ export default function EditProductPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Size & Volume */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-orange-50 rounded-lg flex items-center justify-center">
+                    <Package className="w-4 h-4 text-orange-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-bold text-gray-800">Size & Volume</h2>
+                    <p className="text-xs text-gray-400">{formData?.sizeType === 'clothing' && 'Clothing dimensions'}{formData?.sizeType === 'weight' && 'Product weight'}{formData?.sizeType === 'volume' && 'Product volume'}{!formData?.sizeType && 'Size options'}</p>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                    {formData?.sizeType === 'clothing' && 'Size'}
+                    {formData?.sizeType === 'weight' && 'Weight'}
+                    {formData?.sizeType === 'volume' && 'Volume'}
+                    {!formData?.sizeType && 'Size / Volume (ml)'}
+                  </label>
+                  {formData?.sizeType === 'clothing' && (
+                    <select
+                      value={formData?.sizeValue || ''}
+                      onChange={(e) => setFormData({ ...formData, sizeValue: e.target.value })}
+                      className="input text-sm w-full"
+                    >
+                      <option value="">Select Size</option>
+                      {clothingSizes.map((size) => (
+                        <option key={size} value={size}>{size}</option>
+                      ))}
+                    </select>
+                  )}
+                  {formData?.sizeType === 'weight' && (
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        min={0}
+                        value={formData?.sizeValue || ''}
+                        onChange={(e) => setFormData({ ...formData, sizeValue: e.target.value })}
+                        placeholder=\"e.g. 500\"\n                        className=\"flex-1 input text-sm\"\n                      />\n                      <select\n                        value={formData?.sizeUnit || ''}\n                        onChange={(e) => setFormData({ ...formData, sizeUnit: e.target.value })}\n                        className=\"input text-sm\"\n                      >\n                        <option value=\"\">Unit</option>\n                        {weightUnits.map((unit) => (\n                          <option key={unit} value={unit}>{unit}</option>\n                        ))}\n                      </select>\n                    </div>\n                  )}\n                  {formData?.sizeType === 'volume' && (\n                    <div className=\"flex gap-2\">\n                      <input\n                        type=\"number\"\n                        min={0}\n                        value={formData?.sizeValue || ''}\n                        onChange={(e) => setFormData({ ...formData, sizeValue: e.target.value })}\n                        placeholder=\"e.g. 100\"\n                        className=\"flex-1 input text-sm\"\n                      />\n                      <select\n                        value={formData?.sizeUnit || ''}\n                        onChange={(e) => setFormData({ ...formData, sizeUnit: e.target.value })}\n                        className=\"input text-sm\"\n                      >\n                        <option value=\"\">Unit</option>\n                        {volumeUnits.map((unit) => (\n                          <option key={unit} value={unit}>{unit}</option>\n                        ))}\n                      </select>\n                    </div>\n                  )}\n                  {!formData?.sizeType && (\n                    <input\n                      type=\"number\"\n                      value={formData?.quantityMl || 0}\n                      onChange={(e) => setFormData({ ...formData, quantityMl: parseFloat(e.target.value) })}\n                      className=\"input text-sm w-full\"\n                      min=\"0\"\n                      step=\"0.01\"\n                    />\n                  )}\n                  {formData?.sizeType && (\n                    <p className=\"mt-2 text-xs text-blue-600\">\n                      {formData?.sizeType === 'clothing' && 'Select clothing size'}\n                      {formData?.sizeType === 'weight' && 'Specify weight (e.g., 500G, 1KG)'}\n                      {formData?.sizeType === 'volume' && 'Specify volume (e.g., 100ML, 1L)'}\n                    </p>\n                  )}\n                </div>\n              </div>
 
               {/* Additional Details */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -463,7 +566,7 @@ export default function EditProductPage() {
                   <Toggle name="isActive" checked={!!formData.isActive} label="Active (visible in store)" />
                   <Toggle name="isFeatured" checked={!!formData.isFeatured} label="Featured product" />
                   <Toggle name="isBestSeller" checked={!!formData.isBestSeller} label="Best seller" />
-                  <Toggle name="isNewProduct" checked={!!(formData.isNew || formData.isNewProduct)} label="New arrival" />
+                  <Toggle name="isNew" checked={!!(formData.isNew || formData.isNewProduct)} label="New arrival" />
                 </div>
               </div>
 
@@ -499,7 +602,7 @@ export default function EditProductPage() {
                       <span className="text-xs text-amber-300 font-medium">Featured on homepage</span>
                     </div>
                   )}
-                  {(formData.isNew || formData.isNewProduct) && (
+                  {!!(formData.isNew || formData.isNewProduct) && (
                     <div className="flex items-center gap-2 bg-blue-500/10 rounded-lg px-3 py-2">
                       <Zap className="w-3.5 h-3.5 text-blue-400" />
                       <span className="text-xs text-blue-300 font-medium">Shown as new arrival</span>

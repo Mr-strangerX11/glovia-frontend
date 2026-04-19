@@ -74,22 +74,38 @@ self.addEventListener('fetch', (event) => {
     caches.match(request).then((cachedResponse) => {
       if (cachedResponse) {
         // Return cached response and update cache in background
-        fetch(request).then((response) => {
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, response);
+        fetch(request)
+          .then((response) => {
+            if (response.ok) {
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(request, response);
+              });
+            }
+          })
+          .catch((error) => {
+            // Silently fail - keep cached version
+            console.debug('[ServiceWorker] Background fetch failed:', request.url, error);
           });
-        });
         return cachedResponse;
       }
 
       // Not in cache, fetch from network
       return fetch(request).then((response) => {
-        // Cache the response for future use
-        const responseClone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(request, responseClone);
-        });
+        // Cache the response for future use (only if successful)
+        if (response.ok) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, responseClone);
+          });
+        }
         return response;
+      }).catch((error) => {
+        // If fetch fails, try to return offline page
+        console.debug('[ServiceWorker] Fetch failed:', request.url, error);
+        if (request.mode === 'navigate') {
+          return caches.match(OFFLINE_URL);
+        }
+        throw error;
       });
     })
   );
@@ -103,8 +119,48 @@ self.addEventListener('sync', (event) => {
 });
 
 async function syncCart() {
-  // Get pending cart operations from IndexedDB and sync with server
-  console.log('Background sync: cart');
+  let db;
+  try {
+    db = await new Promise((resolve, reject) => {
+      const req = indexedDB.open('glovia-cart-sync', 1);
+      req.onupgradeneeded = (e) => {
+        e.target.result.createObjectStore('pending-ops', { keyPath: 'id', autoIncrement: true });
+      };
+      req.onsuccess = (e) => resolve(e.target.result);
+      req.onerror = () => reject(req.error);
+    });
+
+    const ops = await new Promise((resolve, reject) => {
+      const tx = db.transaction('pending-ops', 'readonly');
+      const req = tx.objectStore('pending-ops').getAll();
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+
+    for (const op of ops) {
+      try {
+        await fetch(op.url, {
+          method: op.method,
+          headers: { 'Content-Type': 'application/json' },
+          body: op.body ? JSON.stringify(op.body) : undefined,
+          credentials: 'include',
+        });
+        // Remove synced operation
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction('pending-ops', 'readwrite');
+          const req = tx.objectStore('pending-ops').delete(op.id);
+          req.onsuccess = resolve;
+          req.onerror = () => reject(req.error);
+        });
+      } catch {
+        // Leave op in store to retry next sync
+      }
+    }
+  } catch (err) {
+    console.debug('[ServiceWorker] syncCart failed:', err);
+  } finally {
+    if (db) db.close();
+  }
 }
 
 // Handle push notifications

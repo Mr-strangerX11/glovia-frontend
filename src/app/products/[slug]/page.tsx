@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
+import { SafeImage } from "@/components/common/SafeImage";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { productsAPI, cartAPI, wishlistAPI, reviewsAPI } from "@/lib/api";
@@ -378,7 +379,7 @@ export default function ProductDetailPage() {
                 onMouseLeave={() => { dragStartRef.current = null; if (!isZooming) setViewerRotation({ x: -7, y: 0 }); }}
                 onClick={() => setIsZooming((prev) => !prev)}
               >
-                <Image
+                <SafeImage
                   src={normalizeImageUrl(productImages[selectedImage].url)}
                   alt={product.name}
                   fill
@@ -419,7 +420,7 @@ export default function ProductDetailPage() {
                   {discountPercentage}% OFF
                 </div>
               )}
-              {product.isNewProduct && (
+              {(product.isNew ?? product.isNewProduct) && (
                 <div className="absolute left-4 top-4 z-20 rounded-full bg-emerald-500 px-3 py-1 text-sm font-black text-white shadow">
                   NEW
                 </div>
@@ -439,7 +440,7 @@ export default function ProductDetailPage() {
                       selectedImage === i ? "border-primary-500 shadow-md" : "border-gray-200 hover:border-gray-300"
                     }`}
                   >
-                    <Image src={normalizeImageUrl(img.url)} alt={`${product.name} ${i + 1}`} fill sizes="64px" className="object-contain p-1.5" />
+                    <SafeImage src={normalizeImageUrl(img.url)} alt={`${product.name} ${i + 1}`} fill sizes="64px" className="object-contain p-1.5" />
                   </motion.button>
                 ))}
               </div>
@@ -929,7 +930,7 @@ export default function ProductDetailPage() {
                     className="group overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary-200 hover:shadow-lg"
                   >
                     <div className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-gray-800">
-                      <Image
+                      <SafeImage
                         src={normalizeImageUrl(rp.images?.[0]?.url)}
                         alt={rp.name}
                         fill

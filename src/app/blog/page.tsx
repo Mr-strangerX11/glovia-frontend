@@ -59,17 +59,14 @@ export default function BlogPage() {
       </Head>
 
       <div className="min-h-screen bg-gray-50">
-        <div className="bg-gradient-to-r from-rose-600 via-pink-600 to-fuchsia-600 pt-10 pb-20">
-          <div className="container text-center text-white">
-            <BookOpen className="w-14 h-14 mx-auto mb-4 text-rose-200" />
-            <h1 className="text-4xl font-serif font-bold mb-3">Beauty Tips & Guides</h1>
-            <p className="text-pink-100 max-w-2xl mx-auto">
-              Discover expert beauty tips, skincare routines, and product guides to help you achieve your best skin.
-            </p>
+        <div className="bg-gradient-to-r from-rose-600 via-pink-600 to-fuchsia-600 py-6">
+          <div className="container text-white flex flex-col items-center justify-center">
+            <BookOpen className="w-7 h-7 mb-2 text-rose-200" />
+            <h1 className="text-xl sm:text-2xl font-serif font-bold">Beauty Tips & Guides</h1>
           </div>
         </div>
 
-        <div className="container -mt-10 pb-12">
+        <div className="container pt-5 pb-12">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {blogPosts.map((post) => (
               <article key={post.id} className="group bg-white rounded-2xl border border-gray-100 shadow-soft p-4 cursor-pointer hover:shadow-lg transition-shadow">

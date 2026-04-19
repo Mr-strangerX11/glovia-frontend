@@ -17,12 +17,19 @@ export default function VendorEditProductPage() {
   const [subCategories, setSubCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [subCategoriesLoading, setSubCategoriesLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
     description: '',
     price: 0,
+    discountPercentage: 0,
     stockQuantity: 0,
+    quantityMl: 0,
+    sizeType: '',
+    sizeValue: '',
+    sizeUnit: '',
     sku: '',
     categoryId: '',
     subCategoryId: '',
@@ -51,7 +58,38 @@ export default function VendorEditProductPage() {
 
   const getCategoryId = (category: any) => normalizeId(category?.id || category?._id);
   const getParentId = (category: any) => normalizeId(category?.parentId);
-  const ALL_SUB_CATEGORIES = '__ALL_SUB_CATEGORIES__';
+
+  // Category to size type mapping
+  const categoryTupleTypes: Record<string, string> = {
+    'Clothing': 'clothing',
+    'Apparel': 'clothing',
+    'Fashion': 'clothing',
+    'Groceries': 'weight',
+    'Food': 'weight',
+    'Beverages': 'volume',
+    'Liquids': 'volume',
+    'Beauty': 'volume',
+    'Skincare': 'volume',
+  };
+
+  // Size options for different types
+  const clothingSizes = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL', '4XL'];
+  const weightUnits = ['Gram', 'kg'];
+  const volumeUnits = ['ML', 'L'];
+
+  // Determine size type based on selected category name
+  const getSizeTypeForCategory = (categoryId: string): string => {
+    const category = categories.find(cat => getCategoryId(cat) === categoryId);
+    if (!category) return '';
+    
+    const categoryName = category.name || '';
+    for (const [key, value] of Object.entries(categoryTupleTypes)) {
+      if (categoryName.toLowerCase().includes(key.toLowerCase())) {
+        return value;
+      }
+    }
+    return '';
+  };
 
   const parentCategories = useMemo(
     () => (Array.isArray(categories) ? categories.filter((cat) => !getParentId(cat)) : []),
@@ -160,15 +198,26 @@ export default function VendorEditProductPage() {
           : [''];
 
       setCategories(categoriesList);
+      setCategoriesLoading(false);
+      
+      // Determine size type for the product's category
+      const categoryIdForSize = selectedCategoryParentId || rawCategoryId;
+      const sizeType = categoryIdForSize ? getSizeTypeForCategory(categoryIdForSize) : '';
+      
       setFormData({
         name: product?.name || '',
         slug: product?.slug || '',
         description: product?.description || '',
         price: product?.price || 0,
+        discountPercentage: product?.discountPercentage || 0,
         stockQuantity: product?.stockQuantity || 0,
+        quantityMl: product?.quantityMl || 0,
+        sizeType: sizeType,
+        sizeValue: product?.size || '', // Can be clothing size, weight value, or volume value
+        sizeUnit: product?.sizeUnit || (sizeType === 'weight' ? 'kg' : sizeType === 'volume' ? 'ML' : ''),
         sku: product?.sku || '',
         categoryId: selectedCategoryParentId || rawCategoryId,
-        subCategoryId: selectedCategoryParentId ? rawCategoryId : '',
+        subCategoryId: rawCategoryId && selectedCategoryParentId ? rawCategoryId : '',
         images: images.length ? images : [''],
         isFeatured: product?.isFeatured || false,
         isNew: product?.isNew || false,
@@ -217,14 +266,46 @@ export default function VendorEditProductPage() {
 
     try {
       const imageUrls = formData.images.filter((img) => img.trim() !== '');
-      await vendorAPI.updateProduct(productId, {
-        ...formData,
-        categoryId:
-          formData.subCategoryId && formData.subCategoryId !== ALL_SUB_CATEGORIES
-            ? formData.subCategoryId
-            : formData.categoryId,
+      
+      const selectedCategoryId =
+        formData.subCategoryId
+          ? formData.subCategoryId
+          : formData.categoryId;
+
+      const payload: any = {
+        name: formData.name.trim(),
+        slug: formData.slug.trim(),
+        description: formData.description.trim(),
+        price: Number(formData.price),
+        stockQuantity: Number(formData.stockQuantity),
+        sku: formData.sku.trim(),
+        categoryId: selectedCategoryId,
         images: imageUrls.length > 0 ? imageUrls : undefined,
-      });
+        isFeatured: !!formData.isFeatured,
+        isNew: !!formData.isNew,
+      };
+
+      if (Number.isFinite(formData.discountPercentage) && Number(formData.discountPercentage) >= 0) {
+        payload.discountPercentage = Number(formData.discountPercentage);
+      }
+
+      // Handle size/volume based on type
+      if (formData.sizeType === 'clothing' && formData.sizeValue) {
+        payload.size = formData.sizeValue; // S, M, L, XL, etc.
+      } else if (formData.sizeType === 'weight' && formData.sizeValue && formData.sizeUnit) {
+        payload.weight = `${formData.sizeValue}${formData.sizeUnit}`; // e.g., "500G" or "1KG"
+      } else if (formData.sizeType === 'volume' && formData.sizeValue && formData.sizeUnit) {
+        // Convert to milliliters for consistency
+        let mlValue = Number(formData.sizeValue);
+        if (formData.sizeUnit === 'L') {
+          mlValue *= 1000;
+        }
+        payload.quantityMl = mlValue;
+      } else if (Number.isFinite(formData.quantityMl) && Number(formData.quantityMl) >= 0) {
+        payload.quantityMl = Number(formData.quantityMl);
+      }
+
+      await vendorAPI.updateProduct(productId, payload);
       toast.success('Product updated successfully');
       router.push('/vendor/products');
     } catch (error: any) {
@@ -337,7 +418,18 @@ export default function VendorEditProductPage() {
                 <label className="label">Category *</label>
                 <select
                   value={formData.categoryId}
-                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value, subCategoryId: '' })}
+                  onChange={(e) => {
+                    const newCategoryId = e.target.value;
+                    const newSizeType = getSizeTypeForCategory(newCategoryId);
+                    setFormData({ 
+                      ...formData, 
+                      categoryId: newCategoryId, 
+                      subCategoryId: '',
+                      sizeType: newSizeType,
+                      sizeValue: '',
+                      sizeUnit: newSizeType === 'weight' ? 'KG' : newSizeType === 'volume' ? 'ML' : ''
+                    });
+                  }}
                   className="input"
                   required
                 >
@@ -356,24 +448,118 @@ export default function VendorEditProductPage() {
                   value={formData.subCategoryId}
                   onChange={(e) => setFormData({ ...formData, subCategoryId: e.target.value })}
                   className="input"
-                  disabled={!formData.categoryId || availableSubCategories.length === 0}
+                  disabled={!formData.categoryId || subCategoriesLoading}
                 >
                   <option value="">
-                    {!formData.categoryId
-                      ? 'Select Category First'
-                      : availableSubCategories.length === 0
-                        ? 'No Sub-Category Available'
-                        : 'Select Sub-Category (Optional)'}
+                    {subCategoriesLoading ? 'Loading...' : 'Select Sub-Category (Optional)'}
                   </option>
-                  {availableSubCategories.length > 0 && (
-                    <option value={ALL_SUB_CATEGORIES}>All Sub-Categories</option>
+                  {availableSubCategories && availableSubCategories.length > 0 && (
+                    availableSubCategories.map((subCat: any) => (
+                      <option key={getCategoryId(subCat)} value={getCategoryId(subCat)}>
+                        {subCat.name}
+                      </option>
+                    ))
                   )}
-                  {availableSubCategories.map((subCat: any) => (
-                    <option key={getCategoryId(subCat)} value={getCategoryId(subCat)}>
-                      {subCat.name}
-                    </option>
-                  ))}
                 </select>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="label">Discount Percentage (%)</label>
+                <input
+                  type="number"
+                  value={formData.discountPercentage}
+                  onChange={(e) =>
+                    setFormData({ ...formData, discountPercentage: parseFloat(e.target.value) || 0 })
+                  }
+                  className="input"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                />
+                <p className="text-sm text-gray-500 mt-1">Optional: 0-100%</p>
+              </div>
+
+              <div>
+                <label className="label">
+                  {formData.sizeType === 'clothing' && 'Size'}
+                  {formData.sizeType === 'weight' && 'Weight'}
+                  {formData.sizeType === 'volume' && 'Volume'}
+                  {!formData.sizeType && 'Size / Volume (ml)'}
+                </label>
+                {formData.sizeType === 'clothing' && (
+                  <select
+                    value={formData.sizeValue}
+                    onChange={(e) => setFormData({ ...formData, sizeValue: e.target.value })}
+                    className="input"
+                  >
+                    <option value="">Select Size</option>
+                    {clothingSizes.map((size) => (
+                      <option key={size} value={size}>{size}</option>
+                    ))}
+                  </select>
+                )}
+                {formData.sizeType === 'weight' && (
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      min={0}
+                      value={formData.sizeValue || ''}
+                      onChange={(e) => setFormData({ ...formData, sizeValue: e.target.value })}
+                      placeholder="e.g. 500"
+                      className="input flex-1"
+                    />
+                    <select
+                      value={formData.sizeUnit}
+                      onChange={(e) => setFormData({ ...formData, sizeUnit: e.target.value })}
+                      className="input"
+                    >
+                      <option value="">Unit</option>
+                      {weightUnits.map((unit) => (
+                        <option key={unit} value={unit}>{unit}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {formData.sizeType === 'volume' && (
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      min={0}
+                      value={formData.sizeValue || ''}
+                      onChange={(e) => setFormData({ ...formData, sizeValue: e.target.value })}
+                      placeholder="e.g. 100"
+                      className="input flex-1"
+                    />
+                    <select
+                      value={formData.sizeUnit}
+                      onChange={(e) => setFormData({ ...formData, sizeUnit: e.target.value })}
+                      className="input"
+                    >
+                      <option value="">Unit</option>
+                      {volumeUnits.map((unit) => (
+                        <option key={unit} value={unit}>{unit}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {!formData.sizeType && (
+                  <input
+                    type="number"
+                    min={0}
+                    value={formData.quantityMl || ''}
+                    onChange={(e) => setFormData({ ...formData, quantityMl: Number(e.target.value) })}
+                    placeholder="e.g. 100"
+                    className="input"
+                  />
+                )}
+                <p className="text-sm text-gray-500 mt-1">
+                  {formData.sizeType === 'clothing' && 'Select clothing size'}
+                  {formData.sizeType === 'weight' && 'Specify weight (e.g., 500G, 1KG)'}
+                  {formData.sizeType === 'volume' && 'Specify volume (e.g., 100ML, 1L)'}
+                  {!formData.sizeType && 'Optional: Product volume in milliliters'}
+                </p>
               </div>
             </div>
 

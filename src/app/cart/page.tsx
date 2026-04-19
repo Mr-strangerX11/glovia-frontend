@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { SafeImage } from "@/components/common/SafeImage";
 import { useCart } from "@/hooks/useData";
 import { cartAPI } from "@/lib/api";
 import { useState } from "react";
@@ -78,20 +79,17 @@ export default function CartPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero */}
-      <div className="relative bg-gradient-to-r from-rose-600 via-pink-600 to-fuchsia-600 pt-10 pb-24 overflow-hidden">
+      <div className="relative bg-gradient-to-r from-rose-600 via-pink-600 to-fuchsia-600 py-5 overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
         <div className="container relative z-10">
-          <p className="text-rose-200 text-xs font-bold uppercase tracking-widest mb-2">Shopping</p>
-          <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight flex items-center gap-3">
-            <ShoppingBag className="w-8 h-8" /> Your Bag
+          <p className="text-rose-200 text-xs font-bold uppercase tracking-widest mb-1">Shopping</p>
+          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
+            <ShoppingBag className="w-5 h-5" /> Your Bag
           </h1>
-          <p className="text-pink-100 mt-1.5 text-sm">
-            {isLoading ? "Loading…" : items.length > 0 ? `${items.length} item${items.length !== 1 ? "s" : ""} in your cart` : "Your cart is empty"}
-          </p>
         </div>
       </div>
 
-      <div className="container -mt-14 pb-24 md:pb-12">
+      <div className="container pt-5 pb-24 md:pb-12">
 
         {/* Loading skeleton */}
         {isLoading && (
@@ -151,7 +149,7 @@ export default function CartPage() {
                     <div className="flex gap-4">
                       {/* Image */}
                       <Link href={`/products/${item.product?.slug}`} className="relative w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 rounded-xl overflow-hidden bg-gray-50 border border-gray-100 group">
-                        <Image
+                        <SafeImage
                           src={item.product?.images?.[0]?.url || "/placeholder.jpg"}
                           alt={item.product?.name}
                           fill sizes="96px"

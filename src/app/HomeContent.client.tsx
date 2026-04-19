@@ -9,13 +9,47 @@ import {
   HeadphonesIcon, BadgeCheck, CheckCircle2,
 } from 'lucide-react';
 import { Button } from '@/components/ui';
-import { useMemo, useState, FormEvent, useEffect } from 'react';
+import { useMemo, useState, FormEvent, useEffect, useCallback } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { Brand, Banner } from '@/types';
 import { newsletterAPI, adminAPI, flashDealsAPI, bannersAPI } from '@/lib/api';
 import { normalizeList } from '@/lib/utils';
+import { useHomePageRealtime } from '@/hooks/useHomePageRealtime';
+
+// Vendor Image Component with Error Handling
+function VendorImage({
+  src,
+  name,
+  initial
+}: {
+  src: string | null;
+  name: string;
+  initial: string;
+}) {
+  const [failed, setFailed] = useState(false);
+
+  if (!src || failed) {
+    return (
+      <span className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-100 to-secondary-100 dark:from-primary-900/40 dark:to-secondary-900/40 text-xl font-black text-primary-700 dark:text-primary-400">
+        {initial}
+      </span>
+    );
+  }
+
+  return (
+    <Image
+      src={src}
+      alt={name}
+      width={64}
+      height={64}
+      unoptimized
+      className="object-contain p-1"
+      onError={() => setFailed(true)}
+    />
+  );
+}
 
 const Recommendations = dynamic(() => import('@/components/Recommendations'), {
   ssr: false,
@@ -124,6 +158,79 @@ export default function HomeContent({ brands, banners }: HomeContentProps) {
   const router = useRouter();
   const { user } = useAuthStore();
 
+  // Real-time updates hook
+  const { latestUpdate } = useHomePageRealtime();
+
+  // Refetch featured vendors on realtime update
+  const refetchFeaturedVendors = useCallback(async () => {
+    try {
+      const res = await adminAPI.getFeaturedVendors();
+      const vendors = res.data?.data || [];
+      setFeaturedVendorsList(
+        vendors.map((v: any) => ({
+          id: v._id,
+          name: `${v.firstName} ${v.lastName}`,
+          slug: (v.email || '').toLowerCase().replace(/[^a-z0-9]/g, '-'),
+          logo: v.vendorLogo,
+          description: v.vendorDescription,
+        })).slice(0, 8)
+      );
+    } catch {
+      // keep existing list on error
+    }
+  }, []);
+
+  // Refetch flash deals on realtime update
+  const refetchFlashDeals = useCallback(async () => {
+    try {
+      const res = await flashDealsAPI.getActive();
+      const deals = res.data?.data || [];
+      setFlashDeals(deals);
+      if (deals.length > 0) {
+        const newTimeLeft: { [key: string]: { hours: number; minutes: number; seconds: number } } = {};
+        deals.forEach((deal: any) => {
+          const endTime = new Date(deal.endTime).getTime();
+          const now = Date.now();
+          const distance = endTime - now;
+          if (distance > 0) {
+            newTimeLeft[deal._id] = {
+              hours: Math.floor((distance / (1000 * 60 * 60)) % 24),
+              minutes: Math.floor((distance / (1000 * 60)) % 60),
+              seconds: Math.floor((distance / 1000) % 60),
+            };
+          }
+        });
+        setFlashDealsTimeLeft(newTimeLeft);
+        setFlashDealsEnabled(deals.length > 0);
+      }
+    } catch {
+      // keep existing deals on error
+    }
+  }, []);
+
+  // Refetch offer banners on realtime update
+  const refetchOfferBanners = useCallback(async () => {
+    try {
+      const res = await bannersAPI.getAll();
+      const data = res.data?.data || res.data || [];
+      setOfferBanners(data.filter((b: any) => b.image && b.isActive !== false).slice(0, 10));
+    } catch {
+      // keep existing banners on error
+    }
+  }, []);
+
+  // Listen for realtime updates
+  useEffect(() => {
+    if (!latestUpdate) return;
+    if (latestUpdate.type === 'featured-vendors' || latestUpdate.type === 'vendors') {
+      refetchFeaturedVendors();
+    } else if (latestUpdate.type === 'flash-deals') {
+      refetchFlashDeals();
+    } else if (latestUpdate.type === 'banners') {
+      refetchOfferBanners();
+    }
+  }, [latestUpdate, refetchFeaturedVendors, refetchFlashDeals, refetchOfferBanners]);
+
   const vendorList  = useMemo(() => normalizeList<Brand>(brands), [brands]);
   const heroBanners = useMemo(() => normalizeList<Banner>(banners), [banners]);
 
@@ -134,7 +241,7 @@ export default function HomeContent({ brands, banners }: HomeContentProps) {
         vendors.map((v: any) => ({
           id: v._id,
           name: `${v.firstName} ${v.lastName}`,
-          slug: v.email,
+          slug: (v.email || '').toLowerCase().replace(/[^a-z0-9]/g, '-'),
           logo: v.vendorLogo,
           description: v.vendorDescription,
         })).slice(0, 8)
@@ -792,7 +899,11 @@ export default function HomeContent({ brands, banners }: HomeContentProps) {
                   >
                     <div className="relative mb-3.5 h-16 w-16 overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
                       {vendor.logo ? (
-                        <Image src={vendor.logo} alt={vendor.name} width={64} height={64} className="object-contain p-1" />
+                        <VendorImage 
+                          src={vendor.logo} 
+                          name={vendor.name} 
+                          initial={vendor.name.charAt(0).toUpperCase()}
+                        />
                       ) : (
                         <span className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-100 to-secondary-100 dark:from-primary-900/40 dark:to-secondary-900/40 text-xl font-black text-primary-700 dark:text-primary-400">
                           {vendor.name.charAt(0).toUpperCase()}
@@ -946,14 +1057,12 @@ export default function HomeContent({ brands, banners }: HomeContentProps) {
                       placeholder="e.g., ORD-2024-001234"
                       className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-4 py-3 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                     />
-                    <Link href="/track-order">
-                      <button
-                        type="button"
-                        className="shrink-0 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 px-6 py-3 text-sm font-bold text-white shadow-md transition-all hover:shadow-lg"
-                      >
-                        Track
-                      </button>
-                    </Link>
+                    <button
+                      type="submit"
+                      className="shrink-0 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 px-6 py-3 text-sm font-bold text-white shadow-md transition-all hover:shadow-lg"
+                    >
+                      Track
+                    </button>
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
                     You can find your Order ID in your confirmation email or account orders page

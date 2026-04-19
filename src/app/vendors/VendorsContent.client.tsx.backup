@@ -4,10 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useMemo, useEffect } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { categoriesAPI, adminAPI } from '@/lib/api';
 import { Search, Award, Store, ArrowRight, Star, Package, Users } from 'lucide-react';
-
-const containerVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.06 } },
 };
@@ -16,59 +13,90 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
+// Image error tracking component
+function VendorLogoImage({ 
+  src, 
+  alt, 
+  fallbackInitial 
+}: { 
+  src: string | null; 
+  alt: string; 
+  fallbackInitial: string;
+}) {
+  const [hasError, setHasError] = useState(false);
+
+  const handleImageError = () => {
+    console.debug(`[VendorLogoImage] Failed to load image: ${src}`);
+    setHasError(true);
+  };
+
+  if (!src || hasError) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-100 to-secondary-100 text-2xl font-bold text-primary-700 dark:from-primary-900/40 dark:to-secondary-900/40 dark:text-primary-400">
+        {fallbackInitial}
+      </div>
+    );
+  }
+
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      sizes="80px"
+      className="object-contain p-2"
+      onError={handleImageError}
+    />
+  );
+}
+
+const CATEGORIES = [
+  { label: 'All', value: '' },
+  { label: 'Beauty', value: 'beauty' },
+  { label: 'Medicine', value: 'medicine' },
+  { label: 'Clothing', value: 'clothing' },
+  { label: 'Essentials', value: 'essentials' },
+];
+
 const CATEGORY_COLORS: Record<string, { dot: string; badge: string; bg: string }> = {
   beauty: { dot: 'bg-rose-500', badge: 'bg-rose-100 text-rose-700', bg: 'hover:bg-rose-50' },
-  pharmacy: { dot: 'bg-emerald-500', badge: 'bg-emerald-100 text-emerald-700', bg: 'hover:bg-emerald-50' },
-  groceries: { dot: 'bg-amber-500', badge: 'bg-amber-100 text-amber-700', bg: 'hover:bg-amber-50' },
-  'clothes-shoes': { dot: 'bg-violet-500', badge: 'bg-violet-100 text-violet-700', bg: 'hover:bg-violet-50' },
-  essentials: { dot: 'bg-cyan-500', badge: 'bg-cyan-100 text-cyan-700', bg: 'hover:bg-cyan-50' },
+  medicine: { dot: 'bg-emerald-500', badge: 'bg-emerald-100 text-emerald-700', bg: 'hover:bg-emerald-50' },
+  clothing: { dot: 'bg-violet-500', badge: 'bg-violet-100 text-violet-700', bg: 'hover:bg-violet-50' },
+  essentials: { dot: 'bg-amber-500', badge: 'bg-amber-100 text-amber-700', bg: 'hover:bg-amber-50' },
 };
 
 export default function VendorsContent({ vendors: initialVendors }: { vendors: any[] | null }) {
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('');
   const [vendors, setVendors] = useState<any[]>(initialVendors || []);
-  const [categories, setCategories] = useState<{ label: string; value: string }[]>([{ label: 'All', value: '' }]);
   const [isLoading, setIsLoading] = useState(!initialVendors);
-  const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
   const prefersReducedMotion = useReducedMotion();
 
-  // Fetch categories from database
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        setIsCategoriesLoading(true);
-        const res = await categoriesAPI.getAll();
-        const categoryList = Array.isArray(res.data?.data) ? res.data.data : Array.isArray(res.data) ? res.data : [];
-        const parentCategories = categoryList.filter((cat: any) => !cat.parentId);
-        setCategories([
-          { label: 'All', value: '' },
-          ...parentCategories.map((cat: any) => ({
-            label: cat.name,
-            value: cat.slug || cat.name.toLowerCase(),
-          })),
-        ]);
-      } catch {
-        // keep default [{ label: 'All', value: '' }]
-      } finally {
-        setIsCategoriesLoading(false);
-      }
-    };
-
-    fetchCategories();
-  }, []);
-
-  // Fetch vendors client-side if not provided by the server
+  // Fetch vendors client-side if not provided
   useEffect(() => {
     if (initialVendors) return;
 
     const fetchVendors = async () => {
       try {
         setIsLoading(true);
-        const res = await adminAPI.getAllVendors();
-        const vendorList = Array.isArray(res.data?.data) ? res.data.data : Array.isArray(res.data) ? res.data : [];
-        setVendors(vendorList);
-      } catch {
+        // Try to fetch from the vendors endpoint
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://backend-glovia.vercel.app';
+        const response = await fetch(`${apiBase}/admin/vendors`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', // Include cookies for auth
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const vendorList = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+          setVendors(vendorList);
+        } else {
+          console.warn(`[VendorsContent] Fetch failed with status ${response.status}`);
+          setVendors([]);
+        }
+      } catch (error) {
+        console.error('[VendorsContent] Failed to fetch vendors:', error);
         setVendors([]);
       } finally {
         setIsLoading(false);
@@ -96,11 +124,7 @@ export default function VendorsContent({ vendors: initialVendors }: { vendors: a
       );
     }
     if (activeCategory) {
-      list = list.filter((v) => {
-        const vendorCat = v.vendorCategory?.toLowerCase() || '';
-        const activeCat = activeCategory.toLowerCase();
-        return vendorCat.includes(activeCat) || vendorCat === activeCat;
-      });
+      list = list.filter((v) => v.vendorCategory?.toLowerCase().includes(activeCategory));
     }
     
     return list;
@@ -148,33 +172,25 @@ export default function VendorsContent({ vendors: initialVendors }: { vendors: a
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          {isCategoriesLoading ? (
-            <div className="flex gap-2">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="h-10 w-24 rounded-lg bg-gray-100 dark:bg-gray-800 animate-pulse" />
-              ))}
-            </div>
-          ) : (
-            categories.map((cat, i) => (
-              <button
-                key={cat.value}
-                type="button"
-                onClick={() => setActiveCategory(cat.value)}
-                className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-all duration-200 ${
-                  activeCategory === cat.value
-                    ? 'border-primary-600 bg-primary-100 text-primary-700 shadow-sm dark:bg-primary-900/30 dark:text-primary-400'
-                    : 'border-gray-200 bg-white text-gray-700 hover:border-primary-300 hover:bg-primary-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
-                }`}
-              >
-                {cat.label}
-                {i === 0 && filtered.length > 0 && (
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 text-[10px] font-bold text-gray-700 dark:bg-gray-700 dark:text-gray-300">
-                    {filtered.length}
-                  </span>
-                )}
-              </button>
-            ))
-          )}
+          {CATEGORIES.map((cat, i) => (
+            <button
+              key={cat.value}
+              type="button"
+              onClick={() => setActiveCategory(cat.value)}
+              className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                activeCategory === cat.value
+                  ? 'border-primary-600 bg-primary-100 text-primary-700 shadow-sm dark:bg-primary-900/30 dark:text-primary-400'
+                  : 'border-gray-200 bg-white text-gray-700 hover:border-primary-300 hover:bg-primary-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+              }`}
+            >
+              {cat.label}
+              {i === 0 && filtered.length > 0 && (
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 text-[10px] font-bold text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                  {filtered.length}
+                </span>
+              )}
+            </button>
+          ))}
         </motion.div>
 
         {/* ─── VENDOR GRID ─── */}
@@ -199,9 +215,8 @@ export default function VendorsContent({ vendors: initialVendors }: { vendors: a
               const vendorName = `${vendor.firstName || ''} ${vendor.lastName || ''}`.trim() || vendor.email || 'Vendor';
               const vendorLogo = vendor.vendorLogo;
               const vendorDescription = vendor.vendorDescription;
-              const vendorType = vendor.vendorType || vendor.vendorCategory || 'Vendor';
-              const vendorTypeSlug = (vendor.vendorType || vendor.vendorCategory || '').toLowerCase();
-              const categoryColor = CATEGORY_COLORS[vendorTypeSlug] || CATEGORY_COLORS['essentials'];
+              const category = vendor.vendorCategory || 'essentials';
+              const categoryColor = CATEGORY_COLORS[category.toLowerCase()] || CATEGORY_COLORS['essentials'];
               const rating = vendor.rating;
               const reviewCount = vendor.reviewCount;
               const productCount = vendor.productCount;
@@ -220,12 +235,12 @@ export default function VendorsContent({ vendors: initialVendors }: { vendors: a
                       <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary-200/30 blur-2xl dark:bg-primary-800/20" />
                       <div className="pointer-events-none absolute -left-6 -bottom-6 h-20 w-20 rounded-full bg-secondary-200/30 blur-2xl dark:bg-secondary-800/20" />
 
-                      {/* Vendor Type indicator */}
-                      {vendorType && (
+                      {/* Category indicator */}
+                      {category && (
                         <div className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1 backdrop-blur-sm dark:bg-gray-800/90">
                           <div className={`h-2 w-2 rounded-full ${categoryColor.dot}`} />
                           <span className="text-[10px] font-bold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                            {vendorType}
+                            {category}
                           </span>
                         </div>
                       )}
@@ -234,19 +249,11 @@ export default function VendorsContent({ vendors: initialVendors }: { vendors: a
                     {/* Logo — pulled up */}
                     <div className="relative -mt-8 flex justify-center px-4">
                       <div className="relative z-10 flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-white shadow-elevation-3 dark:border-gray-900 dark:bg-gray-800">
-                        {vendorLogo ? (
-                          <Image
-                            src={vendorLogo}
-                            alt={vendorName}
-                            fill
-                            sizes="80px"
-                            className="object-contain p-2"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-100 to-secondary-100 text-2xl font-bold text-primary-700 dark:from-primary-900/40 dark:to-secondary-900/40 dark:text-primary-400">
-                            {(vendor.firstName?.[0] || vendor.email?.[0] || 'V').toUpperCase()}
-                          </div>
-                        )}
+                        <VendorLogoImage
+                          src={vendorLogo}
+                          alt={vendorName}
+                          fallbackInitial={(vendor.firstName?.[0] || vendor.email?.[0] || 'V').toUpperCase()}
+                        />
                       </div>
                     </div>
 
@@ -305,9 +312,15 @@ export default function VendorsContent({ vendors: initialVendors }: { vendors: a
                       <div className="flex-1" />
 
                       {/* CTA */}
-                      <div className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary-100 to-secondary-100 px-4 py-2.5 text-sm font-bold text-primary-700 transition-all group-hover:from-primary-600 group-hover:to-primary-500 group-hover:text-white dark:from-primary-900/30 dark:to-secondary-900/30 dark:text-primary-400 dark:group-hover:from-primary-600 dark:group-hover:to-primary-500 dark:group-hover:text-white">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          window.location.href = `/vendors/${vendorSlug}`;
+                        }}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary-100 to-secondary-100 px-4 py-2.5 text-sm font-bold text-primary-700 transition-all group-hover:from-primary-600 group-hover:to-primary-500 group-hover:text-white dark:from-primary-900/30 dark:to-secondary-900/30 dark:text-primary-400 dark:group-hover:from-primary-600 dark:group-hover:to-primary-500 dark:group-hover:text-white"
+                      >
                         Visit Store <ArrowRight className="h-4 w-4" />
-                      </div>
+                      </button>
                     </div>
                   </Link>
                 </motion.div>

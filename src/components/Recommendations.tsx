@@ -1,6 +1,6 @@
 "use client";
 
-import Image from 'next/image';
+import { SafeImage as Image } from '@/components/common/SafeImage';
 import Link from 'next/link';
 import { Heart, ShoppingCart, Star, Sparkles, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
@@ -97,7 +97,7 @@ export default function Recommendations({ userId, productId }: { userId?: string
                 : basePrice;
             const originalPrice = fallbackCompareAt > discountedPrice ? fallbackCompareAt : basePrice;
             const isWishlisted = wishlist.has(productId);
-            const inStock = product.stock !== 0 && product.stock !== false;
+            const inStock = (product.stockQuantity ?? 0) > 0;
 
             return (
               <motion.div

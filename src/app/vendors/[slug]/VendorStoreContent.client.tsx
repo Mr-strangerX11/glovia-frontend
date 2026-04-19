@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { SafeImage } from '@/components/common/SafeImage';
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -40,27 +41,92 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
+// Image error tracking component
+function VendorLogoImage({ 
+  src, 
+  alt, 
+  fallbackInitial 
+}: { 
+  src: string | null; 
+  alt: string; 
+  fallbackInitial: string;
+}) {
+  const [hasError, setHasError] = useState(false);
+
+  const handleImageError = () => {
+    console.debug(`[VendorLogoImage] Failed to load image: ${src}`);
+    setHasError(true);
+  };
+
+  if (!src || hasError) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-200 to-secondary-200 text-4xl font-black text-primary-700">
+        {fallbackInitial}
+      </div>
+    );
+  }
+
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      unoptimized
+      sizes="128px"
+      className="object-contain p-3"
+      onError={() => setHasError(true)}
+    />
+  );
+}
+
+// Product image error tracking component
+function ProductImage({
+  src,
+  alt,
+  sizes,
+  priority = false
+}: {
+  src: string;
+  alt: string;
+  sizes: string;
+  priority?: boolean;
+}) {
+  return (
+    <SafeImage
+      src={src}
+      alt={alt}
+      fill
+      sizes={sizes}
+      priority={priority}
+      className="object-cover transition-transform duration-500 group-hover:scale-110"
+    />
+  );
+}
+
 type Props = {
   vendor: any;
   products: Product[];
+  allProducts?: Product[];
   slug: string;
 };
 
-export default function VendorStoreContent({ vendor, products, slug }: Props) {
+export default function VendorStoreContent({ vendor, products, allProducts = [], slug }: Props) {
   const [sort, setSort] = useState<SortOption>('default');
   const [sortOpen, setSortOpen] = useState(false);
   const [addingId, setAddingId] = useState<string | null>(null);
+  const [showAllProducts, setShowAllProducts] = useState(false);
   const { mutate: mutateCart } = useCart();
   const { isAuthenticated } = useAuthStore();
   const router = useRouter();
 
   const sorted = useMemo(() => {
-    const list = [...products];
+    const displayProducts = showAllProducts && allProducts.length > 0 ? allProducts : products;
+    const list = [...displayProducts];
     if (sort === 'price-asc') list.sort((a, b) => Number(a.price) - Number(b.price));
     if (sort === 'price-desc') list.sort((a, b) => Number(b.price) - Number(a.price));
     if (sort === 'name-asc') list.sort((a, b) => a.name.localeCompare(b.name));
     return list;
-  }, [products, sort]);
+  }, [products, allProducts, sort, showAllProducts]);
 
   const handleAddToCart = async (product: Product) => {
     if (!isAuthenticated) {
@@ -106,13 +172,11 @@ export default function VendorStoreContent({ vendor, products, slug }: Props) {
           <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
             {/* Logo */}
             <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-2xl border-4 border-white bg-white/10 shadow-elevation-4 backdrop-blur-sm sm:h-32 sm:w-32">
-              {vendorLogo ? (
-                <Image src={vendorLogo} alt={vendorName} fill sizes="128px" className="object-contain p-3" />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-200 to-secondary-200 text-4xl font-black text-primary-700">
-                  {(vendor?.firstName?.[0] || vendor?.email?.[0] || 'V').toUpperCase()}
-                </div>
-              )}
+              <VendorLogoImage
+                src={vendorLogo}
+                alt={vendorName}
+                fallbackInitial={(vendor?.firstName?.[0] || vendor?.email?.[0] || 'V').toUpperCase()}
+              />
             </div>
 
             {/* Details */}
@@ -170,15 +234,31 @@ export default function VendorStoreContent({ vendor, products, slug }: Props) {
       {/* ─── PRODUCTS ─── */}
       <div className="container py-12">
         {/* Toolbar */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8 flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Products</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {showAllProducts ? 'All Products' : `${vendorName}'s Products`}
+            </h2>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               {sorted.length} {sorted.length === 1 ? 'product' : 'products'} available
             </p>
           </div>
 
-          {/* Sort dropdown */}
+          <div className="flex items-center gap-3">
+            {allProducts.length > 0 && (
+              <button
+                onClick={() => setShowAllProducts(!showAllProducts)}
+                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                  showAllProducts
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                }`}
+              >
+                {showAllProducts ? 'All Products' : 'Vendor Products'}
+              </button>
+            )}
+
+            {/* Sort dropdown */}
           <div className="relative">
             <button
               type="button"
@@ -208,6 +288,7 @@ export default function VendorStoreContent({ vendor, products, slug }: Props) {
               </div>
             )}
           </div>
+          </div>
         </div>
 
         {sorted.length > 0 ? (
@@ -223,12 +304,10 @@ export default function VendorStoreContent({ vendor, products, slug }: Props) {
                   {/* Image */}
                   <Link href={`/products/${product.slug}`} className="block flex-shrink-0">
                     <div className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-gray-800">
-                      <Image
+                      <ProductImage
                         src={product.images?.[0]?.url || '/icon-512.svg'}
                         alt={product.images?.[0]?.altText || product.name}
-                        fill
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
                       />
                       {/* Badge */}
                       <div className="absolute left-2 top-2">

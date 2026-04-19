@@ -7,6 +7,11 @@ import { Plus, Loader2, Search, UserCheck, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 
+const VENDOR_TYPES = [
+  'BEAUTY', 'PHARMACY', 'COSMETICS', 'SKINCARE',
+  'FRAGRANCE', 'WELLNESS', 'ORGANIC', 'LUXURY', 'MEDICAL', 'OTHER',
+];
+
 interface User {
   id?: string;
   _id?: string;
@@ -15,6 +20,7 @@ interface User {
   lastName: string;
   phone?: string;
   role: string;
+  vendorType?: string;
   createdAt: string;
   _count?: {
     orders: number;
@@ -37,6 +43,7 @@ export default function AdminUsersPage() {
     lastName: '',
     phone: '',
     role: 'CUSTOMER',
+    vendorType: '',
   });
 
   const permissionKeys = [
@@ -93,6 +100,7 @@ export default function AdminUsersPage() {
       lastName: '',
       phone: '',
       role: 'CUSTOMER',
+      vendorType: '',
     });
     setShowPassword(false);
     setShowForm(false);
@@ -133,6 +141,22 @@ export default function AdminUsersPage() {
     } catch (error: any) {
       setUsers(previousUsers);
       toast.error(error.response?.data?.message || 'Failed to update role');
+    }
+  };
+
+  const handleVendorTypeChange = async (targetUser: User, newVendorType: string) => {
+    const id = getUserId(targetUser);
+    if (!id) { toast.error('Invalid user ID'); return; }
+    const previousUsers = users;
+    setUsers((prev) =>
+      prev.map((u) => (getUserId(u) === id ? { ...u, vendorType: newVendorType } : u))
+    );
+    try {
+      await adminAPI.updateUser(id, { vendorType: newVendorType });
+      toast.success('Vendor type updated');
+    } catch (error: any) {
+      setUsers(previousUsers);
+      toast.error(error.response?.data?.message || 'Failed to update vendor type');
     }
   };
 
@@ -314,7 +338,7 @@ export default function AdminUsersPage() {
                   <label className="label">Role *</label>
                   <select
                     value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value, vendorType: '' })}
                     className="input"
                     required
                   >
@@ -327,6 +351,22 @@ export default function AdminUsersPage() {
                     <option value="AUDITOR">Auditor</option>
                   </select>
                 </div>
+                {formData.role === 'VENDOR' && (
+                  <div>
+                    <label className="label">Vendor Type *</label>
+                    <select
+                      value={formData.vendorType}
+                      onChange={(e) => setFormData({ ...formData, vendorType: e.target.value })}
+                      className="input"
+                      required
+                    >
+                      <option value="">— Select Vendor Type —</option>
+                      {VENDOR_TYPES.map((t) => (
+                        <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
               <div className="flex gap-3">
                 <button type="submit" className="btn-primary">
@@ -406,16 +446,30 @@ export default function AdminUsersPage() {
                         <div className="text-sm text-gray-500">{u.phone || '-'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <select
-                          value={u.role}
-                          onChange={(e) => handleRoleChange(u, e.target.value)}
-                          className="text-xs border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        >
-                          <option value="CUSTOMER">Customer</option>
-                          <option value="VENDOR">Vendor</option>
-                          <option value="ADMIN">Admin</option>
-                          <option value="SUPER_ADMIN">Super Admin</option>
-                        </select>
+                        <div className="flex flex-col gap-1.5">
+                          <select
+                            value={u.role}
+                            onChange={(e) => handleRoleChange(u, e.target.value)}
+                            className="text-xs border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          >
+                            <option value="CUSTOMER">Customer</option>
+                            <option value="VENDOR">Vendor</option>
+                            <option value="ADMIN">Admin</option>
+                            <option value="SUPER_ADMIN">Super Admin</option>
+                          </select>
+                          {u.role === 'VENDOR' && (
+                            <select
+                              value={u.vendorType || ''}
+                              onChange={(e) => handleVendorTypeChange(u, e.target.value)}
+                              className="text-xs border border-purple-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-purple-400 bg-purple-50 text-purple-800"
+                            >
+                              <option value="">— Vendor Type —</option>
+                              {VENDOR_TYPES.map((t) => (
+                                <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</option>
+                              ))}
+                            </select>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{u._count?.orders || 0}</div>

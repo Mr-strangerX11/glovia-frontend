@@ -11,7 +11,7 @@ import { useCart } from '@/hooks/useData';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const MAIN_CATEGORIES = [
+const DEFAULT_CATEGORIES = [
   {
     slug: 'beauty',
     label: 'Beauty',
@@ -54,7 +54,23 @@ const MAIN_CATEGORIES = [
   },
 ] as const;
 
-type MainCategorySlug = typeof MAIN_CATEGORIES[number]['slug'];
+type MainCategorySlug = typeof DEFAULT_CATEGORIES[number]['slug'];
+
+const EMOJI_MAP: Record<string, string> = {
+  beauty: '💄',
+  pharmacy: '💊',
+  groceries: '🛒',
+  'clothes-shoes': '👕',
+  essentials: '🏠',
+};
+
+const COLOR_MAP: Record<string, string> = {
+  beauty: 'from-rose-400 to-pink-500',
+  pharmacy: 'from-emerald-400 to-teal-500',
+  groceries: 'from-amber-400 to-orange-500',
+  'clothes-shoes': 'from-violet-400 to-purple-500',
+  essentials: 'from-indigo-400 to-blue-500',
+};
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -63,10 +79,57 @@ export function Header() {
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
   const [isDark, setIsDark] = useState(false);
   const [desktopCatalogOpen, setDesktopCatalogOpen] = useState(false);
-  const [activeDesktopCategory, setActiveDesktopCategory] = useState<MainCategorySlug>('beauty');
-  const [activeMobileCategory, setActiveMobileCategory] = useState<MainCategorySlug | null>(null);
+  const [activeDesktopCategory, setActiveDesktopCategory] = useState<string>('beauty');
+  const [activeMobileCategory, setActiveMobileCategory] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
+  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch categories from database on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setCategoriesLoading(true);
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://backend-glovia.vercel.app';
+        const response = await fetch(`${apiBase}/categories`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const categoryList = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+          
+          // Get parent categories only
+          const parentCategories = categoryList.filter((cat: any) => !cat.parentId);
+          
+          if (parentCategories.length > 0) {
+            const formattedCategories = parentCategories.map((cat: any) => ({
+              slug: cat.slug || cat.name.toLowerCase(),
+              label: cat.name,
+              emoji: EMOJI_MAP[cat.slug || cat.name.toLowerCase()] || '📦',
+              query: cat.slug || cat.name.toLowerCase(),
+              subcategories: [],
+              color: COLOR_MAP[cat.slug || cat.name.toLowerCase()] || 'from-gray-400 to-gray-500',
+            }));
+            
+            setCategories(formattedCategories);
+            setActiveDesktopCategory(formattedCategories[0]?.slug || 'beauty');
+          }
+        }
+      } catch (error) {
+        console.error('[Header] Failed to fetch categories:', error);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    fetchCategories();
+    // Refresh categories every 30 seconds for real-time updates
+    const interval = setInterval(fetchCategories, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const labels = useMemo(() => ({
     topBarPromo:      'Free delivery over NPR 2,999 · Nepal\'s Premium Marketplace',
@@ -117,14 +180,14 @@ export function Header() {
     if (!searchQuery.trim()) { setSearchSuggestions([]); return; }
     const q = searchQuery.toLowerCase();
     const suggestions: string[] = [];
-    MAIN_CATEGORIES.forEach((cat) => {
+    categories.forEach((cat) => {
       if (cat.label.toLowerCase().includes(q)) suggestions.push(cat.label);
       cat.subcategories.forEach((sub) => {
         if (sub.toLowerCase().includes(q)) suggestions.push(sub);
       });
     });
     setSearchSuggestions([...new Set(suggestions)].slice(0, 6));
-  }, [searchQuery]);
+  }, [searchQuery, categories]);
 
   const { user, isAuthenticated, logout } = useAuthStore();
   const { cart } = useCart();
@@ -151,7 +214,7 @@ export function Header() {
     return currentPath.startsWith(href);
   };
 
-  const activeCategory = MAIN_CATEGORIES.find((c) => c.slug === activeDesktopCategory)!;
+  const activeCategory = categories.find((c) => c.slug === activeDesktopCategory);
 
   return (
     <header className={`sticky top-0 z-50 bg-white/95 dark:bg-gray-950/95 backdrop-blur-xl border-b border-gray-200/60 dark:border-gray-800/80 transition-shadow duration-300 ${scrolled ? 'shadow-elevation-2' : ''}`}>
@@ -185,7 +248,7 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden items-center gap-0.5 lg:flex">
-            {MAIN_CATEGORIES.map((category) => (
+            {!categoriesLoading && categories.map((category) => (
               <button
                 key={category.slug}
                 type="button"
@@ -212,13 +275,13 @@ export function Header() {
             <Link
               href="/vendors"
               className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-150 ${
-                isRouteActive('/vendors')
+                activeDesktopCategory === 'vendors'
                   ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300'
                   : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white'
               }`}
             >
               <Store className="h-4 w-4" />
-              {labels.vendors}
+              Vendors
             </Link>
           </nav>
 
@@ -408,7 +471,7 @@ export function Header() {
             <div className="container py-5">
               {/* Category tabs */}
               <div className="mb-5 flex gap-2">
-                {MAIN_CATEGORIES.map((cat) => (
+                {!categoriesLoading && categories.map((cat) => (
                   <button
                     key={cat.slug}
                     type="button"
@@ -427,10 +490,10 @@ export function Header() {
               {/* Subcategory pills + CTA */}
               <div className="flex items-start justify-between gap-8">
                 <div className="flex flex-wrap gap-2">
-                  {activeCategory.subcategories.map((sub) => (
+                  {activeCategory?.subcategories.map((sub) => (
                     <Link
                       key={sub}
-                      href={`/products?category=${activeCategory.query}&search=${encodeURIComponent(sub)}`}
+                      href={`/products?category=${activeCategory?.query}&search=${encodeURIComponent(sub)}`}
                       onClick={() => setDesktopCatalogOpen(false)}
                       className="rounded-full border border-gray-200 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition-all hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
                     >
@@ -440,11 +503,11 @@ export function Header() {
                 </div>
                 <div className="flex-shrink-0 space-y-2 text-right">
                   <Link
-                    href={`/products?category=${activeCategory.query}`}
+                    href={`/products?category=${activeCategory?.query}`}
                     onClick={() => setDesktopCatalogOpen(false)}
                     className="block text-sm font-bold text-primary-700 hover:text-primary-800 dark:text-primary-400"
                   >
-                    View all {activeCategory.label} →
+                    View all {activeCategory?.label} →
                   </Link>
                   <Link
                     href="/vendors"
@@ -494,7 +557,7 @@ export function Header() {
               </div>
 
               <nav className="flex flex-col gap-2 p-4">
-                {MAIN_CATEGORIES.map((cat) => {
+                {!categoriesLoading && categories.map((cat) => {
                   const isOpen = activeMobileCategory === cat.slug;
                   return (
                     <div key={cat.slug} className="overflow-hidden rounded-xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900">

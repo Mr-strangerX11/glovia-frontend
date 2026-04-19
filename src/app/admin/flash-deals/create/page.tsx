@@ -8,6 +8,7 @@ import { flashDealsAPI, uploadAPI, productsAPI } from '@/lib/api';
 import { ArrowLeft, X } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { mutate } from 'swr';
 
 export default function CreateFlashDealPage() {
   const router = useRouter();
@@ -167,6 +168,10 @@ export default function CreateFlashDealPage() {
     try {
       setLoading(true);
       await flashDealsAPI.create(formData);
+      
+      // Revalidate home page flash deals cache
+      await mutate('/flash-deals/active').catch(() => {});
+      
       toast.success('Flash deal created successfully');
       router.push('/admin/flash-deals');
     } catch (error: any) {

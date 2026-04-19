@@ -8,6 +8,7 @@ import { flashDealsAPI, uploadAPI, productsAPI } from '@/lib/api';
 import { ArrowLeft, X } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { mutate } from 'swr';
 
 export default function EditFlashDealPage() {
   const router = useRouter();
@@ -201,6 +202,10 @@ export default function EditFlashDealPage() {
     try {
       setLoading(true);
       await flashDealsAPI.update(dealId, formData);
+      
+      // Revalidate home page flash deals cache
+      await mutate('/flash-deals/active').catch(() => {});
+      
       toast.success('Flash deal updated successfully');
       router.push('/admin/flash-deals');
     } catch (error: any) {

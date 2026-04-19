@@ -42,36 +42,17 @@ export default function WishlistPage() {
     <div className="min-h-screen bg-gray-50">
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-rose-500 via-pink-500 to-fuchsia-600 pt-12 pb-24">
+      <section className="relative overflow-hidden bg-gradient-to-br from-rose-500 via-pink-500 to-fuchsia-600 py-5">
         <div className="pointer-events-none absolute -top-20 -right-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-white/8 blur-2xl" />
         <div className="container relative z-10">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-white/80 mb-4 backdrop-blur-sm">
-            <Sparkles className="h-3.5 w-3.5" /> Your Collection
-          </span>
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight flex items-center gap-3">
-                <Heart className="h-8 w-8 fill-white/80 text-white" /> Wishlist
-              </h1>
-              <p className="mt-2 text-pink-100/80 text-sm">
-                {isLoading ? "Loading…" : count > 0 ? `${count} item${count !== 1 ? "s" : ""} saved for later` : "Start saving products you love"}
-              </p>
-            </div>
-            {count > 0 && (
-              <Link
-                href="/products"
-                className="inline-flex items-center gap-2 self-start sm:self-auto rounded-xl border border-white/30 bg-white/15 px-5 py-2.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/25"
-              >
-                Browse More <ArrowRight className="h-4 w-4" />
-              </Link>
-            )}
-          </div>
+          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
+            <Heart className="h-5 w-5 fill-white/80 text-white" /> Wishlist
+          </h1>
         </div>
       </section>
 
       {/* Content */}
-      <div className="container -mt-10 pb-16">
+      <div className="container pt-5 pb-16">
 
         {/* Skeletons */}
         {isLoading && (

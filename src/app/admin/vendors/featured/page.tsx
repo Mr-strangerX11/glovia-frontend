@@ -6,6 +6,7 @@ import { adminAPI } from '@/lib/api';
 import { ArrowLeft, Loader2, Star, Search, Filter } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import { mutate } from 'swr';
 
 interface Vendor {
   _id: string;
@@ -53,6 +54,9 @@ export default function FeaturedVendorsPage() {
       setVendors(vendors.map(v => 
         v._id === vendorId ? { ...v, isFeatured: !v.isFeatured } : v
       ));
+      
+      // Revalidate home page featured vendors cache
+      await mutate('/admin/vendors/featured').catch(() => {});
       
       toast.success(data?.message || 'Vendor status updated');
     } catch (error: any) {

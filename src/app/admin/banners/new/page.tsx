@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
+import { mutate } from 'swr';
 
 const NewBannerPage = () => {
   const { user, isChecking } = useAuthGuard({ roles: ['SUPER_ADMIN'] });
@@ -45,6 +46,10 @@ const NewBannerPage = () => {
         ...form,
         displayOrder: Number(form.displayOrder),
       });
+      
+      // Revalidate home page banners cache
+      await mutate('/banners').catch(() => {});
+      
       toast.success('Banner created successfully');
       router.push('/admin/banners');
     } catch (error) {

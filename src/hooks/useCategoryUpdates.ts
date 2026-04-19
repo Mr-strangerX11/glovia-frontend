@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 interface CategoryUpdate {
@@ -11,11 +11,14 @@ export const useCategoryUpdates = (onUpdate?: (update: CategoryUpdate) => void) 
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<CategoryUpdate | null>(null);
+  // Keep onUpdate in a ref so the effect never needs to re-run when the caller
+  // passes a new function reference on every render.
+  const onUpdateRef = useRef(onUpdate);
+  useEffect(() => { onUpdateRef.current = onUpdate; }, [onUpdate]);
 
   useEffect(() => {
-    // Initialize Socket.IO connection
     const socketUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:3001';
-    
+
     const newSocket = io(socketUrl, {
       transports: ['websocket', 'polling'],
       reconnection: true,
@@ -25,37 +28,22 @@ export const useCategoryUpdates = (onUpdate?: (update: CategoryUpdate) => void) 
     });
 
     newSocket.on('connect', () => {
-      console.log('Connected to category updates');
       setIsConnected(true);
-      // Subscribe to category updates
       newSocket.emit('subscribe-categories');
     });
 
     newSocket.on('disconnect', () => {
-      console.log('Disconnected from category updates');
       setIsConnected(false);
     });
 
-    // Listen for category updates
-    newSocket.on('category-updated', (data: CategoryUpdate) => {
-      console.log('Category updated:', data);
+    const handleUpdate = (data: CategoryUpdate) => {
       setLastUpdate(data);
-      onUpdate?.(data);
-    });
+      onUpdateRef.current?.(data);
+    };
 
-    // Listen for subcategory creation
-    newSocket.on('subcategory-created', (data: CategoryUpdate) => {
-      console.log('Subcategory created:', data);
-      setLastUpdate(data);
-      onUpdate?.(data);
-    });
-
-    // Listen for categories updates
-    newSocket.on('categories-updated', (data: CategoryUpdate) => {
-      console.log('Categories updated:', data);
-      setLastUpdate(data);
-      onUpdate?.(data);
-    });
+    newSocket.on('category-updated',  handleUpdate);
+    newSocket.on('subcategory-created', handleUpdate);
+    newSocket.on('categories-updated', handleUpdate);
 
     newSocket.on('error', (error) => {
       console.error('Category updates error:', error);
@@ -66,7 +54,7 @@ export const useCategoryUpdates = (onUpdate?: (update: CategoryUpdate) => void) 
     return () => {
       newSocket.disconnect();
     };
-  }, [onUpdate]);
+  }, []); // stable — no dependency on onUpdate
 
   const broadcastUpdate = useCallback((message: string, data?: any) => {
     if (socket?.connected) {

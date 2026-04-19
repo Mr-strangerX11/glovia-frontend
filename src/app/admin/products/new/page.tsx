@@ -36,6 +36,9 @@ function NewProductContent() {
     discountPercentage: 0,
     stockQuantity: 0,
     quantityMl: 0,
+    sizeType: '',
+    sizeValue: '',
+    sizeUnit: '',
     sku: '',
     categoryId: '',
     subCategoryId: '',
@@ -79,6 +82,38 @@ function NewProductContent() {
   const getCategoryId = (category: any) => normalizeId(category?.id || category?._id);
   const getParentId = (category: any) => normalizeId(category?.parentId);
   const getBrandId = (brand: any) => brand?.id || brand?._id || '';
+
+  // Category to size type mapping
+  const categoryTupleTypes: Record<string, string> = {
+    'Clothing': 'clothing',
+    'Apparel': 'clothing',
+    'Fashion': 'clothing',
+    'Groceries': 'weight',
+    'Food': 'weight',
+    'Beverages': 'volume',
+    'Liquids': 'volume',
+    'Beauty': 'volume',
+    'Skincare': 'volume',
+  };
+
+  // Size options for different types
+  const clothingSizes = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL', '4XL'];
+  const weightUnits = ['Gram', 'kg'];
+  const volumeUnits = ['ML', 'L'];
+
+  // Determine size type based on selected category name
+  const getSizeTypeForCategory = (categoryId: string): string => {
+    const category = categories.find(cat => getCategoryId(cat) === categoryId);
+    if (!category) return '';
+    
+    const categoryName = category.name || '';
+    for (const [key, value] of Object.entries(categoryTupleTypes)) {
+      if (categoryName.toLowerCase().includes(key.toLowerCase())) {
+        return value;
+      }
+    }
+    return '';
+  };
 
   const parentCategories = useMemo(
     () => (Array.isArray(categories) ? categories.filter((cat) => !getParentId(cat)) : []),
@@ -329,7 +364,19 @@ function NewProductContent() {
         payload.discountPercentage = Number(formData.discountPercentage);
       }
 
-      if (Number.isFinite(formData.quantityMl) && Number(formData.quantityMl) >= 0) {
+      // Handle size/volume based on type
+      if (formData.sizeType === 'clothing' && formData.sizeValue) {
+        payload.size = formData.sizeValue; // S, M, L, XL, etc.
+      } else if (formData.sizeType === 'weight' && formData.sizeValue && formData.sizeUnit) {
+        payload.weight = `${formData.sizeValue}${formData.sizeUnit}`; // e.g., "500G" or "1KG"
+      } else if (formData.sizeType === 'volume' && formData.sizeValue && formData.sizeUnit) {
+        // Convert to milliliters for consistency
+        let mlValue = Number(formData.sizeValue);
+        if (formData.sizeUnit === 'L') {
+          mlValue *= 1000;
+        }
+        payload.quantityMl = mlValue;
+      } else if (Number.isFinite(formData.quantityMl) && Number(formData.quantityMl) >= 0) {
         payload.quantityMl = Number(formData.quantityMl);
       }
 
@@ -454,112 +501,7 @@ function NewProductContent() {
             </div>
           </div>
 
-          {/* ── Section 2: Pricing & Inventory ── */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2.5">
-              <DollarSign className="w-4 h-4 text-green-500" />
-              <h2 className="font-semibold text-gray-900">Pricing & Inventory</h2>
-            </div>
-            <div className="p-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Price */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Price (NPR) <span className="text-red-500">*</span>
-                  </label>
-                  <div className={`flex rounded-lg border overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition ${errors.price ? 'border-red-400' : 'border-gray-300'}`}>
-                    <span className="flex items-center px-3 bg-gray-50 border-r border-gray-200 text-gray-500 text-sm font-medium select-none">₨</span>
-                    <input
-                      type="number"
-                      value={formData.price || ''}
-                      onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                      placeholder="0"
-                      className="flex-1 px-3 py-2.5 text-sm text-gray-900 outline-none bg-white"
-                      min="0"
-                      step="0.01"
-                      required
-                    />
-                  </div>
-                  {errors.price && <p className="mt-1 text-xs text-red-600">{errors.price}</p>}
-                </div>
-
-                {/* Discount */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Discount (%)</label>
-                  <div className="flex rounded-lg border border-gray-300 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition">
-                    <input
-                      type="number"
-                      value={formData.discountPercentage || ''}
-                      onChange={(e) => setFormData({ ...formData, discountPercentage: Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)) })}
-                      placeholder="0"
-                      className="flex-1 px-3 py-2.5 text-sm text-gray-900 outline-none bg-white"
-                      min="0"
-                      max="100"
-                      step="1"
-                    />
-                    <span className="flex items-center px-3 bg-gray-50 border-l border-gray-200 text-gray-500 text-sm select-none">%</span>
-                  </div>
-                  {finalPrice !== null && (
-                    <p className="mt-1 text-xs text-green-600 font-semibold">
-                      Final: ₨{finalPrice.toFixed(2)}
-                      <span className="ml-1 text-gray-400 font-normal">({formData.discountPercentage}% off)</span>
-                    </p>
-                  )}
-                </div>
-
-                {/* Stock */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Stock Quantity <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.stockQuantity ?? ''}
-                    onChange={(e) => setFormData({ ...formData, stockQuantity: parseInt(e.target.value) || 0 })}
-                    placeholder="0"
-                    className={`w-full rounded-lg border px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition ${errors.stockQuantity ? 'border-red-400' : 'border-gray-300'}`}
-                    min="0"
-                    required
-                  />
-                  {errors.stockQuantity && <p className="mt-1 text-xs text-red-600">{errors.stockQuantity}</p>}
-                </div>
-
-                {/* Quantity ml */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Size / Volume (ml)
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={formData.quantityMl || ''}
-                    onChange={(e) => setFormData({ ...formData, quantityMl: Number(e.target.value) })}
-                    placeholder="e.g. 100"
-                    className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition"
-                  />
-                </div>
-              </div>
-
-              {/* SKU */}
-              <div className="mt-4 max-w-xs">
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  SKU <span className="text-red-500">*</span>
-                  <span className="ml-2 text-xs font-normal text-gray-400">unique product code</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.sku}
-                  onChange={(e) => setFormData({ ...formData, sku: e.target.value.toUpperCase() })}
-                  placeholder="e.g. COSRX-SNAIL-100ML"
-                  className={`w-full rounded-lg border px-3.5 py-2.5 text-sm font-mono text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition uppercase ${errors.sku ? 'border-red-400 bg-red-50' : 'border-gray-300'}`}
-                  required
-                />
-                {errors.sku && <p className="mt-1 text-xs text-red-600 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.sku}</p>}
-              </div>
-            </div>
-          </div>
-
-          {/* ── Section 3: Categorization ── */}
+          {/* ── Section 2: Categorization ── */}
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2.5">
               <Layers className="w-4 h-4 text-purple-500" />
@@ -573,7 +515,18 @@ function NewProductContent() {
                 </label>
                 <select
                   value={formData.categoryId}
-                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value, subCategoryId: '' })}
+                  onChange={(e) => {
+                    const newCategoryId = e.target.value;
+                    const newSizeType = getSizeTypeForCategory(newCategoryId);
+                    setFormData({ 
+                      ...formData, 
+                      categoryId: newCategoryId, 
+                      subCategoryId: '',
+                      sizeType: newSizeType,
+                      sizeValue: '',
+                      sizeUnit: newSizeType === 'weight' ? 'kg' : newSizeType === 'volume' ? 'ML' : ''
+                    });
+                  }}
                   className={`w-full rounded-lg border px-3.5 py-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition bg-white ${errors.categoryId ? 'border-red-400' : 'border-gray-300'}`}
                   disabled={categoriesLoading}
                   required
@@ -676,6 +629,172 @@ function NewProductContent() {
                     <CheckCircle2 className="w-3 h-3" /> Vendor assigned
                   </p>
                 )}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Section 3: Pricing & Inventory ── */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2.5">
+              <DollarSign className="w-4 h-4 text-green-500" />
+              <h2 className="font-semibold text-gray-900">Pricing & Inventory</h2>
+            </div>
+            <div className="p-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Price */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Price (NPR) <span className="text-red-500">*</span>
+                  </label>
+                  <div className={`flex rounded-lg border overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition ${errors.price ? 'border-red-400' : 'border-gray-300'}`}>
+                    <span className="flex items-center px-3 bg-gray-50 border-r border-gray-200 text-gray-500 text-sm font-medium select-none">₨</span>
+                    <input
+                      type="number"
+                      value={formData.price || ''}
+                      onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                      placeholder="0"
+                      className="flex-1 px-3 py-2.5 text-sm text-gray-900 outline-none bg-white"
+                      min="0"
+                      step="0.01"
+                      required
+                    />
+                  </div>
+                  {errors.price && <p className="mt-1 text-xs text-red-600">{errors.price}</p>}
+                </div>
+
+                {/* Discount */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Discount (%)</label>
+                  <div className="flex rounded-lg border border-gray-300 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition">
+                    <input
+                      type="number"
+                      value={formData.discountPercentage || ''}
+                      onChange={(e) => setFormData({ ...formData, discountPercentage: Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)) })}
+                      placeholder="0"
+                      className="flex-1 px-3 py-2.5 text-sm text-gray-900 outline-none bg-white"
+                      min="0"
+                      max="100"
+                      step="1"
+                    />
+                    <span className="flex items-center px-3 bg-gray-50 border-l border-gray-200 text-gray-500 text-sm select-none">%</span>
+                  </div>
+                  {finalPrice !== null && (
+                    <p className="mt-1 text-xs text-green-600 font-semibold">
+                      Final: ₨{finalPrice.toFixed(2)}
+                      <span className="ml-1 text-gray-400 font-normal">({formData.discountPercentage}% off)</span>
+                    </p>
+                  )}
+                </div>
+
+                {/* Stock */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Stock Quantity <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.stockQuantity ?? ''}
+                    onChange={(e) => setFormData({ ...formData, stockQuantity: parseInt(e.target.value) || 0 })}
+                    placeholder="0"
+                    className={`w-full rounded-lg border px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition ${errors.stockQuantity ? 'border-red-400' : 'border-gray-300'}`}
+                    min="0"
+                    required
+                  />
+                  {errors.stockQuantity && <p className="mt-1 text-xs text-red-600">{errors.stockQuantity}</p>}
+                </div>
+
+                {/* Size / Volume */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    {formData.sizeType === 'clothing' && 'Size'}
+                    {formData.sizeType === 'weight' && 'Weight'}
+                    {formData.sizeType === 'volume' && 'Volume'}
+                    {!formData.sizeType && 'Size / Volume'}
+                  </label>
+                  {formData.sizeType === 'clothing' && (
+                    <select
+                      value={formData.sizeValue}
+                      onChange={(e) => setFormData({ ...formData, sizeValue: e.target.value })}
+                      className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition"
+                    >
+                      <option value="">Select Size</option>
+                      {clothingSizes.map((size) => (
+                        <option key={size} value={size}>{size}</option>
+                      ))}
+                    </select>
+                  )}
+                  {formData.sizeType === 'weight' && (
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        min={0}
+                        value={formData.sizeValue || ''}
+                        onChange={(e) => setFormData({ ...formData, sizeValue: e.target.value })}
+                        placeholder="e.g. 500"
+                        className="flex-1 rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition"
+                      />
+                      <select
+                        value={formData.sizeUnit}
+                        onChange={(e) => setFormData({ ...formData, sizeUnit: e.target.value })}
+                        className="rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition"
+                      >
+                        <option value="">Unit</option>
+                        {weightUnits.map((unit) => (
+                          <option key={unit} value={unit}>{unit}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  {formData.sizeType === 'volume' && (
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        min={0}
+                        value={formData.sizeValue || ''}
+                        onChange={(e) => setFormData({ ...formData, sizeValue: e.target.value })}
+                        placeholder="e.g. 100"
+                        className="flex-1 rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition"
+                      />
+                      <select
+                        value={formData.sizeUnit}
+                        onChange={(e) => setFormData({ ...formData, sizeUnit: e.target.value })}
+                        className="rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition"
+                      >
+                        <option value="">Unit</option>
+                        {volumeUnits.map((unit) => (
+                          <option key={unit} value={unit}>{unit}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  {!formData.sizeType && (
+                    <input
+                      type="number"
+                      min={0}
+                      value={formData.quantityMl || ''}
+                      onChange={(e) => setFormData({ ...formData, quantityMl: Number(e.target.value) })}
+                      placeholder="e.g. 100"
+                      className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition"
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* SKU */}
+              <div className="mt-4 max-w-xs">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  SKU <span className="text-red-500">*</span>
+                  <span className="ml-2 text-xs font-normal text-gray-400">unique product code</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.sku}
+                  onChange={(e) => setFormData({ ...formData, sku: e.target.value.toUpperCase() })}
+                  placeholder="e.g. COSRX-SNAIL-100ML"
+                  className={`w-full rounded-lg border px-3.5 py-2.5 text-sm font-mono text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition uppercase ${errors.sku ? 'border-red-400 bg-red-50' : 'border-gray-300'}`}
+                  required
+                />
+                {errors.sku && <p className="mt-1 text-xs text-red-600 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.sku}</p>}
               </div>
             </div>
           </div>

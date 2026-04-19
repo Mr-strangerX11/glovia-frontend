@@ -6,7 +6,8 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Ensure cookies are sent for cross-origin requests
+  withCredentials: true,
+  timeout: 15000,
 });
 
 api.interceptors.request.use(
@@ -17,10 +18,12 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
+
+// Refresh lock — prevents multiple simultaneous refresh calls
+let isRefreshing = false;
+let refreshQueue: Array<(token: string) => void> = [];
 
 api.interceptors.response.use(
   (response) => response,
@@ -34,30 +37,51 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      try {
-        const refreshToken = typeof window !== 'undefined' ? Cookies.get('refresh_token') : undefined;
-        const userId = typeof window !== 'undefined' ? Cookies.get('user_id') : undefined;
+      const refreshToken = typeof window !== 'undefined' ? Cookies.get('refresh_token') : undefined;
+      const userId = typeof window !== 'undefined' ? Cookies.get('user_id') : undefined;
 
-        if (refreshToken && userId) {
-          const baseURL = api.defaults.baseURL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
-          const { data } = await axios.post(
-            `${baseURL}/auth/refresh`,
-            { refreshToken, userId }
-          );
+      if (!refreshToken || !userId) {
+        return Promise.reject(error);
+      }
 
-          Cookies.set('access_token', data.accessToken, { expires: 7 });
-          Cookies.set('refresh_token', data.refreshToken, { expires: 30 });
-
-          originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+      // Queue this request until the in-flight refresh completes
+      if (isRefreshing) {
+        return new Promise<string>((resolve) => {
+          refreshQueue.push(resolve);
+        }).then((newToken) => {
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
           return api(originalRequest);
-        }
-      } catch (err) {
+        });
+      }
+
+      isRefreshing = true;
+      try {
+        const baseURL = api.defaults.baseURL || 'http://localhost:3001/api/v1';
+        const { data } = await axios.post(
+          `${baseURL}/auth/refresh`,
+          { refreshToken, userId },
+          { withCredentials: true }
+        );
+
+        const newToken: string = data.accessToken;
+        Cookies.set('access_token', newToken, { expires: 7 });
+        Cookies.set('refresh_token', data.refreshToken, { expires: 30 });
+
+        refreshQueue.forEach((cb) => cb(newToken));
+        refreshQueue = [];
+
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return api(originalRequest);
+      } catch {
+        refreshQueue = [];
         if (typeof window !== 'undefined') {
           Cookies.remove('access_token');
           Cookies.remove('refresh_token');
           Cookies.remove('user_id');
           window.location.href = '/auth/login';
         }
+      } finally {
+        isRefreshing = false;
       }
     }
 
@@ -219,6 +243,7 @@ export const adminAPI = {
     api.get('/admin/users', { params }),
   getAllCustomers: () => api.get('/admin/customers'),
   createUser: (data: any) => api.post('/admin/users', data),
+  updateUser: (id: string, data: any) => api.put(`/admin/users/${id}`, data),
   updateUserRole: (id: string, role: string) => api.put(`/admin/users/${id}/role`, { role }),
   updateUserPermissions: (id: string, permissions: any) => api.put(`/admin/users/${id}/permissions`, { permissions }),
   deleteUser: (id: string) => api.delete(`/admin/users/${id}`),

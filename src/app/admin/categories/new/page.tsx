@@ -12,18 +12,7 @@ interface Category {
   parentId?: string;
 }
 
-const CATEGORY_TYPES: { value: string; label: string; icon: string; description: string }[] = [
-  { value: 'SKINCARE',          label: 'Skincare',            icon: '✨', description: 'Cleansers, serums, moisturizers' },
-  { value: 'MAKEUP',            label: 'Makeup',              icon: '💄', description: 'Foundation, lipstick, eyeshadow' },
-  { value: 'HAIRCARE',          label: 'Haircare',            icon: '💆', description: 'Shampoo, conditioner, hair oil' },
-  { value: 'BODY_CARE',         label: 'Body Care',           icon: '🧴', description: 'Lotions, scrubs, body wash' },
-  { value: 'TOOLS_ACCESSORIES', label: 'Tools & Accessories', icon: '🪮', description: 'Brushes, sponges, tools' },
-  { value: 'FRAGRANCE',         label: 'Fragrance',           icon: '🌸', description: 'Perfumes, body mists, deodorants' },
-  { value: 'ORGANIC_NATURAL',   label: 'Organic & Natural',   icon: '🌿', description: 'Herbal, chemical-free products' },
-  { value: 'MENS_GROOMING',     label: "Men's Grooming",      icon: '🧔', description: 'Beard oil, face wash, hair wax' },
-  { value: 'ORGANIC',           label: 'Organic',             icon: '🍃', description: 'Certified organic products' },
-  { value: 'HERBAL',            label: 'Herbal',              icon: '🌱', description: 'Ayurvedic & herbal products' },
-];
+// Category types are now dynamically loaded from parent categories in the database
 
 const NewCategoryContent = () => {
   const router = useRouter();
@@ -38,7 +27,7 @@ const NewCategoryContent = () => {
     name: '',
     slug: '',
     description: '',
-    type: 'SKINCARE',
+    type: '',
     parentId: '',
     displayOrder: 0,
   });
@@ -82,7 +71,6 @@ const NewCategoryContent = () => {
     });
   };
 
-  const selectedType = CATEGORY_TYPES.find((t) => t.value === form.type);
   const selectedParent = parentCategories.find((c) => c._id === form.parentId);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -106,6 +94,11 @@ const NewCategoryContent = () => {
         }
         payload.parentId = form.parentId;
       } else {
+        if (!form.type) {
+          setFeedback({ type: 'error', message: 'Please select a category type.' });
+          setIsSubmitting(false);
+          return;
+        }
         payload.type = form.type;
       }
 
@@ -292,32 +285,43 @@ const NewCategoryContent = () => {
 
               {categoryLevel === 'main' ? (
                 <div className="p-5">
-                  <p className="text-sm text-gray-500 mb-4">Choose the type that best describes this category.</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {CATEGORY_TYPES.map((t) => (
-                      <label
-                        key={t.value}
-                        className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all ${
-                          form.type === t.value
-                            ? 'border-indigo-500 bg-indigo-50'
-                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        <input type="radio" name="type" value={t.value} checked={form.type === t.value} onChange={handleChange} className="sr-only" />
-                        <span className="text-xl">{t.icon}</span>
-                        <div className="min-w-0 flex-1">
-                          <p className={`text-sm font-semibold ${form.type === t.value ? 'text-indigo-800' : 'text-gray-800'}`}>{t.label}</p>
-                          <p className="text-xs text-gray-500 truncate">{t.description}</p>
-                        </div>
-                        {form.type === t.value && <CheckCircle2 className="w-4 h-4 text-indigo-600 flex-shrink-0" />}
-                      </label>
-                    ))}
-                  </div>
-                  {selectedType && (
-                    <div className="mt-4 flex items-center gap-2 text-sm text-indigo-700 bg-indigo-50 rounded-lg px-4 py-2.5 border border-indigo-200">
-                      <span className="text-lg">{selectedType.icon}</span>
-                      <span>Selected: <strong>{selectedType.label}</strong> — {selectedType.description}</span>
+                  <p className="text-sm text-gray-500 mb-4">Choose the parent category type that best describes this category.</p>
+                  {loadingParents ? (
+                    <div className="flex items-center gap-2 text-gray-500 text-sm py-4">
+                      <Loader2 className="w-4 h-4 animate-spin" /> Loading parent categories…
                     </div>
+                  ) : parentCategories.length === 0 ? (
+                    <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+                      ⚠ No parent category types available. These would typically be created by a superadmin.
+                    </div>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {parentCategories.map((cat) => (
+                          <label
+                            key={cat._id}
+                            className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all ${
+                              form.type === cat.name
+                                ? 'border-indigo-500 bg-indigo-50'
+                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                            }`}
+                          >
+                            <input type="radio" name="type" value={cat.name} checked={form.type === cat.name} onChange={handleChange} className="sr-only" />
+                            <Tag className={`w-4 h-4 flex-shrink-0 ${form.type === cat.name ? 'text-indigo-600' : 'text-gray-400'}`} />
+                            <div className="min-w-0 flex-1">
+                              <p className={`text-sm font-semibold ${form.type === cat.name ? 'text-indigo-800' : 'text-gray-800'}`}>{cat.name}</p>
+                            </div>
+                            {form.type === cat.name && <CheckCircle2 className="w-4 h-4 text-indigo-600 flex-shrink-0" />}
+                          </label>
+                        ))}
+                      </div>
+                      {form.type && (
+                        <div className="mt-4 flex items-center gap-2 text-sm text-indigo-700 bg-indigo-50 rounded-lg px-4 py-2.5 border border-indigo-200">
+                          <CheckCircle2 className="w-4 h-4 text-indigo-600 flex-shrink-0" />
+                          <span>Selected: <strong>{form.type}</strong></span>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               ) : (

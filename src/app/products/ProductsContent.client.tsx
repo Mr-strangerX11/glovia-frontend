@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import Image from "next/image";
+import { SafeImage as Image } from "@/components/common/SafeImage";
 import dynamic from 'next/dynamic';
 import {
   Heart, Loader2, SlidersHorizontal, X, Star,
@@ -10,18 +10,16 @@ import {
 import toast from "react-hot-toast";
 import { useAuthStore } from "@/store/authStore";
 import { wishlistAPI } from "@/lib/api";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui";
 import {
   GLOVIA_AI_SHORTCUTS,
-  GLOVIA_MAIN_CATEGORIES,
   GLOVIA_PRICE_FILTERS,
   GLOVIA_SMART_TAGS,
   GLOVIA_SUBCATEGORY_GROUPS,
-  inferMainCategorySlug,
   inferSmartTags,
-  type MainCategorySlug,
   type SmartTag,
 } from "@/data/beautyCatalog";
 
@@ -125,6 +123,7 @@ export default function ProductsContent({
 }: ProductsContentProps) {
   const { user } = useAuthStore();
   const prefersReducedMotion = useReducedMotion();
+  const router = useRouter();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -172,7 +171,6 @@ export default function ProductsContent({
   const [ratingFilter, setRatingFilter] = useState(0);
   const [sortBy, setSortBy] = useState("relevance");
   const [selectedBrand, setSelectedBrand] = useState(initialBrand || "all");
-  const [selectedMainCategory, setSelectedMainCategory] = useState<"all" | MainCategorySlug>("all");
   const [selectedPriceFilter, setSelectedPriceFilter] = useState<(typeof GLOVIA_PRICE_FILTERS)[number]["id"]>("all");
   const [selectedSmartTag, setSelectedSmartTag] = useState<"all" | SmartTag>("all");
 
@@ -185,14 +183,12 @@ export default function ProductsContent({
 
   const [priceCap, setPriceCap] = useState(maxPrice);
 
-  const handleSearch = (value: string) => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      if (value) params.set("search", value);
-      else params.delete("search");
-      window.location.href = `/products?${params.toString()}`;
-    }
-  };
+  const handleSearch = useCallback((value: string) => {
+    const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+    if (value) params.set("search", value);
+    else params.delete("search");
+    router.push(`/products?${params.toString()}`);
+  }, [router]);
 
   const category = initialCategory;
   const brand = initialBrand;
@@ -205,7 +201,6 @@ export default function ProductsContent({
       const productRating = Number(product.averageRating || 0);
       const name = String(product.name || "").toLowerCase();
       const description = String(product.description || "").toLowerCase();
-      const mainCategory = inferMainCategorySlug(product);
       const matchedPriceFilter = GLOVIA_PRICE_FILTERS.find((item) => item.id === selectedPriceFilter) || GLOVIA_PRICE_FILTERS[0];
       const smartTags = inferSmartTags(product);
       return (
@@ -214,7 +209,6 @@ export default function ProductsContent({
         productPrice >= matchedPriceFilter.min && productPrice <= matchedPriceFilter.max &&
         productRating >= ratingFilter &&
         (!searchTerm || name.includes(searchTerm) || description.includes(searchTerm)) &&
-        (selectedMainCategory === "all" || selectedMainCategory === mainCategory) &&
         (selectedSmartTag === "all" || smartTags.includes(selectedSmartTag))
       );
     });
@@ -232,25 +226,23 @@ export default function ProductsContent({
       return 0;
     });
     return normalized;
-  }, [allProducts, selectedBrand, priceCap, ratingFilter, searchValue, sortBy, selectedMainCategory, selectedPriceFilter, selectedSmartTag]);
+  }, [allProducts, selectedBrand, priceCap, ratingFilter, searchValue, sortBy, selectedPriceFilter, selectedSmartTag]);
 
   const activeFilters = useMemo(() => {
     let count = 0;
     if (selectedBrand !== "all") count++;
     if (ratingFilter > 0) count++;
     if (priceCap < maxPrice) count++;
-    if (selectedMainCategory !== "all") count++;
     if (selectedPriceFilter !== "all") count++;
     if (selectedSmartTag !== "all") count++;
     return count;
-  }, [selectedBrand, ratingFilter, priceCap, maxPrice, selectedMainCategory, selectedPriceFilter, selectedSmartTag]);
+  }, [selectedBrand, ratingFilter, priceCap, maxPrice, selectedPriceFilter, selectedSmartTag]);
 
   const resetFilters = () => {
     setSelectedBrand(initialBrand || "all");
     setRatingFilter(0);
     setPriceCap(maxPrice);
     setSortBy("relevance");
-    setSelectedMainCategory("all");
     setSelectedPriceFilter("all");
     setSelectedSmartTag("all");
   };
@@ -476,27 +468,6 @@ export default function ProductsContent({
         </div>
       </FilterSection>
 
-      {/* Main Category */}
-      <FilterSection label="Product Type">
-        <div className="grid grid-cols-2 gap-1.5">
-          <button
-            onClick={() => setSelectedMainCategory("all")}
-            className={`rounded-lg border px-2.5 py-2 text-xs font-semibold transition-colors ${selectedMainCategory === "all" ? "border-primary-500 bg-primary-50 text-primary-700" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}
-          >
-            All
-          </button>
-          {GLOVIA_MAIN_CATEGORIES.map((item) => (
-            <button
-              key={item.slug}
-              onClick={() => setSelectedMainCategory(item.slug)}
-              className={`rounded-lg border px-2.5 py-2 text-xs font-semibold transition-colors ${selectedMainCategory === item.slug ? "border-primary-500 bg-primary-50 text-primary-700" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      </FilterSection>
-
       {/* Brand */}
       <FilterSection label="Brand">
         <div className="space-y-0.5">
@@ -606,14 +577,13 @@ export default function ProductsContent({
     }
     if (ratingFilter > 0) pills.push({ label: `${ratingFilter}★+`, clear: () => setRatingFilter(0) });
     if (priceCap < maxPrice) pills.push({ label: `≤ NPR ${priceCap.toLocaleString()}`, clear: () => setPriceCap(maxPrice) });
-    if (selectedMainCategory !== "all") pills.push({ label: selectedMainCategory, clear: () => setSelectedMainCategory("all") });
     if (selectedPriceFilter !== "all") {
       const pf = GLOVIA_PRICE_FILTERS.find(p => p.id === selectedPriceFilter);
       if (pf) pills.push({ label: pf.label, clear: () => setSelectedPriceFilter("all") });
     }
     if (selectedSmartTag !== "all") pills.push({ label: selectedSmartTag, clear: () => setSelectedSmartTag("all") });
     return pills;
-  }, [selectedBrand, ratingFilter, priceCap, maxPrice, selectedMainCategory, selectedPriceFilter, selectedSmartTag, brands]);
+  }, [selectedBrand, ratingFilter, priceCap, maxPrice, selectedPriceFilter, selectedSmartTag, brands]);
 
   return (
     <div className="min-h-screen bg-gray-50/60 dark:bg-gray-950">

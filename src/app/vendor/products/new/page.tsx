@@ -4,7 +4,10 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { vendorAPI, categoriesAPI, brandsAPI } from '@/lib/api';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { 
+  ArrowLeft, Loader2, Package, DollarSign, Layers, ImageIcon, Sparkles, 
+  CheckCircle2, AlertCircle, ChevronRight
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import ImageUploadField from '@/components/ImageUploadField';
@@ -18,28 +21,45 @@ export default function VendorNewProductPage() {
   const [brands, setBrands] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [subCategoriesLoading, setSubCategoriesLoading] = useState(false);
   const [brandsLoading, setBrandsLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
     description: '',
     price: 0,
+    discountPercentage: 0,
     stockQuantity: 0,
+    quantityMl: 0,
     sku: '',
     categoryId: '',
     subCategoryId: '',
     brandId: '',
+    sizeType: '', // 'clothing' | 'weight' | 'volume'
+    sizeValue: '', // S, M, L, XL, etc. or numeric value
+    sizeUnit: '', // KG, G, L, ML
     images: [''],
     isFeatured: false,
     isNew: true,
   });
 
-  useEffect(() => {
-    if (user) {
-      fetchCategories();
-      fetchBrands();
-    }
-  }, [user]);
+  // Category to size type mapping
+  const categoryTupleTypes: Record<string, string> = {
+    'Clothing': 'clothing',
+    'Apparel': 'clothing',
+    'Fashion': 'clothing',
+    'Groceries': 'weight',
+    'Food': 'weight',
+    'Beverages': 'volume',
+    'Liquids': 'volume',
+    'Beauty': 'volume',
+    'Skincare': 'volume',
+  };
+
+  // Size options for different types
+  const clothingSizes = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL', '4XL'];
+  const weightUnits = ['Gram', 'kg'];
+  const volumeUnits = ['ML', 'L'];
 
   const normalizeId = (value: any): string => {
     if (!value) return '';
@@ -56,7 +76,6 @@ export default function VendorNewProductPage() {
   const getCategoryId = (category: any) => normalizeId(category?.id || category?._id);
   const getParentId = (category: any) => normalizeId(category?.parentId);
   const getBrandId = (brand: any) => brand?.id || brand?._id || '';
-  const ALL_SUB_CATEGORIES = '__ALL_SUB_CATEGORIES__';
 
   const parentCategories = useMemo(
     () => (Array.isArray(categories) ? categories.filter((cat) => !getParentId(cat)) : []),
@@ -81,36 +100,79 @@ export default function VendorNewProductPage() {
     });
   };
 
+  // Determine size type based on selected category name
+  const getSizeTypeForCategory = (categoryId: string): string => {
+    const category = categories.find(cat => getCategoryId(cat) === categoryId);
+    if (!category) return '';
+    
+    const categoryName = category.name || '';
+    for (const [key, value] of Object.entries(categoryTupleTypes)) {
+      if (categoryName.toLowerCase().includes(key.toLowerCase())) {
+        return value;
+      }
+    }
+    return '';
+  };
+
   useEffect(() => {
     let active = true;
 
     const loadSubCategories = async () => {
+      // Clear subcategories if no category is selected
       if (!formData.categoryId) {
-        if (active) setSubCategories([]);
+        if (active) {
+          setSubCategories([]);
+          setSubCategoriesLoading(false);
+        }
         return;
       }
 
+      if (active) setSubCategoriesLoading(true);
+
       try {
         const { data } = await categoriesAPI.getByParent(formData.categoryId);
-        const apiList = Array.isArray(data) ? data : data?.data || [];
+        
+        // Handle various response formats
+        let apiList: any[] = [];
+        if (Array.isArray(data)) {
+          apiList = data;
+        } else if (data?.data && Array.isArray(data.data)) {
+          apiList = data.data;
+        }
+
+        // Get fallback list from embedded children in the categories data
         const fallbackList = getSubCategoriesFromParent(formData.categoryId);
+        
+        // Use API list if available, otherwise fallback
         const list = apiList.length > 0 ? apiList : fallbackList;
+        
         if (!active) return;
+        
         setSubCategories(list);
 
+        // Update formData to preserve valid subCategoryId or reset if changed
         setFormData((prev) => {
+          if (!prev) return prev;
+          
+          // If the current subCategoryId is still valid in the new list, keep it
           const hasCurrent = list.some((subCat: any) => getCategoryId(subCat) === prev.subCategoryId);
-          const nextSubCategoryId = list.length === 0
-            ? ''
-            : hasCurrent || prev.subCategoryId === ALL_SUB_CATEGORIES
-              ? prev.subCategoryId
-              : ALL_SUB_CATEGORIES;
-
-          if (prev.subCategoryId === nextSubCategoryId) return prev;
-          return { ...prev, subCategoryId: nextSubCategoryId };
+          
+          // If current subCategoryId is not in new list and it's not empty, reset it
+          if (!hasCurrent && prev.subCategoryId) {
+            return { ...prev, subCategoryId: '' };
+          }
+          
+          return prev;
         });
-      } catch {
-        if (active) setSubCategories([]);
+      } catch (error) {
+        console.error('Error loading subcategories:', error);
+        // Try fallback on error
+        const fallbackList = getSubCategoriesFromParent(formData.categoryId);
+        if (active) {
+          setSubCategories(fallbackList);
+        }
+      } finally {
+        if (active) setSubCategoriesLoading(false);
       }
     };
 
@@ -124,11 +186,26 @@ export default function VendorNewProductPage() {
   const fetchCategories = async () => {
     try {
       setCategoriesLoading(true);
-      const { data } = await categoriesAPI.getAll();
-      setCategories(Array.isArray(data) ? data : data?.data || []);
+      const response = await categoriesAPI.getAll();
+      
+      // Handle various response formats
+      let categoriesData = [];
+      if (Array.isArray(response.data)) {
+        categoriesData = response.data;
+      } else if (response.data?.data && Array.isArray(response.data.data)) {
+        categoriesData = response.data.data;
+      } else if (response.data?.categories && Array.isArray(response.data.categories)) {
+        categoriesData = response.data.categories;
+      }
+
+      setCategories(categoriesData);
+      
+      if (categoriesData.length === 0) {
+        toast.error('No categories found. Please create categories first.');
+      }
     } catch (error) {
       console.error('Failed to load categories:', error);
-      toast.error('Failed to load categories');
+      toast.error('Failed to load categories. Please check your connection.');
       setCategories([]);
     } finally {
       setCategoriesLoading(false);
@@ -139,7 +216,8 @@ export default function VendorNewProductPage() {
     try {
       setBrandsLoading(true);
       const { data } = await brandsAPI.getList();
-      setBrands(Array.isArray(data) ? data : data?.data || []);
+      const brandsList = Array.isArray(data) ? data : data?.data || [];
+      setBrands(brandsList);
     } catch (error) {
       console.error('Failed to load brands:', error);
       toast.error('Failed to load brands');
@@ -147,13 +225,23 @@ export default function VendorNewProductPage() {
     } finally {
       setBrandsLoading(false);
     }
-  };
+  }
 
   const generateSlug = (name: string) => {
     return name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
+  };
+
+  const isObjectId = (value: string) => /^[a-fA-F0-9]{24}$/.test((value || '').trim());
+
+  const extractErrorMessage = (error: any): string => {
+    const message = error?.response?.data?.message;
+    if (Array.isArray(message)) return message.join(', ');
+    if (typeof message === 'string') return message;
+    if (message && typeof message === 'object') return JSON.stringify(message);
+    return 'Failed to create product';
   };
 
   const handleNameChange = (name: string) => {
@@ -176,6 +264,7 @@ export default function VendorNewProductPage() {
     if (!formData.categoryId) newErrors.categoryId = 'Category is required.';
     if (formData.price <= 0) newErrors.price = 'Price must be greater than 0.';
     if (formData.stockQuantity < 0) newErrors.stockQuantity = 'Stock cannot be negative.';
+    if (formData.discountPercentage < 0 || formData.discountPercentage > 100) newErrors.discountPercentage = 'Discount must be 0-100%.';
     // Basic check for at least one image
     const imageUrls = formData.images.filter((img) => img.trim() !== '');
     if (imageUrls.length === 0) newErrors.images = 'At least one product image is required.';
@@ -184,24 +273,66 @@ export default function VendorNewProductPage() {
       toast.error('Please fix the errors in the form.');
       return;
     }
+
+    const selectedCategoryId =
+      formData.subCategoryId
+        ? formData.subCategoryId
+        : formData.categoryId;
+
+    if (!isObjectId(selectedCategoryId)) {
+      setErrors((prev: any) => ({ ...prev, categoryId: 'Please select a valid category.' }));
+      toast.error('Please select a valid category.');
+      return;
+    }
+
     setLoading(true);
     try {
-      await vendorAPI.createProduct({
-        ...formData,
-        categoryId:
-          formData.subCategoryId && formData.subCategoryId !== ALL_SUB_CATEGORIES
-            ? formData.subCategoryId
-            : formData.categoryId,
+      const payload: any = {
+        name: formData.name.trim(),
+        slug: formData.slug.trim(),
+        description: formData.description.trim(),
+        price: Number(formData.price),
+        stockQuantity: Number(formData.stockQuantity),
+        sku: formData.sku.trim(),
+        categoryId: selectedCategoryId,
         images: imageUrls.length > 0 ? imageUrls : undefined,
-      });
+        isFeatured: !!formData.isFeatured,
+        isNew: !!formData.isNew,
+      };
+
+      if (isObjectId(formData.brandId)) {
+        payload.brandId = formData.brandId;
+      }
+
+      if (Number.isFinite(formData.discountPercentage) && Number(formData.discountPercentage) >= 0) {
+        payload.discountPercentage = Number(formData.discountPercentage);
+      }
+
+      // Handle size/volume based on type
+      if (formData.sizeType === 'clothing' && formData.sizeValue) {
+        payload.size = formData.sizeValue; // S, M, L, XL, etc.
+      } else if (formData.sizeType === 'weight' && formData.sizeValue && formData.sizeUnit) {
+        payload.weight = `${formData.sizeValue}${formData.sizeUnit}`; // e.g., "500G" or "1KG"
+      } else if (formData.sizeType === 'volume' && formData.sizeValue && formData.sizeUnit) {
+        // Convert to milliliters for consistency
+        let mlValue = Number(formData.sizeValue);
+        if (formData.sizeUnit === 'L') {
+          mlValue *= 1000;
+        }
+        payload.quantityMl = mlValue;
+      } else if (Number.isFinite(formData.quantityMl) && Number(formData.quantityMl) >= 0) {
+        payload.quantityMl = Number(formData.quantityMl);
+      }
+
+      await vendorAPI.createProduct(payload);
       toast.success('Product created successfully');
       router.push('/vendor/products');
     } catch (error: any) {
-      // Show backend error
-      const msg = error.response?.data?.message || 'Failed to create product';
+      const msg = extractErrorMessage(error);
       toast.error(msg);
       if (typeof msg === 'string' && msg.toLowerCase().includes('sku')) setErrors((e:any)=>({...e,sku:msg}));
       if (typeof msg === 'string' && msg.toLowerCase().includes('slug')) setErrors((e:any)=>({...e,slug:msg}));
+      if (typeof msg === 'string' && msg.toLowerCase().includes('category')) setErrors((e:any)=>({...e,categoryId:msg}));
     } finally {
       setLoading(false);
     }
@@ -209,231 +340,449 @@ export default function VendorNewProductPage() {
 
   if (isChecking || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
       </div>
     );
   }
 
+  const finalPrice = formData.price > 0 && formData.discountPercentage > 0
+    ? formData.price * (1 - formData.discountPercentage / 100)
+    : null;
+
   return (
-    <div className="min-h-screen bg-gray-50 py-10">
-      <div className="container">
-        <div className="max-w-3xl mx-auto">
-          <div className="mb-6">
-            <Link
-              href="/vendor/products"
-              className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Products
-            </Link>
-            <h1 className="text-3xl font-bold">Add New Product</h1>
-            <p className="text-gray-600">Create a new product</p>
+    <div className="min-h-screen bg-gray-50">
+      {/* ── Sticky top bar ── */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-3">
+          <Link href="/vendor/products" className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <Link href="/vendor/products" className="hover:text-gray-900">Products</Link>
+            <ChevronRight className="w-4 h-4" />
+            <span className="text-gray-900 font-medium">New Product</span>
           </div>
+        </div>
+      </div>
 
-          <form onSubmit={handleSubmit} className="card p-6 space-y-6">
-            <div>
-              <label className="label">Product Name *</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleNameChange(e.target.value)}
-                className="input"
-                required
-              />
-              {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+        {/* Page header */}
+        <div className="mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Add New Product</h1>
+          <p className="text-gray-500 mt-1">Fill in the details below to add a product to your catalog.</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* ── Section 1: Basic Info ── */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2.5">
+              <Package className="w-4 h-4 text-indigo-500" />
+              <h2 className="font-semibold text-gray-900">Basic Information</h2>
             </div>
-
-            <div>
-              <label className="label">Slug *</label>
-              <input
-                type="text"
-                value={formData.slug}
-                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                className="input"
-                required
-              />
-              {errors.slug && <p className="text-sm text-red-600 mt-1">{errors.slug}</p>}
-              <p className="text-sm text-gray-500 mt-1">URL-friendly version of the name</p>
-            </div>
-
-            <div>
-              <label className="label">Description *</label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="input min-h-[100px]"
-                required
-              />
-              {errors.description && <p className="text-sm text-red-600 mt-1">{errors.description}</p>}
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="p-5 space-y-4">
+              {/* Product Name */}
               <div>
-                <label className="label">Price (NPR) *</label>
-                <input
-                  type="number"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
-                  className="input"
-                  min="0"
-                  step="0.01"
-                  required
-                />
-                {errors.price && <p className="text-sm text-red-600 mt-1">{errors.price}</p>}
-              </div>
-
-              <div>
-                <label className="label">Stock Quantity *</label>
-                <input
-                  type="number"
-                  value={formData.stockQuantity}
-                  onChange={(e) =>
-                    setFormData({ ...formData, stockQuantity: parseInt(e.target.value) })
-                  }
-                  className="input"
-                  min="0"
-                  required
-                />
-                {errors.stockQuantity && <p className="text-sm text-red-600 mt-1">{errors.stockQuantity}</p>}
-              </div>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="label">SKU *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Product Name <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
-                  value={formData.sku}
-                  onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                  className="input"
+                  value={formData.name}
+                  onChange={(e) => handleNameChange(e.target.value)}
+                  placeholder="e.g. COSRX Snail Mucin 96 Power Repairing Essence"
+                  className={`w-full rounded-lg border px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition ${errors.name ? 'border-red-400 bg-red-50' : 'border-gray-300'}`}
                   required
                 />
-                {errors.sku && <p className="text-sm text-red-600 mt-1">{errors.sku}</p>}
+                {errors.name && <p className="mt-1 text-xs text-red-600 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.name}</p>}
               </div>
 
+              {/* Slug */}
               <div>
-                <label className="label">Category *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Slug <span className="text-red-500">*</span>
+                  <span className="ml-2 text-xs font-normal text-gray-400">auto-generated · editable</span>
+                </label>
+                <div className={`flex rounded-lg border overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition ${errors.slug ? 'border-red-400' : 'border-gray-300'}`}>
+                  <span className="flex items-center px-3 bg-gray-50 border-r border-gray-200 text-gray-400 text-sm select-none">/products/</span>
+                  <input
+                    type="text"
+                    value={formData.slug}
+                    onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                    placeholder="product-slug"
+                    className="flex-1 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none bg-white"
+                    required
+                  />
+                </div>
+                {errors.slug && <p className="mt-1 text-xs text-red-600 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.slug}</p>}
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Description <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Describe the product, its benefits, key ingredients, how to use…"
+                  rows={4}
+                  className={`w-full rounded-lg border px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition resize-none ${errors.description ? 'border-red-400 bg-red-50' : 'border-gray-300'}`}
+                  required
+                />
+                {errors.description && <p className="mt-1 text-xs text-red-600 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.description}</p>}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Section 2: Categorization ── */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2.5">
+              <Layers className="w-4 h-4 text-purple-500" />
+              <h2 className="font-semibold text-gray-900">Categorization</h2>
+            </div>
+            <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Category */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Category <span className="text-red-500">*</span>
+                </label>
                 <select
                   value={formData.categoryId}
-                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value, subCategoryId: '' })}
-                  className="input"
+                  onChange={(e) => {
+                    const newCategoryId = e.target.value;
+                    const newSizeType = getSizeTypeForCategory(newCategoryId);
+                    setFormData({ 
+                      ...formData, 
+                      categoryId: newCategoryId, 
+                      subCategoryId: '',
+                      sizeType: newSizeType,
+                      sizeValue: '',
+                      sizeUnit: newSizeType === 'weight' ? 'kg' : newSizeType === 'volume' ? 'ML' : ''
+                    });
+                  }}
+                  className={`w-full rounded-lg border px-3.5 py-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition bg-white ${errors.categoryId ? 'border-red-400' : 'border-gray-300'}`}
                   disabled={categoriesLoading}
                   required
                 >
-                  <option value="">
-                    {categoriesLoading ? 'Loading categories...' : 'Select Category'}
-                  </option>
-                  {parentCategories.length > 0 ? (
-                    parentCategories.map((cat) => (
-                      <option key={getCategoryId(cat) || cat.name} value={getCategoryId(cat)}>
-                        {cat.name}
-                      </option>
-                    ))
-                  ) : (
-                    <option value="" disabled>
-                      {categoriesLoading ? 'Loading...' : 'No categories available'}
-                    </option>
-                  )}
+                  <option value="">{categoriesLoading ? 'Loading…' : '— Select Category —'}</option>
+                  {parentCategories.map((cat) => (
+                    <option key={getCategoryId(cat)} value={getCategoryId(cat)}>{cat.name}</option>
+                  ))}
                 </select>
-                {!categoriesLoading && (!Array.isArray(categories) || categories.length === 0) && (
-                  <p className="text-sm text-red-600 mt-1">⚠️ Failed to load categories. Please refresh the page.</p>
+                {!categoriesLoading && parentCategories.length === 0 && (
+                  <p className="mt-1 text-xs text-amber-600">
+                    No categories available
+                  </p>
                 )}
-                {errors.categoryId && <p className="text-sm text-red-600 mt-1">{errors.categoryId}</p>}
+                {errors.categoryId && <p className="mt-1 text-xs text-red-600 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.categoryId}</p>}
               </div>
 
+              {/* Sub-Category */}
               <div>
-                <label className="label">Sub-Category</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Sub-Category
+                  {formData.categoryId && !subCategoriesLoading && availableSubCategories.length > 0 && (
+                    <span className="ml-1.5 text-xs font-normal text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full">
+                      {availableSubCategories.length} available
+                    </span>
+                  )}
+                </label>
                 <select
                   value={formData.subCategoryId}
                   onChange={(e) => setFormData({ ...formData, subCategoryId: e.target.value })}
-                  className="input"
-                  disabled={!formData.categoryId || availableSubCategories.length === 0}
+                  className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition bg-white disabled:bg-gray-50 disabled:text-gray-400"
+                  disabled={!formData.categoryId || subCategoriesLoading}
                 >
                   <option value="">
                     {!formData.categoryId
-                      ? 'Select Category First'
-                      : availableSubCategories.length === 0
-                        ? 'No Sub-Category Available'
-                        : 'Select Sub-Category (Optional)'}
+                      ? 'Select a Category first'
+                      : subCategoriesLoading
+                        ? 'Loading…'
+                        : availableSubCategories.length === 0
+                          ? 'No sub-categories'
+                          : '— Optional —'}
                   </option>
-                  {availableSubCategories.length > 0 && (
-                    <option value={ALL_SUB_CATEGORIES}>All Sub-Categories</option>
-                  )}
                   {availableSubCategories.map((subCat: any) => (
-                    <option key={getCategoryId(subCat) || subCat.name} value={getCategoryId(subCat)}>
-                      {subCat.name}
-                    </option>
+                    <option key={getCategoryId(subCat)} value={getCategoryId(subCat)}>{subCat.name}</option>
                   ))}
                 </select>
               </div>
 
+              {/* Brand */}
               <div>
-                <label className="label">Brand</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Brand</label>
                 <select
                   value={formData.brandId}
                   onChange={(e) => setFormData({ ...formData, brandId: e.target.value })}
-                  className="input"
+                  className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition bg-white"
                 >
-                  <option value="">Select Brand (Optional)</option>
-                  {brands.map((brand) => (
-                    <option key={getBrandId(brand) || brand.name} value={getBrandId(brand)}>
-                      {brand.name}
-                    </option>
+                  <option value="">— Optional —</option>
+                  {Array.isArray(brands) && brands.map((brand: any) => (
+                    <option key={getBrandId(brand)} value={getBrandId(brand)}>{brand.name}</option>
                   ))}
                 </select>
+                {formData.brandId && (
+                  <p className="mt-1 text-xs text-green-600 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" /> Brand selected
+                  </p>
+                )}
               </div>
             </div>
+          </div>
 
-            <div>
-              <label className="label">Product Images</label>
+          {/* ── Section 3: Pricing & Inventory ── */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2.5">
+              <DollarSign className="w-4 h-4 text-green-500" />
+              <h2 className="font-semibold text-gray-900">Pricing & Inventory</h2>
+            </div>
+            <div className="p-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Price */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Price (NPR) <span className="text-red-500">*</span>
+                  </label>
+                  <div className={`flex rounded-lg border overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition ${errors.price ? 'border-red-400' : 'border-gray-300'}`}>
+                    <span className="flex items-center px-3 bg-gray-50 border-r border-gray-200 text-gray-500 text-sm font-medium select-none">₨</span>
+                    <input
+                      type="number"
+                      value={formData.price || ''}
+                      onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                      placeholder="0"
+                      className="flex-1 px-3 py-2.5 text-sm text-gray-900 outline-none bg-white"
+                      min="0"
+                      step="0.01"
+                      required
+                    />
+                  </div>
+                  {errors.price && <p className="mt-1 text-xs text-red-600">{errors.price}</p>}
+                </div>
+
+                {/* Discount */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Discount (%)</label>
+                  <div className="flex rounded-lg border border-gray-300 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition">
+                    <input
+                      type="number"
+                      value={formData.discountPercentage || ''}
+                      onChange={(e) => setFormData({ ...formData, discountPercentage: Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)) })}
+                      placeholder="0"
+                      className="flex-1 px-3 py-2.5 text-sm text-gray-900 outline-none bg-white"
+                      min="0"
+                      max="100"
+                      step="1"
+                    />
+                    <span className="flex items-center px-3 bg-gray-50 border-l border-gray-200 text-gray-500 text-sm select-none">%</span>
+                  </div>
+                  {finalPrice !== null && (
+                    <p className="mt-1 text-xs text-green-600 font-semibold">
+                      Final: ₨{finalPrice.toFixed(2)}
+                      <span className="ml-1 text-gray-400 font-normal">({formData.discountPercentage}% off)</span>
+                    </p>
+                  )}
+                </div>
+
+                {/* Stock */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Stock Quantity <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.stockQuantity ?? ''}
+                    onChange={(e) => setFormData({ ...formData, stockQuantity: parseInt(e.target.value) || 0 })}
+                    placeholder="0"
+                    className={`w-full rounded-lg border px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition ${errors.stockQuantity ? 'border-red-400' : 'border-gray-300'}`}
+                    min="0"
+                    required
+                  />
+                  {errors.stockQuantity && <p className="mt-1 text-xs text-red-600">{errors.stockQuantity}</p>}
+                </div>
+
+                {/* Size / Volume */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    {formData.sizeType === 'clothing' && 'Size'}
+                    {formData.sizeType === 'weight' && 'Weight'}
+                    {formData.sizeType === 'volume' && 'Volume'}
+                    {!formData.sizeType && 'Size / Volume'}
+                  </label>
+                  {formData.sizeType === 'clothing' && (
+                    <select
+                      value={formData.sizeValue}
+                      onChange={(e) => setFormData({ ...formData, sizeValue: e.target.value })}
+                      className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition"
+                    >
+                      <option value="">Select Size</option>
+                      {clothingSizes.map((size) => (
+                        <option key={size} value={size}>{size}</option>
+                      ))}
+                    </select>
+                  )}
+                  {formData.sizeType === 'weight' && (
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        min={0}
+                        value={formData.sizeValue || ''}
+                        onChange={(e) => setFormData({ ...formData, sizeValue: e.target.value })}
+                        placeholder="e.g. 500"
+                        className="flex-1 rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition"
+                      />
+                      <select
+                        value={formData.sizeUnit}
+                        onChange={(e) => setFormData({ ...formData, sizeUnit: e.target.value })}
+                        className="rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition"
+                      >
+                        <option value="">Unit</option>
+                        {weightUnits.map((unit) => (
+                          <option key={unit} value={unit}>{unit}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  {formData.sizeType === 'volume' && (
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        min={0}
+                        value={formData.sizeValue || ''}
+                        onChange={(e) => setFormData({ ...formData, sizeValue: e.target.value })}
+                        placeholder="e.g. 100"
+                        className="flex-1 rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition"
+                      />
+                      <select
+                        value={formData.sizeUnit}
+                        onChange={(e) => setFormData({ ...formData, sizeUnit: e.target.value })}
+                        className="rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition"
+                      >
+                        <option value="">Unit</option>
+                        {volumeUnits.map((unit) => (
+                          <option key={unit} value={unit}>{unit}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  {!formData.sizeType && (
+                    <input
+                      type="number"
+                      min={0}
+                      value={formData.quantityMl || ''}
+                      onChange={(e) => setFormData({ ...formData, quantityMl: Number(e.target.value) })}
+                      placeholder="e.g. 100"
+                      className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition"
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* SKU */}
+              <div className="mt-4 max-w-xs">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  SKU <span className="text-red-500">*</span>
+                  <span className="ml-2 text-xs font-normal text-gray-400">unique product code</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.sku}
+                  onChange={(e) => setFormData({ ...formData, sku: e.target.value.toUpperCase() })}
+                  placeholder="e.g. COSRX-SNAIL-100ML"
+                  className={`w-full rounded-lg border px-3.5 py-2.5 text-sm font-mono text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition uppercase ${errors.sku ? 'border-red-400 bg-red-50' : 'border-gray-300'}`}
+                  required
+                />
+                {errors.sku && <p className="mt-1 text-xs text-red-600 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.sku}</p>}
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2.5">
+              <ImageIcon className="w-4 h-4 text-orange-500" />
+              <h2 className="font-semibold text-gray-900">Product Images</h2>
+              <span className="ml-auto text-xs text-gray-400">Up to 5 images</span>
+            </div>
+            <div className="p-5">
               <ImageUploadField
-                images={formData.images.filter(img => img.trim() !== '')}
+                images={formData.images.filter((img) => img.trim() !== '')}
                 onImagesChange={(urls) => setFormData({ ...formData, images: urls })}
                 maxImages={5}
               />
-              {errors.images && <p className="text-sm text-red-600 mt-1">{errors.images}</p>}
+              {errors.images && (
+                <p className="mt-2 text-xs text-red-600 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />{errors.images}
+                </p>
+              )}
             </div>
+          </div>
 
-            <div className="flex items-center gap-6">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={formData.isFeatured}
-                  onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
-                  className="rounded"
-                />
-                <span className="text-sm">Featured Product</span>
-              </label>
-
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={formData.isNew}
-                  onChange={(e) => setFormData({ ...formData, isNew: e.target.checked })}
-                  className="rounded"
-                />
-                <span className="text-sm">New Arrival</span>
-              </label>
+          {/* ── Section 5: Flags ── */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2.5">
+              <Sparkles className="w-4 h-4 text-yellow-500" />
+              <h2 className="font-semibold text-gray-900">Product Flags</h2>
             </div>
+            <div className="p-5 flex flex-wrap gap-3">
+              {[
+                { key: 'isFeatured', icon: <Package className="w-4 h-4" />, label: 'Featured Product', desc: 'Show on homepage & featured sections', color: 'yellow' },
+                { key: 'isNew', icon: <Sparkles className="w-4 h-4" />, label: 'New Arrival', desc: 'Tag this as a new arrival', color: 'green' },
+              ].map(({ key, icon, label, desc, color }) => {
+                const checked = formData[key as keyof typeof formData] as boolean;
+                return (
+                  <label
+                    key={key}
+                    className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all min-w-[200px] ${
+                      checked
+                        ? color === 'yellow' ? 'border-yellow-400 bg-yellow-50' : 'border-green-400 bg-green-50'
+                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(e) => setFormData({ ...formData, [key]: e.target.checked })}
+                      className="sr-only"
+                    />
+                    <span className={checked ? (color === 'yellow' ? 'text-yellow-600' : 'text-green-600') : 'text-gray-400'}>
+                      {icon}
+                    </span>
+                    <div>
+                      <p className={`text-sm font-semibold ${checked ? (color === 'yellow' ? 'text-yellow-800' : 'text-green-800') : 'text-gray-700'}`}>{label}</p>
+                      <p className="text-xs text-gray-500">{desc}</p>
+                    </div>
+                    {checked && (
+                      <CheckCircle2 className={`w-4 h-4 ml-auto flex-shrink-0 ${color === 'yellow' ? 'text-yellow-500' : 'text-green-500'}`} />
+                    )}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
 
-            <div className="flex gap-3 pt-4 border-t">
-              <button type="submit" disabled={loading} className="btn-primary">
+          {/* ── Footer ── */}
+          <div className="flex items-center justify-between bg-white rounded-2xl border border-gray-200 shadow-sm px-5 py-4 gap-3">
+            <Link href="/vendor/products" className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+              Cancel
+            </Link>
+            <div className="flex items-center gap-3">
+              {formData.name && (
+                <p className="text-xs text-gray-400 hidden sm:block truncate max-w-[200px]">{formData.name}</p>
+              )}
+              <button
+                type="submit"
+                disabled={loading}
+                className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-colors shadow-sm"
+              >
                 {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    Creating...
-                  </>
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Creating…</>
                 ) : (
-                  'Create Product'
+                  <><Package className="w-4 h-4" /> Create Product</>
                 )}
               </button>
-              <Link href="/vendor/products" className="btn-outline">
-                Cancel
-              </Link>
             </div>
-          </form>
-        </div>
+          </div>
+        </form>
       </div>
     </div>
   );

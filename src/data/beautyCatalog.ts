@@ -168,7 +168,7 @@ export function inferSmartTags(product: any): SmartTag[] {
   const description = String(product?.description || '').toLowerCase();
 
   if (product?.isBestSeller) tags.add('Best Seller');
-  if (product?.isNew || product?.isNewProduct) tags.add('New Arrival');
+  if (product?.isNew) tags.add('New Arrival');
   if (Number(product?.averageRating || 0) >= 4.5) tags.add('Trending');
   if (/limited|exclusive|edition/.test(name) || /limited|exclusive|edition/.test(description)) tags.add('Limited Edition');
   if (/dermatologist|doctor tested/.test(description)) tags.add('Dermatologist Approved');

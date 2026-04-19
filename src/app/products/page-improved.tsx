@@ -300,21 +300,21 @@ function ProductCard({ product }: { product: any }) {
             )}
           </div>
 
-          {product.stock === 0 && (
+          {product.stockQuantity === 0 && (
             <Badge variant="danger" className="w-full justify-center">
               Out of Stock
             </Badge>
           )}
 
-          {product.stock && product.stock < 5 && (
+          {product.stockQuantity > 0 && product.stockQuantity < 5 && (
             <Badge variant="warning" size="sm" className="w-full justify-center">
-              Only {product.stock} left
+              Only {product.stockQuantity} left
             </Badge>
           )}
         </CardContent>
 
         {/* Action */}
-        {product.stock > 0 && (
+        {product.stockQuantity > 0 && (
           <div className="border-t border-gray-100 p-4">
             <Button
               variant="primary"

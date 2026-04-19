@@ -4,11 +4,11 @@ import { useState, useRef, useCallback, useMemo } from "react";
 import {
   Upload, Download, CheckCircle2, XCircle, AlertTriangle,
   FileSpreadsheet, Loader2, Eye, EyeOff, ChevronDown, ChevronUp,
-  ArrowRight, Trash2,
+  ArrowRight, Trash2, ImagePlus, X, Image as ImageIcon,
 } from "lucide-react";
+import { uploadAPI } from "@/lib/api";
 
 // ─── CSV Template ──────────────────────────────────────────────────────────────
-// Human-friendly column names — backend resolves Category/Brand/Vendor by name
 const CSV_HEADERS = [
   "Product Name", "Slug", "Description", "Price(NRP)", "Discount(%)",
   "Stock Quantity", "SKU", "Category", "Brand", "Vendor",
@@ -32,9 +32,7 @@ const CSV_SAMPLE_ROWS = [
   ],
 ];
 
-// Maps raw CSV column names (human-friendly OR legacy API names) to API field names
 function normalizeRow(raw: Record<string, string>): Record<string, string> {
-  // Strip BOM from any key that might have slipped through
   const clean: Record<string, string> = {};
   for (const [k, v] of Object.entries(raw)) {
     clean[k.replace(/^\uFEFF/, "").trim()] = v;
@@ -84,7 +82,6 @@ function downloadCSV(content: string, filename: string) {
   setTimeout(() => URL.revokeObjectURL(url), 100);
 }
 
-// ─── CSV Parser ────────────────────────────────────────────────────────────────
 function splitCSVLine(line: string): string[] {
   const values: string[] = [];
   let inQuotes = false;
@@ -105,11 +102,9 @@ function splitCSVLine(line: string): string[] {
 }
 
 function parseCSV(text: string): Record<string, string>[] {
-  // Strip UTF-8 BOM (\uFEFF) and any leading whitespace
   const cleaned = text.replace(/^\uFEFF/, "").trim();
   const lines = cleaned.split(/\r?\n/);
   if (lines.length < 2) return [];
-  // Parse headers using the same quoted-field logic as data rows
   const headers = splitCSVLine(lines[0]).map((h) => h.replace(/^"|"$/g, "").trim());
   return lines.slice(1).filter((l) => l.trim()).map((line) => {
     const values = splitCSVLine(line);
@@ -119,7 +114,6 @@ function parseCSV(text: string): Record<string, string>[] {
   });
 }
 
-// ─── Row Validator (operates on normalized row) ────────────────────────────────
 function validateRow(row: Record<string, string>): string[] {
   const errs: string[] = [];
   if (!row.name?.trim()) errs.push("Product Name required");
@@ -134,7 +128,6 @@ function validateRow(row: Record<string, string>): string[] {
   return errs;
 }
 
-// ─── Types ─────────────────────────────────────────────────────────────────────
 type ParsedRow = Record<string, string> & { _errors: string[]; _index: number };
 type UploadResult = { row: number; status: "success" | "failed"; name?: string; sku?: string; error?: string };
 
@@ -145,7 +138,13 @@ type Props = {
   onSubmit: (products: Record<string, string>[]) => Promise<{ success: number; failed: number; results: UploadResult[] }>;
 };
 
-// ─── Main Component ────────────────────────────────────────────────────────────
+// ─── Per-row image state ────────────────────────────────────────────────────────
+type RowImageState = {
+  uploading: boolean;
+  urls: string[];           // uploaded + existing csv urls
+  previews: string[];       // object URLs for local preview before upload
+};
+
 export default function BulkProductUpload({ onSubmit }: Props) {
   const [rows, setRows] = useState<ParsedRow[]>([]);
   const [fileName, setFileName] = useState("");
@@ -155,7 +154,17 @@ export default function BulkProductUpload({ onSubmit }: Props) {
   const [uploadResults, setUploadResults] = useState<{ success: number; failed: number; results: UploadResult[] } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+  // image state keyed by row _index
+  const [rowImages, setRowImages] = useState<Record<number, RowImageState>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // hidden file inputs per row — keyed by row index
+  const imageInputRefs = useRef<Record<number, HTMLInputElement | null>>({});
+
+  const initRowImage = useCallback((row: ParsedRow): RowImageState => ({
+    uploading: false,
+    urls: row.imageUrls ? row.imageUrls.split(",").map(s => s.trim()).filter(Boolean) : [],
+    previews: [],
+  }), []);
 
   const handleFile = useCallback((file: File) => {
     if (!file.name.endsWith(".csv")) {
@@ -169,17 +178,17 @@ export default function BulkProductUpload({ onSubmit }: Props) {
       const parsed = parseCSV(text);
       const withValidation = parsed.map((row, i) => {
         const normalized = normalizeRow(row);
-        return {
-          ...normalized,
-          _errors: validateRow(normalized),
-          _index: i,
-        };
+        return { ...normalized, _errors: validateRow(normalized), _index: i };
       }) as ParsedRow[];
       setRows(withValidation);
+      // initialise image state for each row
+      const imgs: Record<number, RowImageState> = {};
+      withValidation.forEach(r => { imgs[r._index] = initRowImage(r); });
+      setRowImages(imgs);
       setStep("preview");
     };
     reader.readAsText(file);
-  }, []);
+  }, [initRowImage]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -198,6 +207,71 @@ export default function BulkProductUpload({ onSubmit }: Props) {
     ),
     [rows]
   );
+
+  // Upload images for a specific row
+  const handleImageFiles = useCallback(async (rowIndex: number, files: FileList) => {
+    const imageFiles = Array.from(files).filter(f => f.type.startsWith("image/"));
+    if (!imageFiles.length) return;
+
+    // Show local previews immediately
+    const previews = imageFiles.map(f => URL.createObjectURL(f));
+    setRowImages(prev => ({
+      ...prev,
+      [rowIndex]: { ...prev[rowIndex], uploading: true, previews: [...(prev[rowIndex]?.previews ?? []), ...previews] },
+    }));
+
+    try {
+      const response = await uploadAPI.uploadImages(imageFiles);
+      // backend returns array of { url } or single { urls: [] }
+      const uploaded: string[] = Array.isArray(response.data)
+        ? response.data.map((r: any) => r.url).filter(Boolean)
+        : (response.data.urls ?? [response.data.url]).filter(Boolean);
+
+      setRowImages(prev => ({
+        ...prev,
+        [rowIndex]: {
+          uploading: false,
+          previews: [],
+          urls: [...(prev[rowIndex]?.urls ?? []), ...uploaded],
+        },
+      }));
+
+      // Update the actual row's imageUrls field so it gets submitted
+      setRows(prev => prev.map(r => {
+        if (r._index !== rowIndex) return r;
+        const existing = prev.find(x => x._index === rowIndex);
+        const allUrls = [
+          ...(existing?.imageUrls ? existing.imageUrls.split(",").map(s => s.trim()).filter(Boolean) : []),
+          ...uploaded,
+        ];
+        return { ...r, imageUrls: allUrls.join(",") };
+      }));
+
+      // Revoke local preview object URLs
+      previews.forEach(p => URL.revokeObjectURL(p));
+    } catch {
+      setRowImages(prev => ({
+        ...prev,
+        [rowIndex]: { ...prev[rowIndex], uploading: false, previews: [] },
+      }));
+      previews.forEach(p => URL.revokeObjectURL(p));
+      alert("Image upload failed. Please try again.");
+    }
+  }, []);
+
+  const removeImage = useCallback((rowIndex: number, urlToRemove: string) => {
+    setRowImages(prev => ({
+      ...prev,
+      [rowIndex]: { ...prev[rowIndex], urls: prev[rowIndex].urls.filter(u => u !== urlToRemove) },
+    }));
+    setRows(prev => prev.map(r => {
+      if (r._index !== rowIndex) return r;
+      const remaining = r.imageUrls
+        ? r.imageUrls.split(",").map(s => s.trim()).filter(u => u && u !== urlToRemove)
+        : [];
+      return { ...r, imageUrls: remaining.join(",") };
+    }));
+  }, []);
 
   const handleSubmit = async () => {
     if (validRows.length === 0) return;
@@ -219,16 +293,26 @@ export default function BulkProductUpload({ onSubmit }: Props) {
     setFileName("");
     setStep("upload");
     setUploadResults(null);
+    setRowImages({});
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const removeRow = (index: number) => {
     setRows((prev) => prev.filter((r) => r._index !== index));
+    setRowImages(prev => { const next = { ...prev }; delete next[index]; return next; });
+  };
+
+  const toggleRow = (index: number) => {
+    setExpandedRows(prev => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index); else next.add(index);
+      return next;
+    });
   };
 
   return (
     <div className="space-y-6">
-      {/* ─── Step Indicator ─── */}
+      {/* Step Indicator */}
       <div className="flex items-center gap-3">
         {STEPS.map((s, i) => {
           const currentIdx = STEPS.indexOf(step);
@@ -249,10 +333,9 @@ export default function BulkProductUpload({ onSubmit }: Props) {
         })}
       </div>
 
-      {/* ─── STEP 1: Upload ─── */}
+      {/* STEP 1: Upload */}
       {step === "upload" && (
         <div className="space-y-4">
-          {/* Template download */}
           <div className="flex items-center justify-between rounded-2xl border border-blue-100 bg-blue-50 p-4">
             <div className="flex items-center gap-3">
               <FileSpreadsheet className="h-8 w-8 text-blue-500" />
@@ -270,20 +353,18 @@ export default function BulkProductUpload({ onSubmit }: Props) {
             </button>
           </div>
 
-          {/* Important notes */}
           <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm text-amber-800">
             <p className="mb-2 flex items-center gap-2 font-bold"><AlertTriangle className="h-4 w-4" /> Before uploading:</p>
             <ul className="space-y-1 pl-6 text-xs list-disc">
-              <li><strong>Category</strong> — enter the exact category name (e.g. <code className="rounded bg-amber-100 px-1">Beauty</code>, <code className="rounded bg-amber-100 px-1">Groceries</code>) or a MongoDB ObjectId.</li>
-              <li><strong>Brand</strong> — enter the brand name or leave blank. If the brand doesn&apos;t exist it will be skipped.</li>
-              <li><strong>Vendor</strong> — enter the vendor&apos;s email address or leave blank.</li>
+              <li><strong>Category</strong> — exact category name (e.g. <code className="rounded bg-amber-100 px-1">Beauty</code>) or MongoDB ObjectId.</li>
+              <li><strong>Brand</strong> — brand name or leave blank.</li>
+              <li><strong>Vendor</strong> — vendor&apos;s email address or leave blank.</li>
               <li>SKU and Slug must be unique across all products.</li>
-              <li>Boolean fields (<strong>Featured Product</strong>, <strong>New Arrival</strong>): use <code className="rounded bg-amber-100 px-1">true</code> or <code className="rounded bg-amber-100 px-1">false</code>.</li>
-              <li><strong>Product Images</strong>: comma-separated URLs (e.g. https://…jpg,https://…jpg).</li>
+              <li>Boolean fields (<strong>Featured Product</strong>, <strong>New Arrival</strong>): <code className="rounded bg-amber-100 px-1">true</code> or <code className="rounded bg-amber-100 px-1">false</code>.</li>
+              <li><strong>Product Images</strong>: leave blank — you can upload images directly after importing the CSV.</li>
             </ul>
           </div>
 
-          {/* Drop zone */}
           <div
             onDrop={handleDrop}
             onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -312,7 +393,7 @@ export default function BulkProductUpload({ onSubmit }: Props) {
         </div>
       )}
 
-      {/* ─── STEP 2: Preview ─── */}
+      {/* STEP 2: Preview */}
       {step === "preview" && (
         <div className="space-y-4">
           {/* Summary bar */}
@@ -331,7 +412,7 @@ export default function BulkProductUpload({ onSubmit }: Props) {
             </div>
           </div>
 
-          {/* File name + reset */}
+          {/* File name + controls */}
           <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3">
             <div className="flex items-center gap-2">
               <FileSpreadsheet className="h-5 w-5 text-primary-500" />
@@ -362,6 +443,7 @@ export default function BulkProductUpload({ onSubmit }: Props) {
                       <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Price</th>
                       <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Stock</th>
                       <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Category</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Images</th>
                       <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Issues</th>
                       <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-gray-500"></th>
                     </tr>
@@ -370,6 +452,10 @@ export default function BulkProductUpload({ onSubmit }: Props) {
                     {rows.map((row) => {
                       const isExpanded = expandedRows.has(row._index);
                       const hasErrors = row._errors.length > 0;
+                      const imgState = rowImages[row._index];
+                      const imageCount = imgState?.urls.length ?? 0;
+                      const isUploadingImg = imgState?.uploading ?? false;
+
                       return (
                         <>
                           <tr key={row._index} className={`transition-colors ${hasErrors ? "bg-red-50/60" : "hover:bg-gray-50/60"}`}>
@@ -390,20 +476,67 @@ export default function BulkProductUpload({ onSubmit }: Props) {
                             <td className="px-4 py-3 text-secondary-700">NPR {row.price || "—"}</td>
                             <td className="px-4 py-3 text-secondary-700">{row.stockQuantity || "0"}</td>
                             <td className="px-4 py-3 text-xs text-gray-600 max-w-[120px] truncate">{row.category || "—"}</td>
-                            <td className="px-4 py-3 text-xs text-red-600">{hasErrors ? row._errors.join("; ") : "—"}</td>
+
+                            {/* Images cell */}
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-1.5">
+                                {/* Thumbnail strip */}
+                                {imgState?.previews.map((p, pi) => (
+                                  <div key={pi} className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 animate-pulse">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={p} alt="" className="h-full w-full object-cover opacity-50" />
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                      <Loader2 className="h-3 w-3 animate-spin text-primary-500" />
+                                    </div>
+                                  </div>
+                                ))}
+                                {imgState?.urls.slice(0, 3).map((url, ui) => (
+                                  <div key={ui} className="group relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={url} alt="" className="h-full w-full object-cover" />
+                                    <button
+                                      type="button"
+                                      onClick={() => removeImage(row._index, url)}
+                                      className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                      <X className="h-3 w-3 text-white" />
+                                    </button>
+                                  </div>
+                                ))}
+                                {imageCount > 3 && (
+                                  <span className="text-[10px] font-bold text-gray-400">+{imageCount - 3}</span>
+                                )}
+
+                                {/* Upload button */}
+                                <button
+                                  type="button"
+                                  disabled={isUploadingImg}
+                                  onClick={() => imageInputRefs.current[row._index]?.click()}
+                                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-gray-200 text-gray-400 hover:border-primary-400 hover:text-primary-500 transition-colors disabled:opacity-40"
+                                  title="Upload images for this product"
+                                >
+                                  {isUploadingImg
+                                    ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    : <ImagePlus className="h-3.5 w-3.5" />
+                                  }
+                                </button>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  multiple
+                                  className="hidden"
+                                  ref={el => { imageInputRefs.current[row._index] = el; }}
+                                  onChange={e => { if (e.target.files?.length) handleImageFiles(row._index, e.target.files); e.target.value = ""; }}
+                                />
+                              </div>
+                            </td>
+
+                            <td className="px-4 py-3 text-xs text-red-600 max-w-[160px]">{hasErrors ? row._errors.join("; ") : "—"}</td>
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-1">
                                 <button
                                   type="button"
-                                  onClick={() => setExpandedRows(prev => {
-                                    const next = new Set(prev);
-                                    if (next.has(row._index)) {
-                                      next.delete(row._index);
-                                    } else {
-                                      next.add(row._index);
-                                    }
-                                    return next;
-                                  })}
+                                  onClick={() => toggleRow(row._index)}
                                   className="rounded-lg p-1 text-gray-400 hover:bg-gray-100"
                                 >
                                   {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -418,16 +551,74 @@ export default function BulkProductUpload({ onSubmit }: Props) {
                               </div>
                             </td>
                           </tr>
+
+                          {/* Expanded detail + full image panel */}
                           {isExpanded && (
                             <tr key={`${row._index}-expanded`} className="bg-gray-50/80">
-                              <td colSpan={9} className="px-4 pb-3 pt-1">
-                                <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs sm:grid-cols-3 lg:grid-cols-4">
-                                  {(["name","slug","sku","price","discountPercentage","stockQuantity","category","brand","vendor","isFeatured","isNew","imageUrls"] as const).map((h) => (
+                              <td colSpan={10} className="px-4 pb-4 pt-2">
+                                <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs sm:grid-cols-3 lg:grid-cols-4 mb-4">
+                                  {(["name","slug","sku","price","discountPercentage","stockQuantity","category","brand","vendor","isFeatured","isNew"] as const).map((h) => (
                                     <div key={h}>
                                       <span className="font-semibold text-gray-500">{h}: </span>
                                       <span className="text-secondary-700 break-all">{row[h] || <em className="text-gray-300">empty</em>}</span>
                                     </div>
                                   ))}
+                                </div>
+
+                                {/* Image upload panel */}
+                                <div className="rounded-xl border border-gray-200 bg-white p-3">
+                                  <p className="text-xs font-bold text-gray-700 mb-2 flex items-center gap-1.5">
+                                    <ImageIcon className="h-3.5 w-3.5 text-primary-500" />
+                                    Product Images ({imageCount})
+                                  </p>
+
+                                  <div className="flex flex-wrap gap-2">
+                                    {/* Uploaded images */}
+                                    {imgState?.urls.map((url, ui) => (
+                                      <div key={ui} className="group relative h-20 w-20 overflow-hidden rounded-xl border border-gray-200 shadow-sm">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src={url} alt="" className="h-full w-full object-cover" />
+                                        <button
+                                          type="button"
+                                          onClick={() => removeImage(row._index, url)}
+                                          className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity shadow"
+                                        >
+                                          <X className="h-3 w-3" />
+                                        </button>
+                                        {ui === 0 && (
+                                          <span className="absolute bottom-0 inset-x-0 bg-black/50 text-[9px] text-white text-center py-0.5 font-bold">MAIN</span>
+                                        )}
+                                      </div>
+                                    ))}
+
+                                    {/* Uploading previews */}
+                                    {imgState?.previews.map((p, pi) => (
+                                      <div key={`p-${pi}`} className="relative h-20 w-20 overflow-hidden rounded-xl border border-primary-200 bg-primary-50">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src={p} alt="" className="h-full w-full object-cover opacity-40" />
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                          <Loader2 className="h-5 w-5 animate-spin text-primary-500" />
+                                        </div>
+                                      </div>
+                                    ))}
+
+                                    {/* Add more button */}
+                                    <button
+                                      type="button"
+                                      disabled={isUploadingImg}
+                                      onClick={() => imageInputRefs.current[row._index]?.click()}
+                                      className="flex h-20 w-20 flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-gray-200 text-gray-400 hover:border-primary-400 hover:bg-primary-50 hover:text-primary-500 transition-all disabled:opacity-40"
+                                    >
+                                      <ImagePlus className="h-5 w-5" />
+                                      <span className="text-[10px] font-semibold">Add Photos</span>
+                                    </button>
+                                  </div>
+
+                                  {imageCount === 0 && (
+                                    <p className="mt-2 text-[10px] text-gray-400">
+                                      No images yet. Click "Add Photos" or the <ImagePlus className="inline h-3 w-3" /> button in the row above.
+                                    </p>
+                                  )}
                                 </div>
                               </td>
                             </tr>
@@ -467,10 +658,9 @@ export default function BulkProductUpload({ onSubmit }: Props) {
         </div>
       )}
 
-      {/* ─── STEP 3: Result ─── */}
+      {/* STEP 3: Result */}
       {step === "result" && uploadResults && (
         <div className="space-y-4">
-          {/* Summary */}
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 text-center">
               <CheckCircle2 className="mx-auto h-8 w-8 text-emerald-500 mb-2" />
@@ -488,7 +678,6 @@ export default function BulkProductUpload({ onSubmit }: Props) {
             </div>
           </div>
 
-          {/* Result rows */}
           <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div className="border-b border-gray-100 bg-gray-50 px-4 py-3">
               <p className="text-sm font-bold text-secondary-900">Upload Results</p>
@@ -513,7 +702,6 @@ export default function BulkProductUpload({ onSubmit }: Props) {
             </div>
           </div>
 
-          {/* Actions */}
           <div className="flex gap-3">
             <button type="button" onClick={reset} className="btn-primary rounded-xl px-6 py-2.5 text-sm">
               Upload More Products

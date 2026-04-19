@@ -1,13 +1,18 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { Toaster } from 'react-hot-toast';
 import { useOnlineStatus } from '@/hooks/useInfiniteScroll';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
-import { Header } from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import AnnouncementBar from '@/components/common/AnnouncementBar';
+
+// Lazy load Header to ensure router context is ready
+const Header = dynamic(() => import('@/components/layout/Header').then(mod => ({ default: mod.Header })), {
+  ssr: true,
+  loading: () => null,
+});
 
 // Dynamic imports for heavy components
 const OfflinePage = dynamic(() => import('@/app/offline/page'), {
@@ -31,6 +36,22 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     const separator = window.location.search ? '&' : '?';
     window.location.replace(`${window.location.href}${separator}v=${Date.now()}`);
   };
+
+  useEffect(() => {
+    // Suppress React DevTools warning in development
+    const originalWarn = console.warn;
+    console.warn = function(...args) {
+      const message = String(args[0] || '');
+      if (message.includes('Download the React DevTools') || message.includes('reactjs.org/link/react-devtools')) {
+        return;
+      }
+      originalWarn.apply(console, args);
+    };
+
+    return () => {
+      console.warn = originalWarn;
+    };
+  }, []);
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {

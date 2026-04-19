@@ -264,28 +264,31 @@ export default function AccountPage() {
         }),
       });
 
-      // Update form data with API response to ensure UI reflects saved data
-      if (response?.data) {
-        const updatedData = response.data;
-        setFormData(prev => ({
-          ...prev,
-          firstName: updatedData.firstName || prev.firstName,
-          lastName: updatedData.lastName || prev.lastName,
-          email: updatedData.email || prev.email,
-          phone: updatedData.phone || prev.phone,
-          profileImage: updatedData.profileImage || prev.profileImage,
-          vendorType: updatedData.vendorType || prev.vendorType,
-          vendorDescription: updatedData.vendorDescription || prev.vendorDescription,
-          vendorLogo: updatedData.vendorLogo || prev.vendorLogo,
-        }));
-      }
-
       if (emailChanged) {
         setVerifiedEmail(formData.email.trim().toLowerCase());
         setEmailOtp('');
       }
 
-      await mutate('/users/profile');
+      // Directly apply saved values so the view reflects them immediately
+      // (mutate will sync SWR cache in background but we don't wait for it)
+      setFormData(prev => ({
+        ...prev,
+        vendorType: formData.vendorType,
+        vendorDescription: formData.vendorDescription,
+        vendorLogo: formData.vendorLogo,
+      }));
+
+      // Revalidate profile and home page data
+      mutate('/users/profile');
+      
+      // If vendor updated their profile, also revalidate home page featured vendors
+      if (isVendor) {
+        await Promise.all([
+          mutate('/admin/vendors/featured'),
+          mutate('/admin/vendors'),
+        ]).catch(() => {});
+      }
+
       toast.success("Account updated successfully!");
       setIsEditMode(false);
     } catch (error: any) {
@@ -384,7 +387,7 @@ export default function AccountPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
       {/* Hero Section */}
-      <div className={`bg-gradient-to-r ${roleData.color} pt-12 pb-32 relative overflow-hidden`}>
+      <div className={`bg-gradient-to-r ${roleData.color} pt-6 pb-16 relative overflow-hidden`}>
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -mr-48 -mt-48 blur-3xl" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/5 rounded-full -ml-48 -mb-48 blur-3xl" />
@@ -480,32 +483,58 @@ export default function AccountPage() {
       </div>
 
       {/* Content Area */}
-      <div className="container -mt-24 pb-20 relative z-20">
+      <div className="container -mt-12 pb-20 relative z-20">
         <div className="grid lg:grid-cols-4 gap-6">
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-4">
             {/* Profile Completion Card */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 backdrop-blur-md hover:bg-white/10 transition-all">
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 backdrop-blur-md hover:bg-white/8 transition-all">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-semibold text-white/60 uppercase tracking-wider">Profile Complete</p>
+                <p className="text-xs font-bold text-white/50 uppercase tracking-widest">Profile</p>
                 <TrendingUp className="w-4 h-4 text-emerald-400" />
               </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold">{profileCompletionPercentage}%</span>
-                </div>
-                <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
-                  <div
-                    className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full transition-all duration-500"
-                    style={{ width: `${profileCompletionPercentage}%` }}
-                  />
-                </div>
-                <p className="text-xs text-white/50">{profileCompleteFields} of {allFields.length} fields complete</p>
+              <div className="flex items-end gap-2 mb-3">
+                <span className="text-3xl font-black text-white">{profileCompletionPercentage}%</span>
+                <span className="text-xs text-white/40 mb-1 font-medium">complete</span>
+              </div>
+              <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden mb-3">
+                <div
+                  className={`h-full rounded-full transition-all duration-700 ${
+                    profileCompletionPercentage === 100
+                      ? 'bg-gradient-to-r from-emerald-400 to-teal-400'
+                      : profileCompletionPercentage >= 60
+                        ? 'bg-gradient-to-r from-amber-400 to-orange-400'
+                        : 'bg-gradient-to-r from-rose-400 to-pink-400'
+                  }`}
+                  style={{ width: `${profileCompletionPercentage}%` }}
+                />
+              </div>
+              {/* Mini checklist */}
+              <div className="space-y-1">
+                {[
+                  { label: 'First name',    done: !!formData.firstName?.trim() },
+                  { label: 'Last name',     done: !!formData.lastName?.trim() },
+                  { label: 'Phone number',  done: !!formData.phone?.trim() },
+                  { label: 'Profile photo', done: !!formData.profileImage },
+                  ...(isVendor ? [
+                    { label: 'Vendor type',  done: !!formData.vendorType },
+                    { label: 'Store logo',   done: !!formData.vendorLogo },
+                  ] : []),
+                ].map(({ label, done }) => (
+                  <div key={label} className="flex items-center gap-2">
+                    <span className={`w-3.5 h-3.5 rounded-full flex-shrink-0 flex items-center justify-center ${
+                      done ? 'text-emerald-400' : 'text-white/20'
+                    }`}>
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                    </span>
+                    <span className={`text-xs ${done ? 'text-white/50 line-through' : 'text-white/70'}`}>{label}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Navigation */}
-            <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden backdrop-blur-md">
+            {/* Enhanced Navigation */}
+            <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden backdrop-blur-md divide-y divide-white/5">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const active = activeTab === item.tab;
@@ -513,25 +542,45 @@ export default function AccountPage() {
                   <button
                     key={item.tab}
                     onClick={() => setActiveTab(item.tab)}
-                    className={`w-full flex items-start gap-3 px-4 py-3.5 text-sm font-medium transition-all border-l-3 ${
+                    className={`w-full flex items-center gap-3 px-4 py-3.5 text-sm font-medium transition-all group relative ${
                       active
-                        ? 'border-pink-500 bg-white/10 text-white'
-                        : 'border-transparent text-white/60 hover:text-white hover:bg-white/5'
+                        ? 'border-l-3 border-pink-500 bg-gradient-to-r from-pink-500/10 to-transparent text-white'
+                        : 'border-l-3 border-transparent text-white/60 hover:text-white hover:bg-white/5'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${active ? 'text-pink-500' : 'text-white/40'}`} />
-                    <div className="text-left">
-                      <p>{item.label}</p>
-                      <p className="text-xs text-white/40 font-normal">{item.desc}</p>
+                    {/* Active indicator dot */}
+                    {active && (
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-pink-400 animate-pulse" />
+                    )}
+                    
+                    <Icon className={`w-5 h-5 flex-shrink-0 transition-all ${
+                      active 
+                        ? 'text-pink-400 group-hover:scale-110' 
+                        : 'text-white/40 group-hover:text-white/60'
+                    }`} />
+                    
+                    <div className="text-left flex-1 min-w-0">
+                      <p className="font-semibold">{item.label}</p>
+                      <p className={`text-xs font-normal transition-colors ${
+                        active ? 'text-white/50' : 'text-white/30 group-hover:text-white/40'
+                      }`}>{item.desc}</p>
                     </div>
+                    
+                    {/* Hover indicator */}
+                    {!active && (
+                      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white/0 group-hover:bg-white/20 rounded-l transition-colors" />
+                    )}
                   </button>
                 );
               })}
             </div>
 
             {/* Quick Links */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 backdrop-blur-md">
-              <p className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-3">Quick Access</p>
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 backdrop-blur-md hover:bg-white/8 hover:border-white/15 transition-all">
+              <p className="text-xs font-bold text-white/50 uppercase tracking-widest mb-3 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-pink-400" />
+                Quick Access
+              </p>
               <div className="space-y-2">
                 {quickLinks.map((link) => {
                   const Icon = link.icon;
@@ -541,7 +590,7 @@ export default function AccountPage() {
                       href={link.href}
                       className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition-all group"
                     >
-                      <div className={`w-10 h-10 bg-gradient-to-br ${link.color} rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg`}>
+                      <div className={`w-10 h-10 bg-gradient-to-br ${link.color} rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all`}>
                         <Icon className="w-5 h-5 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -727,49 +776,69 @@ export default function AccountPage() {
                     </div>
                   </form>
                 ) : (
-                  <div className="p-6 space-y-3">
+                  <div className="p-6 space-y-4">
+                    {/* Name row */}
                     <div className="grid sm:grid-cols-2 gap-3">
-                      <div className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/8 transition-colors">
-                        <div className="flex items-center gap-2 mb-2">
-                          <User className="w-3.5 h-3.5 text-white/30" />
-                          <p className="text-xs font-semibold text-white/50 uppercase tracking-wider">First Name</p>
+                      {[
+                        { label: 'First Name', value: formData.firstName, icon: User },
+                        { label: 'Last Name',  value: formData.lastName,  icon: User },
+                      ].map(({ label, value, icon: Icon }) => (
+                        <div key={label} className="group bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/8 hover:border-white/20 transition-all">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Icon className="w-3.5 h-3.5 text-pink-400/60" />
+                            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{label}</p>
+                          </div>
+                          <p className="text-base text-white font-bold">
+                            {value || <span className="text-white/25 font-normal italic text-sm">Not set</span>}
+                          </p>
                         </div>
-                        <p className="text-base text-white font-semibold">{formData.firstName || <span className="text-white/30 font-normal">Not set</span>}</p>
-                      </div>
-                      <div className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/8 transition-colors">
-                        <div className="flex items-center gap-2 mb-2">
-                          <User className="w-3.5 h-3.5 text-white/30" />
-                          <p className="text-xs font-semibold text-white/50 uppercase tracking-wider">Last Name</p>
-                        </div>
-                        <p className="text-base text-white font-semibold">{formData.lastName || <span className="text-white/30 font-normal">Not set</span>}</p>
-                      </div>
+                      ))}
                     </div>
 
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/8 transition-colors">
+                    {/* Email */}
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/8 hover:border-white/20 transition-all">
                       <div className="flex items-center gap-2 mb-2">
-                        <Mail className="w-3.5 h-3.5 text-white/30" />
-                        <p className="text-xs font-semibold text-white/50 uppercase tracking-wider">Email Address</p>
+                        <Mail className="w-3.5 h-3.5 text-pink-400/60" />
+                        <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Email Address</p>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <p className="text-base text-white font-semibold">{formData.email || <span className="text-white/30 font-normal">Not set</span>}</p>
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <p className="text-base text-white font-bold">
+                          {formData.email || <span className="text-white/25 font-normal italic text-sm">Not set</span>}
+                        </p>
+                        <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">
                           <CheckCircle2 className="w-3 h-3" /> Verified
                         </span>
                       </div>
                     </div>
 
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/8 transition-colors">
+                    {/* Phone */}
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/8 hover:border-white/20 transition-all">
                       <div className="flex items-center gap-2 mb-2">
-                        <Phone className="w-3.5 h-3.5 text-white/30" />
-                        <p className="text-xs font-semibold text-white/50 uppercase tracking-wider">Phone Number</p>
+                        <Phone className="w-3.5 h-3.5 text-pink-400/60" />
+                        <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Phone Number</p>
                       </div>
-                      <p className="text-base text-white font-semibold">{formData.phone || <span className="text-white/30 font-normal">Not set</span>}</p>
+                      <p className="text-base text-white font-bold">
+                        {formData.phone || <span className="text-white/25 font-normal italic text-sm">Not set</span>}
+                      </p>
                     </div>
 
-                    <div className="pt-2">
+                    {/* Profile completion hint */}
+                    {profileCompletionPercentage < 100 && (
+                      <div className="flex items-start gap-3 p-3.5 bg-amber-500/8 border border-amber-500/20 rounded-xl">
+                        <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-xs font-bold text-amber-300">Complete your profile</p>
+                          <p className="text-xs text-amber-300/60 mt-0.5">
+                            {allFields.length - profileCompleteFields} field{allFields.length - profileCompleteFields > 1 ? 's' : ''} missing — click Edit to fill them in
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="pt-1">
                       <button
                         onClick={() => setIsEditMode(true)}
-                        className="inline-flex items-center gap-2 text-sm font-semibold text-pink-400 hover:text-pink-300 transition-colors"
+                        className="inline-flex items-center gap-2 text-sm font-bold text-pink-400 hover:text-pink-300 px-4 py-2 rounded-lg hover:bg-pink-500/10 transition-all"
                       >
                         <Edit className="w-3.5 h-3.5" /> Edit Information
                       </button>

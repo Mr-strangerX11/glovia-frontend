@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import io, { Socket } from 'socket.io-client';
 
 export type RealtimeEventCallback = (data: any) => void;
@@ -13,7 +13,8 @@ export interface UseRealtimeOptions {
 
 export function useRealtime(options: UseRealtimeOptions = {}) {
   const socketRef = useRef<Socket | null>(null);
-  const { 
+  const [isConnected, setIsConnected] = useState(false);
+  const {
     url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
     autoConnect = true,
     channels = [],
@@ -24,7 +25,7 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
     if (!autoConnect) return;
 
     if (!socketRef.current) {
-      socketRef.current = io(`${url}/realtime`, {
+      socketRef.current = io(url, {
         path: '/socket.io/',
         reconnection: true,
         reconnectionDelay: 1000,
@@ -33,8 +34,7 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
       });
 
       socketRef.current.on('connect', () => {
-        console.log('WebSocket connected:', socketRef.current?.id);
-        
+        setIsConnected(true);
         // Subscribe to initial channels
         if (channels.length > 0) {
           channels.forEach((channel) => {
@@ -44,18 +44,22 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
       });
 
       socketRef.current.on('disconnect', () => {
-        console.log('WebSocket disconnected');
+        setIsConnected(false);
       });
 
-      socketRef.current.on('connect_error', (error) => {
-        console.error('WebSocket connection error:', error);
+      socketRef.current.on('connect_error', () => {
+        setIsConnected(false);
       });
     }
 
     return () => {
-      // Don't disconnect on unmount to preserve connection across component renders
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+        setIsConnected(false);
+      }
     };
-  }, [url, autoConnect, channels]);
+  }, [url, autoConnect]); // channels intentionally omitted — subscriptions are managed via subscribe()
 
   // Subscribe to a channel
   const subscribe = useCallback((channel: string) => {
@@ -95,6 +99,6 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
     emit,
     getSocket,
     disconnect,
-    isConnected: socketRef.current?.connected ?? false,
+    isConnected,
   };
 }
