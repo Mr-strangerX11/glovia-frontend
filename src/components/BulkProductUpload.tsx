@@ -244,7 +244,7 @@ export default function BulkProductUpload({ onSubmit }: Props) {
           ...(existing?.imageUrls ? existing.imageUrls.split(",").map(s => s.trim()).filter(Boolean) : []),
           ...uploaded,
         ];
-        return { ...r, imageUrls: allUrls.join(",") };
+        return { ...r, imageUrls: allUrls.join(",") } as unknown as ParsedRow;
       }));
 
       // Revoke local preview object URLs
@@ -269,7 +269,7 @@ export default function BulkProductUpload({ onSubmit }: Props) {
       const remaining = r.imageUrls
         ? r.imageUrls.split(",").map(s => s.trim()).filter(u => u && u !== urlToRemove)
         : [];
-      return { ...r, imageUrls: remaining.join(",") };
+      return { ...r, imageUrls: remaining.join(",") } as unknown as ParsedRow;
     }));
   }, []);
 
