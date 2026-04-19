@@ -12,6 +12,23 @@ import toast from "react-hot-toast";
 import Link from "next/link";
 import ImageUploadField from "@/components/ImageUploadField";
 
+function Toggle({ name, checked, label, onToggle }: { name: string; checked: boolean; label: string; onToggle: (name: string) => void }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onToggle(name)}
+      className={`relative flex items-center justify-between w-full px-4 py-3 rounded-xl border transition-all ${
+        checked ? "bg-primary-50 border-primary-200" : "bg-gray-50 border-gray-200 hover:border-gray-300"
+      }`}
+    >
+      <span className={`text-sm font-medium ${checked ? "text-primary-700" : "text-gray-600"}`}>{label}</span>
+      <div className={`relative rounded-full transition-colors ${checked ? "bg-primary-500" : "bg-gray-300"}`} style={{ width: "40px", height: "22px" }}>
+        <span className="absolute top-0.5 left-0.5 bg-white rounded-full shadow transition-transform" style={{ width: "18px", height: "18px", transform: checked ? "translateX(18px)" : "translateX(0)" }} />
+      </div>
+    </button>
+  );
+}
+
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
@@ -250,23 +267,6 @@ export default function EditProductPage() {
       </div>
     );
   }
-
-  const Toggle = ({ name, checked, label }: { name: string; checked: boolean; label: string }) => {
-    return (
-      <button
-        type="button"
-        onClick={() => handleToggle(name)}
-        className={`relative flex items-center justify-between w-full px-4 py-3 rounded-xl border transition-all ${
-          checked ? "bg-primary-50 border-primary-200" : "bg-gray-50 border-gray-200 hover:border-gray-300"
-        }`}
-      >
-        <span className={`text-sm font-medium ${checked ? "text-primary-700" : "text-gray-600"}`}>{label}</span>
-        <div className={`relative w-10 h-5.5 rounded-full transition-colors ${checked ? "bg-primary-500" : "bg-gray-300"}`} style={{ height: "22px" }}>
-          <span className={`absolute top-0.5 left-0.5 w-4.5 h-4.5 bg-white rounded-full shadow transition-transform ${checked ? "translate-x-4.5" : ""}`} style={{ width: "18px", height: "18px", transform: checked ? "translateX(18px)" : "translateX(0)" }} />
-        </div>
-      </button>
-    );
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -563,10 +563,10 @@ export default function EditProductPage() {
                   <h2 className="text-sm font-bold text-gray-800">Product Status</h2>
                 </div>
                 <div className="p-5 space-y-2.5">
-                  <Toggle name="isActive" checked={!!formData.isActive} label="Active (visible in store)" />
-                  <Toggle name="isFeatured" checked={!!formData.isFeatured} label="Featured product" />
-                  <Toggle name="isBestSeller" checked={!!formData.isBestSeller} label="Best seller" />
-                  <Toggle name="isNew" checked={!!(formData.isNew || formData.isNewProduct)} label="New arrival" />
+                  <Toggle name="isActive" checked={!!formData.isActive} label="Active (visible in store)" onToggle={handleToggle} />
+                  <Toggle name="isFeatured" checked={!!formData.isFeatured} label="Featured product" onToggle={handleToggle} />
+                  <Toggle name="isBestSeller" checked={!!formData.isBestSeller} label="Best seller" onToggle={handleToggle} />
+                  <Toggle name="isNew" checked={!!(formData.isNew || formData.isNewProduct)} label="New arrival" onToggle={handleToggle} />
                 </div>
               </div>
 
