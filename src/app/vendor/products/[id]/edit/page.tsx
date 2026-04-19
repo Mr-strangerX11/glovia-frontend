@@ -155,7 +155,7 @@ export default function VendorEditProductPage() {
           const hasCurrent = list.some((subCat: any) => getCategoryId(subCat) === prev.subCategoryId);
           
           // If current subCategoryId is not in new list and it's not empty, reset it
-          if (!hasCurrent && prev.subCategoryId && prev.subCategoryId !== ALL_SUB_CATEGORIES) {
+          if (!hasCurrent && prev.subCategoryId && prev.subCategoryId !== '__ALL_SUB_CATEGORIES__') {
             return { ...prev, subCategoryId: '' };
           }
           
