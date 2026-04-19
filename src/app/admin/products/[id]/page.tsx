@@ -251,22 +251,22 @@ export default function EditProductPage() {
     );
   }
 
-  const Toggle = ({ name, checked, label }: { name: string; checked: boolean; label: string }) => (
-    <button
-      type="button"
-      onClick={() => handleToggle(name)}
-      className={`relative flex items-center justify-between w-full px-4 py-3 rounded-xl border transition-all ${
-        checked ? "bg-primary-50 border-primary-200" : "bg-gray-50 border-gray-200 hover:border-gray-300"
-      }`}
-    >
-      <span className={`text-sm font-medium ${checked ? "text-primary-700" : "text-gray-600"}`}>{label}</span>
-      <div className={`relative w-10 h-5.5 rounded-full transition-colors ${checked ? "bg-primary-500" : "bg-gray-300"}`}
-        style={{ height: "22px" }}>
-        <span className={`absolute top-0.5 left-0.5 w-4.5 h-4.5 bg-white rounded-full shadow transition-transform ${checked ? "translate-x-4.5" : ""}`}
-          style={{ width: "18px", height: "18px", transform: checked ? "translateX(18px)" : "translateX(0)" }} />
-      </div>
-    </button>
-  );
+  const Toggle = ({ name, checked, label }: { name: string; checked: boolean; label: string }) => {
+    return (
+      <button
+        type="button"
+        onClick={() => handleToggle(name)}
+        className={`relative flex items-center justify-between w-full px-4 py-3 rounded-xl border transition-all ${
+          checked ? "bg-primary-50 border-primary-200" : "bg-gray-50 border-gray-200 hover:border-gray-300"
+        }`}
+      >
+        <span className={`text-sm font-medium ${checked ? "text-primary-700" : "text-gray-600"}`}>{label}</span>
+        <div className={`relative w-10 h-5.5 rounded-full transition-colors ${checked ? "bg-primary-500" : "bg-gray-300"}`} style={{ height: "22px" }}>
+          <span className={`absolute top-0.5 left-0.5 w-4.5 h-4.5 bg-white rounded-full shadow transition-transform ${checked ? "translate-x-4.5" : ""}`} style={{ width: "18px", height: "18px", transform: checked ? "translateX(18px)" : "translateX(0)" }} />
+        </div>
+      </button>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
