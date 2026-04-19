@@ -518,7 +518,62 @@ export default function EditProductPage() {
                         min={0}
                         value={formData?.sizeValue || ''}
                         onChange={(e) => setFormData({ ...formData, sizeValue: e.target.value })}
-                        placeholder=\"e.g. 500\"\n                        className=\"flex-1 input text-sm\"\n                      />\n                      <select\n                        value={formData?.sizeUnit || ''}\n                        onChange={(e) => setFormData({ ...formData, sizeUnit: e.target.value })}\n                        className=\"input text-sm\"\n                      >\n                        <option value=\"\">Unit</option>\n                        {weightUnits.map((unit) => (\n                          <option key={unit} value={unit}>{unit}</option>\n                        ))}\n                      </select>\n                    </div>\n                  )}\n                  {formData?.sizeType === 'volume' && (\n                    <div className=\"flex gap-2\">\n                      <input\n                        type=\"number\"\n                        min={0}\n                        value={formData?.sizeValue || ''}\n                        onChange={(e) => setFormData({ ...formData, sizeValue: e.target.value })}\n                        placeholder=\"e.g. 100\"\n                        className=\"flex-1 input text-sm\"\n                      />\n                      <select\n                        value={formData?.sizeUnit || ''}\n                        onChange={(e) => setFormData({ ...formData, sizeUnit: e.target.value })}\n                        className=\"input text-sm\"\n                      >\n                        <option value=\"\">Unit</option>\n                        {volumeUnits.map((unit) => (\n                          <option key={unit} value={unit}>{unit}</option>\n                        ))}\n                      </select>\n                    </div>\n                  )}\n                  {!formData?.sizeType && (\n                    <input\n                      type=\"number\"\n                      value={formData?.quantityMl || 0}\n                      onChange={(e) => setFormData({ ...formData, quantityMl: parseFloat(e.target.value) })}\n                      className=\"input text-sm w-full\"\n                      min=\"0\"\n                      step=\"0.01\"\n                    />\n                  )}\n                  {formData?.sizeType && (\n                    <p className=\"mt-2 text-xs text-blue-600\">\n                      {formData?.sizeType === 'clothing' && 'Select clothing size'}\n                      {formData?.sizeType === 'weight' && 'Specify weight (e.g., 500G, 1KG)'}\n                      {formData?.sizeType === 'volume' && 'Specify volume (e.g., 100ML, 1L)'}\n                    </p>\n                  )}\n                </div>\n              </div>
+                        placeholder="e.g. 500"
+                        className="flex-1 input text-sm"
+                      />
+                      <select
+                        value={formData?.sizeUnit || ''}
+                        onChange={(e) => setFormData({ ...formData, sizeUnit: e.target.value })}
+                        className="input text-sm"
+                      >
+                        <option value="">Unit</option>
+                        {weightUnits.map((unit) => (
+                          <option key={unit} value={unit}>{unit}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  {formData?.sizeType === 'volume' && (
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        min={0}
+                        value={formData?.sizeValue || ''}
+                        onChange={(e) => setFormData({ ...formData, sizeValue: e.target.value })}
+                        placeholder="e.g. 100"
+                        className="flex-1 input text-sm"
+                      />
+                      <select
+                        value={formData?.sizeUnit || ''}
+                        onChange={(e) => setFormData({ ...formData, sizeUnit: e.target.value })}
+                        className="input text-sm"
+                      >
+                        <option value="">Unit</option>
+                        {volumeUnits.map((unit) => (
+                          <option key={unit} value={unit}>{unit}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  {!formData?.sizeType && (
+                    <input
+                      type="number"
+                      value={formData?.quantityMl || 0}
+                      onChange={(e) => setFormData({ ...formData, quantityMl: parseFloat(e.target.value) })}
+                      className="input text-sm w-full"
+                      min="0"
+                      step="0.01"
+                    />
+                  )}
+                  {formData?.sizeType && (
+                    <p className="mt-2 text-xs text-blue-600">
+                      {formData?.sizeType === 'clothing' && 'Select clothing size'}
+                      {formData?.sizeType === 'weight' && 'Specify weight (e.g., 500G, 1KG)'}
+                      {formData?.sizeType === 'volume' && 'Specify volume (e.g., 100ML, 1L)'}
+                    </p>
+                  )}
+                </div>
+              </div>
 
               {/* Additional Details */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
