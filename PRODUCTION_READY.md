@@ -10,8 +10,8 @@
 
 ### Deployment URLs
 - **Frontend:** https://glovia.com.np
-- **Backend API:** https://backend-glovia.vercel.app
-- **API Docs:** https://backend-glovia.vercel.app/api/docs (dev only)
+- **Backend API:** https://backend-glovia-rust.vercel.app
+- **API Docs:** https://backend-glovia-rust.vercel.app/api/docs (dev only)
 
 ### Test Results
 - **Total Tests:** 23
@@ -182,7 +182,7 @@ CLOUDINARY_API_SECRET=your-api-secret
 
 **Frontend (.env.local):**
 ```env
-NEXT_PUBLIC_API_URL=https://backend-glovia.vercel.app/api/v1
+NEXT_PUBLIC_API_URL=https://backend-glovia-rust.vercel.app/api/v1
 ```
 
 ---
@@ -299,7 +299,7 @@ This runs comprehensive tests covering:
 ## 📄 API DOCUMENTATION
 
 API documentation is available at:
-**https://backend-glovia.vercel.app/api/docs** (development only)
+**https://backend-glovia-rust.vercel.app/api/docs** (development only)
 
 Key endpoints:
 - `GET /products` - List products with filters

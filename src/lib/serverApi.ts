@@ -1,7 +1,7 @@
 import { cookies as nextCookies } from "next/headers";
 import axios from "axios";
 
-const rawApiBase = process.env.NEXT_PUBLIC_API_URL || "https://backend-glovia.vercel.app";
+const rawApiBase = process.env.NEXT_PUBLIC_API_URL || "https://backend-glovia-rust.vercel.app/api/v1";
 const normalizedApiBase = rawApiBase.startsWith("http") ? rawApiBase : `https://${rawApiBase}`;
 const API_BASE = normalizedApiBase.includes("/api/")
   ? normalizedApiBase.replace(/\/+$/, "")

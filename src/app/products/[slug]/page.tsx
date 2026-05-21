@@ -78,11 +78,11 @@ function normalizeImageUrl(url?: string) {
   if (!url) return "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800";
   if (url.startsWith("//")) return `https:${url}`;
   if (url.startsWith("/")) {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://backend-glovia.vercel.app/api/v1";
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://backend-glovia-rust.vercel.app/api/v1";
     const origin = apiBase.replace(/\/api\/v1\/?$/, "").replace(/\/+$/, "");
     return `${origin}${url}`;
   }
-  return url.replace("http://backend-glovia.vercel.app", "https://backend-glovia.vercel.app");
+  return url.replace("http://backend-glovia-rust.vercel.app", "https://backend-glovia-rust.vercel.app");
 }
 
 const DETAIL_TABS = ["Description", "Ingredients", "Benefits", "How to Use", "Reviews", "FAQ"] as const;

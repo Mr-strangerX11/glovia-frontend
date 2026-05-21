@@ -91,7 +91,7 @@ export function Header() {
     const fetchCategories = async () => {
       try {
         setCategoriesLoading(true);
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://backend-glovia.vercel.app';
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://backend-glovia-rust.vercel.app/api/v1';
         const response = await fetch(`${apiBase}/categories`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
