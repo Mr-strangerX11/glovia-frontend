@@ -11,11 +11,11 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'backend-glovia-rust.vercel.app',
+        hostname: 'backend-glovia-delta.vercel.app',
       },
       {
         protocol: 'http',
-        hostname: 'backend-glovia-rust.vercel.app',
+        hostname: 'backend-glovia-delta.vercel.app',
       },
       {
         protocol: 'https',
