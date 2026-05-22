@@ -1,9 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { getApiBaseUrl } from '@/lib/apiBase';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || '';
-    const healthUrl = backendUrl.replace(/\/$/, '') + '/health';
+    const backendUrl = getApiBaseUrl();
+    const healthUrl = `${backendUrl}/health`;
     const response = await fetch(healthUrl);
     if (response.ok) {
       res.status(200).json({ status: 'ok', backend: backendUrl });

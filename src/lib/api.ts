@@ -1,8 +1,9 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { getApiBaseUrl } from './apiBase';
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1',
+  baseURL: getApiBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
@@ -56,7 +57,7 @@ api.interceptors.response.use(
 
       isRefreshing = true;
       try {
-        const baseURL = api.defaults.baseURL || 'http://localhost:3001/api/v1';
+        const baseURL = api.defaults.baseURL || getApiBaseUrl();
         const { data } = await axios.post(
           `${baseURL}/auth/refresh`,
           { refreshToken, userId },
