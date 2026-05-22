@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getServerErrorSummary } from '@/lib/serverError';
+import { getServerApiBaseUrl } from '@/lib/apiBase';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+const API_URL = getServerApiBaseUrl();
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

@@ -18,6 +18,7 @@ import {
 import { useAuthStore } from "@/store/authStore";
 import { useWishlist } from "@/hooks/useData";
 import { GLOVIA_AI_SHORTCUTS, inferSmartTags } from "@/data/beautyCatalog";
+import { getApiBaseUrl } from "@/lib/apiBase";
 
 const Recommendations = dynamic(() => import('@/components/Recommendations'), {
   ssr: false,
@@ -78,7 +79,7 @@ function normalizeImageUrl(url?: string) {
   if (!url) return "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800";
   if (url.startsWith("//")) return `https:${url}`;
   if (url.startsWith("/")) {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://backend-glovia-delta.vercel.app/api/v1";
+    const apiBase = getApiBaseUrl();
     const origin = apiBase.replace(/\/api\/v1\/?$/, "").replace(/\/+$/, "");
     return `${origin}${url}`;
   }

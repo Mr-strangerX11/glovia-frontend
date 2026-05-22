@@ -80,7 +80,7 @@ export default function VendorsContent({ vendors: initialVendors }: { vendors: a
       try {
         setIsLoading(true);
         // Try to fetch from the vendors endpoint
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://backend-glovia-rust.vercel.app/api/v1';
+        const apiBase = '/api/v1';
         const response = await fetch(`${apiBase}/admin/vendors`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },

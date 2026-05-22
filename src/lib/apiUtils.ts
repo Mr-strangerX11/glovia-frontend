@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import Cookies from 'js-cookie';
 import { toast } from 'react-hot-toast';
-import { getApiBaseUrl } from './apiBase';
+import { getApiBaseUrl, getServerApiBaseUrl } from './apiBase';
 
 // Types for API responses
 export interface ApiError {
@@ -93,7 +93,7 @@ api.interceptors.response.use(
         }
 
         const { data } = await axios.post(
-          `${getApiBaseUrl()}/auth/refresh`,
+          `${typeof window !== 'undefined' ? getApiBaseUrl() : getServerApiBaseUrl()}/auth/refresh`,
           { refreshToken, userId }
         );
 

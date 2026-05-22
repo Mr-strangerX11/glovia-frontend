@@ -10,6 +10,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useCart } from '@/hooks/useData';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getApiBaseUrl } from '@/lib/apiBase';
 
 const DEFAULT_CATEGORIES = [
   {
@@ -91,7 +92,7 @@ export function Header() {
     const fetchCategories = async () => {
       try {
         setCategoriesLoading(true);
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://backend-glovia-delta.vercel.app/api/v1';
+        const apiBase = getApiBaseUrl();
         const response = await fetch(`${apiBase}/categories`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },

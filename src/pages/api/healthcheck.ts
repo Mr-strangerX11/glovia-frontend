@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getApiBaseUrl } from '@/lib/apiBase';
+import { getServerApiBaseUrl } from '@/lib/apiBase';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const backendUrl = getApiBaseUrl();
+    const backendUrl = getServerApiBaseUrl();
     const healthUrl = `${backendUrl}/health`;
     const response = await fetch(healthUrl);
     if (response.ok) {

@@ -53,6 +53,14 @@ const nextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/v1/:path*',
+        destination: 'https://backend-glovia-delta.vercel.app/api/v1/:path*',
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

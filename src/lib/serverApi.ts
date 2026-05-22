@@ -1,8 +1,8 @@
 import { cookies as nextCookies } from "next/headers";
 import axios from "axios";
-import { getApiBaseUrl } from './apiBase';
+import { getServerApiBaseUrl } from './apiBase';
 
-const API_BASE = getApiBaseUrl();
+const API_BASE = getServerApiBaseUrl();
 
 type ProductQuery = {
   category?: string;

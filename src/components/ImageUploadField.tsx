@@ -4,6 +4,7 @@ import { useState } from "react";
 import Cookies from "js-cookie";
 import { Upload, X, Image as ImageIcon } from "lucide-react";
 import toast from "react-hot-toast";
+import { getApiBaseUrl } from '@/lib/apiBase';
 
 interface ImageUploadFieldProps {
   onImagesChange: (urls: string[]) => void;
@@ -63,17 +64,7 @@ export default function ImageUploadField({
           }
 
           // Upload to backend API
-          const rawBackendUrl =
-            process.env.NEXT_PUBLIC_API_URL ||
-            process.env.NEXT_PUBLIC_API_URLS ||
-            "http://localhost:3001";
-          let backendUrl = rawBackendUrl.startsWith("http")
-            ? rawBackendUrl
-            : `https://${rawBackendUrl}`;
-          backendUrl = backendUrl.replace(/\/+$/, "");
-          if (!backendUrl.includes("/api/")) {
-            backendUrl = `${backendUrl}/api/v1`;
-          }
+          const backendUrl = getApiBaseUrl();
           const response = await fetch(`${backendUrl}/upload/image`, {
             method: "POST",
             headers: {
